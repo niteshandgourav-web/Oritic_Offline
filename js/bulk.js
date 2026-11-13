@@ -106,7 +106,7 @@ const ls={get:(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:v}cat
 Object.assign(S,{sel:new Set(),shf:'all',shHist:ls.get('oritic.shHist','1')==='1',svst:{},shList:[],
   cview:ls.get('oritic.cview',matchMedia('(min-width:900px)').matches?'grid':'list'),cgDirty:{},cgNew:[],cgSel:new Set(),cgErr:{},
   bp:[],bpErr:{},imp:null});
-const bpBlank=()=>({cid:'',q:'',amt:'',mode:'cash',date:todayISO(),note:''});
+const bpBlank=()=>({cid:'',q:'',amt:'',mode:'cash',via:'',date:todayISO(),note:''});
 for(let i=0;i<5;i++)S.bp.push(bpBlank());
 
 const _nav=nav;
@@ -353,7 +353,7 @@ function vCustGrid(){const {list,pos,total,act}=cgList();const cols=CGCOLS();
   const allOn=ids.length&&ids.every(id=>S.cgSel.has(id));
   const head=[`<input type="checkbox" data-cgall ${allOn?'checked':''} aria-label="Sab chuno">`,'#',...cols.map(c=>c.l),'Baki','Bottles',''];
   const row=(id,isNew,c)=>`<tr data-row="${id}" class="${isNew?'newr':''} ${S.cgSel.has(id)?'sel':''}"><td class="s1"><input type="checkbox" data-cgsel="${id}" ${S.cgSel.has(id)?'checked':''} aria-label="Chuno"></td>
-     <td class="pos s2">${isNew?'naya':pos[id]||''}</td>${cols.map((col,ci)=>cgCell(id,col,ci)).join('')}
+     <td class="pos s2">${isNew?'naya':`<button class="acopen" data-act="openCustomer" data-id="${id}" title="Poora account kholo">${pos[id]||''} ↗</button>`}</td>${cols.map((col,ci)=>cgCell(id,col,ci)).join('')}
      ${isNew?'<td class="ro">–</td><td class="ro">–</td><td class="acts"><button class="btn xs o" data-act="cgDrop" data-id="'+id+'">Hatao</button></td>':(()=>{const bal=balanceUpto(c,null);return `<td class="ro" style="color:${bal>0.5?'var(--danger)':'inherit'};font-weight:700">${inr(bal)}</td><td class="ro">${bottleBal(c)}</td>
        <td class="acts"><button class="btn xs o" data-act="openCustomer" data-id="${id}">Profile</button> <button class="btn xs o" data-act="openBill" data-id="${id}">Bill</button> <button class="btn xs o" data-act="addPayment" data-id="${id}">₹</button></td>`})()}</tr>`;
   let body='';if(S.cgNew.length)body+=`<tr class="grp"><td colspan="${NC}"><b>Naye customers (save hone baaki)</b></td></tr>`+S.cgNew.map(x=>row(x.id,true,x)).join('');
@@ -543,13 +543,14 @@ function bpRowHtml(r,i){const c=r.cid&&S.customers[r.cid];const e=S.bpErr[i]||{}
    <td class="${e.c?'err':''}"><input data-bp="${i}" data-f="q" value="${esc(c?c.name:r.q)}" placeholder="Naam / phone likho" autocomplete="off"></td>
    <td class="bal" id="bpb_${i}">${c?bpBal(c)+`<div class="small muted">${esc(c.area||'')} · ${esc(c.boy||'')}</div>`:''}</td>
    <td class="${e.a?'err':''}"><input data-bp="${i}" data-f="amt" type="number" inputmode="decimal" min="0" value="${esc(r.amt)}" placeholder="₹"></td>
-   <td><select data-bp="${i}" data-f="mode"><option value="cash" ${r.mode==='cash'?'selected':''}>Cash</option><option value="online" ${r.mode!=='cash'?'selected':''}>Online / UPI</option></select></td>
+   <td><select data-bp="${i}" data-f="mode"><option value="cash" ${r.mode==='cash'?'selected':''}>Cash</option><option value="online" ${r.mode!=='cash'?'selected':''}>UPI / QR</option></select></td>
+   <td><select data-bp="${i}" data-f="via">${window.rcvOpts?rcvOpts(r.via):''}</select></td>
    <td><input data-bp="${i}" data-f="date" type="date" max="${todayISO()}" value="${esc(r.date)}"></td>
    <td><input data-bp="${i}" data-f="note" value="${esc(r.note)}" placeholder="optional"></td>
    <td><button class="btn xs o" data-act="bpDel" data-i="${i}" aria-label="Line hatao">×</button></td></tr>`}
 function bpTot(){const v=S.bp.filter(r=>r.cid&&+r.amt>0);const cash=sum(v.filter(r=>r.mode==='cash'),r=>r.amt),on=sum(v.filter(r=>r.mode!=='cash'),r=>r.amt);return `<b>${v.length}</b> payments · Cash <b>${inr(cash)}</b> · Online <b>${inr(on)}</b> · Total <b>${inr(cash+on)}</b>`}
 function bpCard(){return `<details class="card" ${ls.get('oritic.bpOpen','1')==='1'?'open':''} data-bpcard><summary class="row sp wrap"><h3>Bulk payment entry</h3><span class="small muted">Kai payments ek saath · Naam likho → <span class="kbd">Enter</span> → amount → <span class="kbd">Enter</span> agli line · <span class="kbd">Ctrl</span>+<span class="kbd">S</span> save</span></summary>
-  <div class="scroll" style="margin-top:8px"><table class="bpt"><thead><tr><th>#</th><th style="min-width:220px">Customer</th><th>Baki</th><th style="width:110px">Amount ₹</th><th style="width:130px">Mode</th><th style="width:150px">Date</th><th>Note</th><th></th></tr></thead><tbody id="bpBody">${S.bp.map(bpRowHtml).join('')}</tbody></table></div>
+  <div class="scroll" style="margin-top:8px"><table class="bpt"><thead><tr><th>#</th><th style="min-width:220px">Customer</th><th>Baki</th><th style="width:110px">Amount ₹</th><th style="width:130px">Mode</th><th style="width:140px">Kisne liya</th><th style="width:150px">Date</th><th>Note</th><th></th></tr></thead><tbody id="bpBody">${S.bp.map(bpRowHtml).join('')}</tbody></table></div>
   <div class="row sp wrap" style="margin-top:10px"><div class="small" id="bpTot">${bpTot()}</div><div class="row"><button class="btn sm o" data-act="bpAdd">+ 5 line</button><button class="btn sm o" data-act="bpClear">Saaf karo</button><button class="btn p" data-act="bpSave">Sab save karo</button></div></div></details>`}
 document.addEventListener('toggle',e=>{if(e.target.dataset&&'bpcard' in e.target.dataset)ls.set('oritic.bpOpen',e.target.open?'1':'0')},true);
 const _vPay=vPayments;
@@ -560,7 +561,7 @@ document.addEventListener('input',e=>{const el=e.target;if(!el.dataset||el.datas
   if(f==='q'){r.q=el.value;if(r.cid&&S.customers[r.cid]&&S.customers[r.cid].name!==el.value){r.cid='';const b=$('#bpb_'+i);if(b)b.innerHTML=''}
     acShow(el,custMatches(el.value).map(c=>({c,h:esc(c.name),r:esc((c.area||'')+' · '+(c.boy||'')+' · baki '+inr(balanceUpto(c,null)))})),it=>bpPick(i,it.c))}
   else r[f]=el.value;const t=$('#bpTot');if(t)t.innerHTML=bpTot()});
-document.addEventListener('change',e=>{const el=e.target;if(el.dataset&&el.dataset.bp!=null&&el.tagName==='SELECT'){S.bp[+el.dataset.bp].mode=el.value;const t=$('#bpTot');if(t)t.innerHTML=bpTot()}});
+document.addEventListener('change',e=>{const el=e.target;if(el.dataset&&el.dataset.bp!=null&&el.tagName==='SELECT'){S.bp[+el.dataset.bp][el.dataset.f]=el.value;const t=$('#bpTot');if(t)t.innerHTML=bpTot()}});
 document.addEventListener('keydown',e=>{const el=e.target;
   if(acState&&el===acState.inp){const p=$('#acpop');const bs=p?[...p.querySelectorAll('[data-aci]')]:[];
     if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();acState.i=Math.max(0,Math.min(bs.length-1,acState.i+(e.key==='ArrowDown'?1:-1)));bs.forEach((b,j)=>b.classList.toggle('on',j===acState.i));if(bs[acState.i])bs[acState.i].scrollIntoView({block:'nearest'});return}
@@ -578,9 +579,9 @@ Object.assign(A,{
     if(bad){render();return toast(bad+' line me customer ya amount sahi nahi (laal)')}
     const v=S.bp.filter(r=>r.cid&&+r.amt>0);if(!v.length)return toast('Koi payment nahi likha');
     const tot=sum(v,r=>r.amt);
-    const ok=await confirmBox({title:`${v.length} payments · ${inr(tot)} save karein?`,html:v.slice(0,20).map(r=>`<div class="chg"><b>${esc(S.customers[r.cid].name)}</b> · ${inr(+r.amt)} · ${r.mode==='cash'?'Cash':'Online'} · ${fmtShort(r.date||todayISO())}${r.note?' · '+esc(r.note):''}</div>`).join('')+(v.length>20?`<div class="small muted">+ ${v.length-20} aur</div>`:''),yes:'Haan, save'});if(!ok)return;
+    const ok=await confirmBox({title:`${v.length} payments · ${inr(tot)} save karein?`,html:v.slice(0,20).map(r=>`<div class="chg"><b>${esc(S.customers[r.cid].name)}</b> · ${inr(+r.amt)} · ${r.mode==='cash'?'Cash':'UPI'} · ${esc(rcvLabel(r.via||(isOwner()?'Owner':S.me)))} · ${fmtShort(r.date||todayISO())}${r.note?' · '+esc(r.note):''}</div>`).join('')+(v.length>20?`<div class="small muted">+ ${v.length-20} aur</div>`:''),yes:'Haan, save'});if(!ok)return;
     S.bp=[];for(let k=0;k<5;k++)S.bp.push(bpBlank());
-    for(const r of v)await savePayment({id:uid(),cid:r.cid,amt:+r.amt,mode:r.mode,date:r.date||todayISO(),note:String(r.note||'').trim(),by:S.me||'',t:Date.now(),proof:false});
+    for(const r of v)await savePayment({id:uid(),cid:r.cid,amt:+r.amt,mode:r.mode,date:r.date||todayISO(),note:String(r.note||'').trim(),by:S.me||'',via:r.via||(isOwner()?'Owner':S.me)||'',t:Date.now(),proof:false});
     render();toast(v.length+' payments save · '+inr(tot))}
 });
 
@@ -616,6 +617,7 @@ vSettings=function(){const o=_vSet();if(!isOwner())return o;const rt=settings().
      <div class="field"><label class="f">"Aaj ki date" kab badle</label><select class="input" id="st2Cut">${Array.from({length:13},(_,h)=>`<option value="${h}" ${h===ch?'selected':''}>${h===0?'Raat 12 baje (normal)':'Subah '+h+' baje ke baad'}</option>`).join('')}</select><div class="small muted" style="margin-top:4px">Is time ke baad Delivery sheet agli date pe khulti hai.</div></div>
      <div class="field"><label class="f">Paneer rate (₹ / kg)</label><input class="input" id="st2Pn" type="number" inputmode="decimal" value="${esc(rt.paneer??'')}" placeholder="e.g. 420"></div>
      <div class="field"><label class="f">Ghee rate (₹ / kg)</label><input class="input" id="st2Gh" type="number" inputmode="decimal" value="${esc(rt.ghee??'')}" placeholder="e.g. 680"></div></div>
+     <div class="field" style="margin-top:8px"><label class="f">Office staff (payment kisne liya, comma se alag)</label><input class="input" id="st2Staff" value="${esc((settings().staff||[]).join(', '))}" placeholder="e.g. Neeraj, Manager"></div>
      <button class="btn p" style="margin-top:10px" data-act="st2Save">Save</button></div>
    <div class="card"><h3>Database</h3><div class="small" style="margin:6px 0 10px">${window.ORITIC_MODE==='local'?`<b>Local mode</b>: data sirf is browser me hai (${lc?Object.entries(lc).map(([k,v])=>v+' '+k).join(' · ')||'khaali':''}). Doosre phone/PC ko nahi dikhega.`:`<b>Firebase mode</b>: project <code>${esc((window.FIREBASE_CONFIG||{}).projectId||'')}</code>. Sab phones ko live dikhta hai.`}</div>
      <div class="row wrap"><button class="btn o" data-act="backupAll">Pura backup (sab data)</button><label class="btn o" style="cursor:pointer">Backup se wapas laao<input type="file" accept=".json,application/json" data-restore hidden></label><button class="btn o" data-act="auditView">Pichli date ke badlav (record)</button>
@@ -625,14 +627,15 @@ vSettings=function(){const o=_vSet();if(!isOwner())return o;const rt=settings().
 async function collAll(name){if(!S.db)return {};const s=await S.db.collection(name).get();const m={};s.docs.forEach(d=>m[d.id]=d.data());return m}
 document.addEventListener('change',async e=>{const el=e.target;if(!el.dataset||!('restore' in el.dataset))return;const f=el.files[0];el.value='';if(!f)return;
   let j;try{j=JSON.parse(await f.text())}catch(_){return toast('Ye JSON backup file nahi hai')}
-  const cols=['customers','days','payments','purchases','kms','audit'].filter(k=>j[k]&&typeof j[k]==='object');const n=cols.reduce((a,k)=>a+Object.keys(j[k]).length,0)+(j.settings?1:0);if(!n)return toast('Backup me kuch nahi mila');
+  const cols=['customers','days','payments','purchases','kms','adjust','audit'].filter(k=>j[k]&&typeof j[k]==='object');const n=cols.reduce((a,k)=>a+Object.keys(j[k]).length,0)+(j.settings?1:0);if(!n)return toast('Backup me kuch nahi mila');
   const ok=await confirmBox({title:'Backup se data wapas laayein?',html:`${cols.map(k=>Object.keys(j[k]).length+' '+k).join(' · ')}${j.settings?' · settings':''}<div class="small" style="color:var(--danger);margin-top:8px">${window.ORITIC_MODE==='local'?'Is browser ke data me':'<b>Firebase database</b> me'} same ID wali entries is file se badal jayengi. Pehle abhi ka backup le lo.</div>`,yes:'Haan, wapas laao',danger:window.ORITIC_MODE!=='local'});if(!ok)return;
   try{const W=[];if(j.settings)W.push(['settings/main',j.settings]);cols.forEach(k=>Object.entries(j[k]).forEach(([id,v])=>{const b={...v};delete b.id;W.push([k+'/'+id,b])}));
     for(let i=0;i<W.length;i+=400){const b=S.db.batch();W.slice(i,i+400).forEach(([p,v])=>b.set(S.db.doc(p),v));await b.commit()}toast(W.length+' entries wapas aa gayi');if(window.ORITIC_MODE==='local')setTimeout(()=>location.reload(),800)}catch(err){toast('Restore fail: '+(err&&err.message||err))}});
 Object.assign(A,{
   st2Save(){if(!isOwner())return;const cut=+$('#st2Cut').value;const pn=$('#st2Pn').value,gh=$('#st2Gh').value;
-    saveSettings({...settings(),dayCutoff:cut,rates:{...(settings().rates||{}),paneer:+pn||0,ghee:+gh||0}}).then(()=>toast('Saved'))},
-  async backupAll(){const data={exportedAt:new Date().toISOString(),mode:window.ORITIC_MODE,customers:S.customers,days:S.days,payments:S.payments,settings:S.settings,purchases:S.purchases,kms:S.kms,audit:await collAll('audit').catch(()=>({}))};
+    const staffL=($('#st2Staff')||{value:''}).value.split(',').map(s=>s.trim()).filter(Boolean);
+    saveSettings({...settings(),staff:staffL,dayCutoff:cut,rates:{...(settings().rates||{}),paneer:+pn||0,ghee:+gh||0}}).then(()=>toast('Saved'))},
+  async backupAll(){const data={exportedAt:new Date().toISOString(),mode:window.ORITIC_MODE,customers:S.customers,days:S.days,payments:S.payments,settings:S.settings,purchases:S.purchases,kms:S.kms,adjust:S.adjust||{},audit:await collAll('audit').catch(()=>({}))};
     saveFile(`oritic-full-backup-${todayISO()}.json`,new Blob([JSON.stringify(data)],{type:'application/json'}))},
   async auditView(){openSheet('Pichli date ke badlav','<div class="empty">Load ho raha hai…</div>');let m;try{m=await collAll('audit')}catch(e){$('#shBody').innerHTML='<div class="empty">Load nahi hua</div>';return}
     const list=Object.values(m).sort((a,b)=>(b.t||0)-(a.t||0)).slice(0,300);

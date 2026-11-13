@@ -11,6 +11,7 @@ Full list of what is kept and what is new: [docs/FEATURES.md](docs/FEATURES.md)
 |---|---|
 | `index.html` | The reference panel (all pages, boy screens, login) with bug fixes |
 | `js/bulk.js` | New office tools: Delivery sheet, Customers grid, Excel import, bulk payments, WhatsApp queue, Ctrl+K, shortcuts |
+| `js/account.js` | Customer account window: khata ledger, products, rates + history, payments by receiver, adjustments, bottles, calendar |
 | `js/local-store.js` | Browser database for local / offline mode (works like Firestore) |
 | `firebase-config.js` | Choose `local` or `firebase` mode and paste the Firebase config |
 | `sw.js`, `manifest.webmanifest`, `icon-*.png` | Phone app (Add to Home screen) and offline cache |
@@ -34,7 +35,7 @@ Demo boys: Sunil `1111`, Anil `2222`, Nitu `3333`.
 4. In `firebase-config.js`: paste the config and set `window.ORITIC_MODE = 'firebase'`
 5. Test everything. Only then use the live project's config.
 
-New collection used by v2: `audit` (record of past-date changes). If your Firestore rules list collections one by one, allow `audit` too.
+New collections used by v2: `audit` (record of past-date changes) and `adjust` (discount / charge / write-off). If your Firestore rules list collections one by one, allow both.
 
 Same data structure as the live panel (`customers`, `days`, `payments`, `settings/main`, `purchases`, `kms`, `odo`, `proofs`), so v2 can open the live data directly when you are ready.
 
@@ -48,6 +49,7 @@ Drag this folder onto https://app.netlify.com/drop, or connect this GitHub repo 
 - Type quantities, `Enter` = next customer, `Ctrl+Enter` = confirm row, `[` `]` = change date.
 - Tick boxes on many rows → bar at the bottom → Confirm / ✓ Diya / Skip / quantity / product / comment.
 - Past date edits always ask first and are recorded (Settings → Pichli date ke badlav).
+- **Customer account**: click the row number ↗ (or any customer anywhere) → khata, rates, payments, bottles, calendar. Discount = "Rate badlo / Discount" (from any date) or "Adjustment".
 - **Customers → Grid**: edit like Excel, paste from Excel, `Ctrl+S` save. **Excel import** for new customers.
 - **Payments → Bulk payment entry** for many payments at once.
 - **Bills → WhatsApp queue** to send all bills one after another.

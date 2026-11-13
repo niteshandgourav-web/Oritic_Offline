@@ -41,6 +41,24 @@ Every feature of the reference is still in v2. "Same" means the original code ru
 | Keyboard shortcuts | `?` list · `/` search · `g d/c/p/b/h/s` pages · `p` payment · `n` naya customer · Ctrl+Enter confirm row. |
 | **Local / offline mode** | `firebase-config.js` → `ORITIC_MODE='local'`: complete panel works with data saved in this browser only (IndexedDB). For safe testing and demo; "Demo data daalo" fills 30 sample customers. |
 
+## Customer account window (khata)
+
+Owner clicks any customer (grid row number ↗, list, Ctrl+K, bills, delivery sheet "Poori profile") → a large window opens on the right. `←` `→` = previous / next customer, `p` = payment, `Esc` = close, reload keeps it open (`#customers/<id>`). Boys still see the simple profile.
+
+| Part | What it shows / does |
+|---|---|
+| Header | Phone (call / WhatsApp / copy), address, boy, schedule, since. Kul baki, this month's bill, last payment (mode + who received), bottles out (½L / 1L), current rates with discount marker (e.g. Buffalo ₹75 −5), daily order. Buttons: Payment lo, Rate badlo / Discount, Adjustment, Bill bhejo (WhatsApp), Statement Excel, Print, Edit, Pause |
+| Khata | Accounting ledger for a month / 1–15 / 16–end / sab / custom: opening balance, every delivery with qty × rate, skip days, payments (mode + receiver), discounts, charges, rate-change lines, running balance, closing. Closing = Bills page baki |
+| Products | Per product: days, qty, avg rate, amount for the period; last 6 months (litres, days, bill, paid, month-end baki) |
+| Rates | Customer rate vs default for Cow / Buffalo / Gir / Chaach / Paneer / Ghee, "kab se / kyun". New rate from any date with reason (Discount, Rate badha, Special rate, Galti sudhaar). Future-dated rates apply on that day. Back-dated: asks whether to re-bill delivered days; re-billed days go into the past-date record. Full rate history |
+| Payments | All payments with mode (Cash / UPI), who received it (Owner / Office, office staff, boys), screenshot, delete; totals by mode and by receiver. Adjustments list |
+| Adjustments | One-time discount, extra charge (bottle toota, late fee), write-off (baki band, optional pause). Change baki and bill text, not counted as cash / UPI collection |
+| Bottles | Balance by size and a dated movement log (given, returned, manual fixes) with "Bottle sudhaar" |
+| Delivery calendar | Month grid: delivered (qty, ₹), skip, pending, planned / expected; standing order, schedule, pause |
+| Comments & profile | Profile details, map, fix comment, full comment history |
+
+Settings → Office tools has the **Office staff** list (used in "Kisne liya"). Payment form and bulk payment entry record the receiver. This is the base for boy / staff cash accounts (next phase).
+
 ## Bugs from the test report fixed in the code
 
 | ID | Bug | Fix |

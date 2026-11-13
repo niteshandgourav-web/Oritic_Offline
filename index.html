@@ -385,9 +385,10 @@ const settings=()=>S.settings||{};
 const boys=()=>{const b=settings().boys;if(Array.isArray(b)&&b.length)return b;const set=new Set();Object.values(S.customers).forEach(c=>c.boy&&set.add(c.boy));return [...set].sort()};
 const extrasPresets=()=>Array.isArray(settings().extras)?settings().extras:[];
 const defRates=()=>({...DEF_RATES,...(settings().rates||{})});
-const ratesOf=c=>({...defRates(),...(c.rates||{})});
+/* rateNow (js/account.js): customer ki rate history me se aaj lagu rate */
+const ratesOf=c=>({...defRates(),...(c.rates||{}),...(window.rateNow?rateNow(c):{})});
 /* fix R-2: Paneer / Ghee ka rate ₹/kg: customer → Settings → Product master ("Paneer" / "Ghee"). Pehle ₹0 jata tha */
-const kgRate=(c,k)=>{const cr=+(c&&c.rates&&c.rates[k]);if(cr)return cr;const sr=+((settings().rates||{})[k]);if(sr)return sr;const p=findProd(k==='ghee'?'Ghee':'Paneer');return p?(+p.a||0):0};
+const kgRate=(c,k)=>{const cr=+((c?ratesOf(c):defRates())[k]);if(cr)return cr;const p=findProd(k==='ghee'?'Ghee':'Paneer');return p?(+p.a||0):0};
 const orderOf=c=>{const o={cow:0,buffalo:0,desi:0,chaach:0};PRODUCTS.forEach(p=>o[p.k]=+(c.order&&c.order[p.k])||0);return o};
 const qtyText=q=>PRODUCTS.filter(p=>+q[p.k]>0).map(p=>L(q[p.k])+'L '+p.sh).join(' + ')||'—';
 const extrasText=x=>(x||[]).map(e=>e.n+(e.a?' '+inr(e.a):'')).join(', ');
@@ -452,6 +453,9 @@ function todaysList(date,boy){
 function periodRange(month,period){const n=dim(month);if(period==='h1')return [month+'-01',month+'-15'];if(period==='h2')return [month+'-16',month+'-'+String(n).padStart(2,'0')];return [month+'-01',month+'-'+String(n).padStart(2,'0')]}
 function deliveredRows(cid,from,to){const out=[];for(const d in S.days){if(from&&d<from||to&&d>to)continue;const r=S.days[d].rows&&S.days[d].rows[cid];if(r&&r.s==='d')out.push({date:d,...r})}return out.sort((a,b)=>a.date<b.date?-1:1)}
 function paymentsOf(cid,from,to){return Object.values(S.payments).filter(p=>p.cid===cid&&(!from||p.date>=from)&&(!to||p.date<=to)).sort((a,b)=>a.date<b.date?-1:1)}
+/* adjustments: discount / extra charge / write-off (collection "adjust"). Charge baki badhata hai, baaki ghatate hain */
+function adjOf(cid,from,to){return Object.values(S.adjust||{}).filter(a=>a.cid===cid&&(!from||a.date>=from)&&(!to||a.date<=to)).sort((a,b)=>a.date<b.date?-1:1)}
+const adjNet=a=>a.type==='charge'?(+a.amt||0):-(+a.amt||0);
 function mapOf(c){
   const m=String(c.map||'').trim();
   if(/^https?:\/\//i.test(m))return {url:m,exact:true};
@@ -462,7 +466,7 @@ function mapBtn(c,cls){const m=mapOf(c);if(!m)return `<span class="mapbtn none $
   return `<a class="mapbtn ${m.exact?'':'approx'} ${cls||''}" href="${esc(m.url)}" target="_blank" rel="noopener" title="${m.exact?'Google Maps me kholo':'Exact link nahi — address se search'}" aria-label="Map">${ICONS.pin}</a>`}
 const sum=(arr,f)=>arr.reduce((t,x)=>t+(+f(x)||0),0);
 function balanceUpto(c,upto){ // opening + delivered amounts − payments, up to date inclusive (null = all)
-  return (+c.openingDue||0)+sum(deliveredRows(c.id,null,upto),r=>r.a)-sum(paymentsOf(c.id,null,upto),p=>p.amt)}
+  return (+c.openingDue||0)+sum(deliveredRows(c.id,null,upto),r=>r.a)-sum(paymentsOf(c.id,null,upto),p=>p.amt)+sum(adjOf(c.id,null,upto),adjNet)}
 function billFor(c,month,period){
   const [from,to]=periodRange(month,period);
   const rows=deliveredRows(c.id,from,to);
@@ -472,7 +476,8 @@ function billFor(c,month,period){
   const amount=sum(rows,r=>r.a);
   const paid=sum(pays,p=>p.amt);
   const prev=balanceUpto(c,addDays(from,-1));
-  return {c,from,to,rows,pays,lines,extras,amount,paid,prev,closing:prev+amount-paid}}
+  const adj=adjOf(c.id,from,to),adjAmt=sum(adj,adjNet);
+  return {c,from,to,rows,pays,lines,extras,amount,paid,prev,adj,adjAmt,closing:prev+amount+adjAmt-paid}}
 function billText(b){
   const c=b.c;const per=fmtShort(b.from)+' – '+fmtShort(b.to)+' '+b.from.slice(0,4);
   const st=settings();const co=st.company||'Oritic';
@@ -481,6 +486,7 @@ function billText(b){
   if(b.extras)t+=`Paneer / dahi / other: ${inr(b.extras)}\n`;
   t+=`Delivery days: ${b.rows.length}\n----------------\nIs period ka bill: ${inr(b.amount)}\n`;
   if(Math.abs(b.prev)>0.5)t+=`Pichla baki: ${inr(b.prev)}\n`;
+  (b.adj||[]).forEach(a=>{t+=(a.type==='charge'?'Extra charge':a.type==='writeoff'?'Write-off':'Discount')+`: ${a.type==='charge'?'+':'−'}${inr(a.amt)}`+(a.note?` (${a.note})`:'')+'\n'});
   if(b.paid)t+=`Jama (paid): ${inr(b.paid)}\n`;
   t+=`*Kul baki: ${inr(b.closing)}*\n`;
   if(st.upi)t+=`\nUPI: ${st.upi}`;
@@ -493,7 +499,9 @@ function queue(k,fn){Q[k]=(Q[k]||Promise.resolve()).then(fn).catch(e=>{console.e
 async function writeRows(date,rows){ // rows: {cid: row}
   if(!canWrite()){toast('Aapko write permission nahi hai');return}
   const d=S.days[date]||(S.days[date]={date,rows:{}});
-  for(const cid in rows){const prev=d.rows[cid];if(prev&&prev.br!=null&&rows[cid].br==null){rows[cid].br=prev.br;if(prev.brS!=null)rows[cid].brS=prev.brS;if(prev.brB!=null)rows[cid].brB=prev.brB}}
+  for(const cid in rows){const prev=d.rows[cid];if(prev&&prev.br!=null&&rows[cid].br==null){rows[cid].br=prev.br;if(prev.brS!=null)rows[cid].brS=prev.brS;if(prev.brB!=null)rows[cid].brB=prev.brB}
+    /* rate history ho to us din ka rate lagao (js/account.js) */
+    if(window.priceRow)priceRow(S.customers[cid],date,rows[cid])}
   Object.assign(d.rows,rows);render();
   const FP=firebase.firestore.FieldPath;
   /* fix R-1: mergeFields se har customer ki row poori replace hoti hai. Pehle merge:true purane pl/qty fields chhod deta tha, isliye tick hatane pe tick wapas aa jata tha */
@@ -706,7 +714,7 @@ function vCustomers(){
 /* ---- Bills ---- */
 function vBills(){
   const q=S.bq.trim().toLowerCase();
-  const bills=Object.values(S.customers).filter(c=>(S.bboy==='all'||c.boy===S.bboy)&&(!q||(c.name+' '+c.phone+' '+(c.area||'')).toLowerCase().includes(q))).map(c=>billFor(c,S.month,S.period)).filter(b=>b.rows.length||Math.abs(b.closing)>0.5||b.paid);
+  const bills=Object.values(S.customers).filter(c=>(S.bboy==='all'||c.boy===S.bboy)&&(!q||(c.name+' '+c.phone+' '+(c.area||'')).toLowerCase().includes(q))).map(c=>billFor(c,S.month,S.period)).filter(b=>b.rows.length||Math.abs(b.closing)>0.5||b.paid||b.adj.length);
   bills.sort((a,b)=>b.closing-a.closing);
   const T={amount:sum(bills,b=>b.amount),paid:sum(bills,b=>b.paid),closing:sum(bills,b=>b.closing)};
   const html=`
@@ -744,7 +752,7 @@ function vPayments(){
       <div class="card stat"><div class="l">Cash</div><div class="v">${inr(cash)}</div></div>
       <div class="card stat"><div class="l">Online / UPI</div><div class="v">${inr(online)}</div></div>
     </div>
-    <div class="list">${list.map(p=>{const c=S.customers[p.cid];return `<div class="item"><div class="grow"><div class="t">${esc(c?c.name:'(deleted customer)')}</div><div class="s">${fmtDate(p.date)} · ${p.mode==='cash'?'Cash':'Online'}${p.by?' · '+esc(p.by):''}${p.note?' · '+esc(p.note):''}</div>${p.proof?`<button class="btn xs o" style="margin-top:4px" data-act="viewProof" data-id="${p.id}">${ICONS.cam} Screenshot</button>`:''}</div><div class="r"><b>${inr(p.amt)}</b>${isOwner()?`<div><button class="btn xs" data-act="delPayment" data-id="${p.id}">Delete</button></div>`:`<div class="small muted">${esc(p.by||'')}</div>`}</div></div>`}).join('')||emptyBox('Is mahine koi payment nahi')}</div>
+    <div class="list">${list.map(p=>{const c=S.customers[p.cid];return `<div class="item"><div class="grow"><div class="t">${esc(c?c.name:'(deleted customer)')}</div><div class="s">${fmtDate(p.date)} · ${p.mode==='cash'?'Cash':'UPI'}${(p.via||p.by)?' · '+esc((p.via||p.by)==='Owner'?'Owner / Office':(p.via||p.by)):''}${p.note?' · '+esc(p.note):''}</div>${p.proof?`<button class="btn xs o" style="margin-top:4px" data-act="viewProof" data-id="${p.id}">${ICONS.cam} Screenshot</button>`:''}</div><div class="r"><b>${inr(p.amt)}</b>${isOwner()?`<div><button class="btn xs" data-act="delPayment" data-id="${p.id}">Delete</button></div>`:`<div class="small muted">${esc(p.by||'')}</div>`}</div></div>`}).join('')||emptyBox('Is mahine koi payment nahi')}</div>
   </div>`;
   return {html}}
 
@@ -929,7 +937,8 @@ function sheetPayment(cid){
         <div class="field"><label class="f">Amount (₹) *</label><input class="input" id="payAmt" type="number" inputmode="decimal" placeholder="${c&&balanceUpto(c,null)>0?'Baki '+inr(balanceUpto(c,null)):'0'}" value=""><div id="payFullW">${c&&balanceUpto(c,null)>0?`<button type="button" class="btn xs o" style="margin-top:6px" data-act="payFull" data-v="${Math.round(balanceUpto(c,null))}">Pura baki bharo (${inr(balanceUpto(c,null))})</button>`:''}</div></div>
         <div class="field"><label class="f">Date</label><input class="input" id="payDate" type="date" value="${todayISO()}" max="${todayISO()}"></div>
       </div>
-      <div class="field"><label class="f">Mode</label><div class="seg" id="payMode"><button class="on" data-mode="cash">Cash</button><button data-mode="online">Online / UPI</button></div></div>
+      <div class="grid g2"><div class="field"><label class="f">Mode</label><div class="seg" id="payMode"><button class="on" data-mode="cash">Cash</button><button data-mode="online">UPI / QR</button></div></div>
+        <div class="field"><label class="f">Kisne liya</label><select class="input" id="payVia">${window.rcvOpts?rcvOpts():`<option>${esc(S.me||'')}</option>`}</select></div></div>
       <div class="field" id="payProof" hidden><label class="f">Payment screenshot ${isOwner()?'(optional)':'(zaroori)'}</label>
         <label class="btn o" style="cursor:pointer">${ICONS.cam} Screenshot chuno<input type="file" accept="image/*" id="payImg" hidden></label>
         <div id="payPrev" class="proof" style="margin-top:8px"></div></div>
@@ -1031,7 +1040,7 @@ const A={
     /* fix CR-04: pehli baar dabane pe confirm, doosri baar save */
     if(el&&el.dataset.c!=='1'){el.dataset.c='1';el.textContent=inr(amt)+' '+(mode==='cash'?'cash':'online')+' jama karein? Haan';el.classList.add('w');setTimeout(()=>{if(el.isConnected){el.dataset.c='';el.classList.remove('w');el.textContent='Save payment'}},4000);return}
     const id=uid();
-    savePayment({id,cid,amt,mode,date:$('#payDate').value||todayISO(),note:$('#payNote').value.trim(),by:S.me||'',t:Date.now(),proof:!!proof}).then(()=>toast('Payment save'));
+    savePayment({id,cid,amt,mode,date:$('#payDate').value||todayISO(),note:$('#payNote').value.trim(),by:S.me||'',via:($('#payVia')||{}).value||S.me||'',t:Date.now(),proof:!!proof}).then(()=>toast('Payment save'));
     if(proof)queue('proof:'+id,()=>S.db.doc('proofs/'+id).set({img:proof,cid,date:todayISO(),by:S.me||'',t:Date.now()}));
     closeSheet()},
   viewProof(d){openSheet('Payment screenshot','<div class="empty">Load ho raha hai…</div>');S.db.doc('proofs/'+d.id).get().then(s=>{if($('#sheet').hidden)return;$('#shBody').innerHTML=s.exists?`<div class="proof"><img src="${s.data().img}" alt="Screenshot"></div>`:'<div class="empty">Screenshot nahi mila</div>'}).catch(()=>{$('#shBody').innerHTML='<div class="empty">Load nahi hua</div>'})},
@@ -1554,9 +1563,11 @@ window.addEventListener('DOMContentLoaded',async()=>{
   db.doc('settings/main').onSnapshot(s=>{S.settings=s.exists?JSON.parse(JSON.stringify(s.data())):null;rerender()},onErr);
   db.collection('purchases').onSnapshot(s=>{const m={};s.docs.forEach(d=>{m[d.id]={id:d.id,...d.data()}});S.purchases=m;rerender()},e=>console.error(e));
   db.collection('kms').onSnapshot(s=>{const m={};s.docs.forEach(d=>{m[d.id]={id:d.id,...d.data()}});S.kms=m;rerender()},e=>console.error(e));
+  db.collection('adjust').onSnapshot(s=>{const m={};s.docs.forEach(d=>{m[d.id]={id:d.id,...d.data()}});S.adjust=m;rerender()},e=>console.error(e));
   setInterval(autoExportTick,60000);
   setTimeout(()=>{if(!S.ready){S.ready=true;render()}},10000);
 });
 </script>
 <script src="js/bulk.js"></script>
+<script src="js/account.js"></script>
 </body></html>
