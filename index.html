@@ -1,0 +1,1542 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<!-- This site is hosted on Netlify. Anyone can build and deploy a site
+     like this one for free: https://netlify.new/?utm_campaign=loops&utm_source=ai-legible&utm_medium=owned&utm_content=comment&utm_id=0fc5a0d8-f68f-4879-91aa-f9298b14a867
+     Netlify hosting facts for this site: static/SSR served via Netlify Edge. -->
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Oritic Panel</title>
+<meta name="theme-color" content="#1C6B41">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Oritic">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  --bg:#F2F5F2;--surface:#FFFFFF;--surface2:#E8EEE9;--fg:#13201A;--muted:#5F6E64;--line:#D5DDD7;--line2:#E6ECE7;
+  --accent:#1C6B41;--accent-fg:#FFFFFF;--accent-soft:#DCEFE2;--accent-ink:#0F4A2B;
+  --warn:#9A5B00;--warn-soft:#FBEBCF;--danger:#B3261E;--danger-soft:#F9DEDC;--info:#24579F;--info-soft:#DCE7F8;
+  --shadow:0 1px 2px rgba(19,32,26,.05),0 6px 18px rgba(19,32,26,.06);
+  --r:14px;--rs:9px;
+  --hero1:#174A2E;--hero2:#1F7A4A;--hero-fg:#FFFFFF;--hero-muted:rgba(255,255,255,.72);--hero-bar:rgba(255,255,255,.22);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1310;--surface:#161D18;--surface2:#1E2821;--fg:#E8EEE9;--muted:#98A79D;--line:#2A362E;--line2:#222D26;
+  --accent:#5AC287;--accent-fg:#07160D;--accent-soft:#193A27;--accent-ink:#9FE2BB;
+  --warn:#F0B55B;--warn-soft:#3A2A0F;--danger:#F28B82;--danger-soft:#45201D;--info:#8FB6F2;--info-soft:#1B2B47;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25);
+  --hero1:#102A1B;--hero2:#1B4A30;--hero-fg:#EAF6EE;--hero-muted:rgba(234,246,238,.7);--hero-bar:rgba(255,255,255,.14);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1310;--surface:#161D18;--surface2:#1E2821;--fg:#E8EEE9;--muted:#98A79D;--line:#2A362E;--line2:#222D26;
+  --accent:#5AC287;--accent-fg:#07160D;--accent-soft:#193A27;--accent-ink:#9FE2BB;
+  --warn:#F0B55B;--warn-soft:#3A2A0F;--danger:#F28B82;--danger-soft:#45201D;--info:#8FB6F2;--info-soft:#1B2B47;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25);
+  --hero1:#102A1B;--hero2:#1B4A30;--hero-fg:#EAF6EE;--hero-muted:rgba(234,246,238,.7);--hero-bar:rgba(255,255,255,.14);color-scheme:dark}
+
+*{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+img{max-width:100%}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 Manrope,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+a{color:var(--accent);text-decoration:none}
+h1,h2,h3{margin:0;text-wrap:balance;line-height:1.2}
+h1{font-size:22px;font-weight:800;letter-spacing:-.01em}
+h2{font-size:17px;font-weight:700}
+h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.muted{color:var(--muted)}
+.small{font-size:12.5px}
+.num{font-variant-numeric:tabular-nums}
+.app{display:flex;min-height:100%}
+.side{display:none;width:220px;flex:none;background:var(--surface);border-right:1px solid var(--line);padding:18px 12px;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:10px;padding:6px 10px 18px}
+.brand .mark{width:30px;height:30px;border-radius:9px;background:var(--accent);color:var(--accent-fg);display:grid;place-items:center;font-weight:800;font-size:15px}
+.brand b{font-size:16px;letter-spacing:.14em;font-weight:800}
+.brand span{display:block;font-size:11px;color:var(--muted);letter-spacing:.02em;font-weight:500}
+.navbtn{display:flex;align-items:center;gap:10px;width:100%;padding:10px 10px;border-radius:10px;font-weight:600;color:var(--muted)}
+.navbtn svg{width:20px;height:20px;flex:none}
+.navbtn.on{background:var(--accent-soft);color:var(--accent-ink)}
+.navbtn:hover:not(.on){background:var(--surface2)}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.view{padding-block:0 96px;padding-inline:16px;max-width:1080px;width:100%;margin:0 auto}
+.top-in{max-width:1080px;width:100%;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;background:var(--surface);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
+.bnav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;font-size:11px;font-weight:600;color:var(--muted);border-radius:10px}
+.bnav button svg{width:22px;height:22px}
+.bnav button.on{color:var(--accent-ink)}
+.bnav button.on svg{color:var(--accent)}
+@media(min-width:900px){.side{display:block}.bnav{display:none}.view{padding-bottom:40px}}
+
+.card{background:var(--surface);border:1px solid var(--line2);border-radius:var(--r);box-shadow:var(--shadow);padding:14px 16px}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:640px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.stat .l{font-size:12px;color:var(--muted);font-weight:600}
+.stat .v{font-size:24px;font-weight:800;letter-spacing:-.02em;margin-top:2px}
+.stat .s{font-size:12px;color:var(--muted);margin-top:2px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;align-items:center;gap:10px}
+.row.wrap{flex-wrap:wrap}
+.sp{justify-content:space-between}
+.grow{flex:1;min-width:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;border-radius:10px;font-weight:700;font-size:14px;background:var(--surface2);color:var(--fg);border:1px solid transparent;white-space:nowrap}
+.btn.p{background:var(--accent);color:var(--accent-fg)}
+.btn.o{background:transparent;border-color:var(--line)}
+.btn.d{background:var(--danger-soft);color:var(--danger)}
+.btn.w{background:var(--warn-soft);color:var(--warn)}
+.btn.sm{padding:6px 10px;font-size:13px;border-radius:8px}
+.btn.xs{padding:4px 8px;font-size:12px;border-radius:7px}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.block{width:100%}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:6px 12px;border-radius:999px;border:1px solid var(--line);font-size:13px;font-weight:600;color:var(--muted);background:var(--surface)}
+.chip.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.seg{display:inline-flex;background:var(--surface2);border-radius:10px;padding:3px;gap:2px}
+.seg button{padding:6px 11px;border-radius:8px;font-size:13px;font-weight:700;color:var(--muted)}
+.seg button.on{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.input,select.input,textarea.input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);outline:none;min-width:0}
+.input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+textarea.input{min-height:70px;resize:vertical}
+label.f{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:4px}
+.field{min-width:0}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.badge.g{background:var(--accent-soft);color:var(--accent-ink)}
+.badge.y{background:var(--warn-soft);color:var(--warn)}
+.badge.r{background:var(--danger-soft);color:var(--danger)}
+.badge.b{background:var(--info-soft);color:var(--info)}
+.badge.n{background:var(--surface2);color:var(--muted)}
+.list{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line2);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line2);text-align:left;width:100%}
+.item:last-child{border-bottom:0}
+.item .t{font-weight:700}
+.item .s{font-size:12.5px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .r{text-align:right;flex:none}
+.item.click:hover{background:var(--surface2)}
+.empty{padding:34px 16px;text-align:center;color:var(--muted)}
+.empty b{display:block;color:var(--fg);font-size:16px;margin-bottom:4px}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);font-weight:700;white-space:nowrap}
+.tbl td{padding:9px 10px;border-bottom:1px solid var(--line2);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:0}
+.tbl .n{text-align:right}
+.tbl tr.click{cursor:pointer}
+.tbl tr.click:hover td{background:var(--surface2)}
+.scroll{overflow-x:auto}
+.pbar{height:6px;border-radius:99px;background:var(--surface2);overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .3s}
+.drow{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line2)}
+.drow:last-child{border-bottom:0}
+.drow.done{background:color-mix(in srgb,var(--accent-soft) 45%,var(--surface))}
+.drow.skip{opacity:.6}
+.drow .body{flex:1;min-width:0;text-align:left}
+.drow .nm{font-weight:700;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.drow .qt{font-size:13px;color:var(--muted);margin-top:1px}
+.drow .qt b{color:var(--fg);font-weight:700}
+.ck{width:40px;height:40px;border-radius:12px;border:1.5px solid var(--line);display:grid;place-items:center;flex:none;color:transparent;background:var(--surface)}
+.ck.on{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.ck.skip{background:var(--warn-soft);border-color:transparent;color:var(--warn)}
+.ck svg{width:20px;height:20px}
+.areahd{padding:10px 12px 4px;font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.step{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.step button{width:40px;height:40px;font-size:20px;font-weight:600;background:var(--surface2)}
+.step input{width:64px;text-align:center;border:0;height:40px;background:var(--surface);outline:none;font-weight:700}
+.qgrid{display:grid;grid-template-columns:1fr auto;gap:10px 12px;align-items:center}
+.sheet{position:fixed;inset:0;z-index:20;background:rgba(10,18,13,.45);display:flex;align-items:flex-end;justify-content:center}
+.sheet .panel{background:var(--surface);width:100%;max-width:640px;max-height:92%;border-radius:18px 18px 0 0;display:flex;flex-direction:column;box-shadow:0 -10px 40px rgba(0,0,0,.2)}
+@media(min-width:720px){.sheet{align-items:center;padding:20px}.sheet .panel{border-radius:18px;max-height:88%}}
+.sheet .hd{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line2)}
+.sheet .bd{overflow:auto;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+.x{width:34px;height:34px;border-radius:50%;background:var(--surface2);display:grid;place-items:center;font-size:18px}
+#toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:50;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none}
+#toast div{background:var(--fg);color:var(--bg);padding:9px 14px;border-radius:10px;font-weight:600;font-size:13.5px;box-shadow:var(--shadow);max-width:90vw}
+@media(min-width:900px){#toast{bottom:24px}}
+.banner{padding:10px 14px;border-radius:10px;background:var(--warn-soft);color:var(--warn);font-weight:600;font-size:13.5px}
+.billbox{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;white-space:pre-wrap;background:var(--surface2);border-radius:10px;padding:12px;line-height:1.5}
+.kv{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:14px}
+.kv b{font-weight:800}
+.hr{height:1px;background:var(--line);margin:4px 0}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.search{position:relative}
+.search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--muted)}
+.search .input{padding-left:34px}
+.extras{display:flex;flex-wrap:wrap;gap:6px}
+.mapbtn{width:40px;height:40px;flex:none;border-radius:12px;display:grid;place-items:center;background:var(--info-soft);color:var(--info)}
+.mapbtn svg{width:20px;height:20px}
+.mapbtn.approx{background:var(--surface2);color:var(--muted);border:1px dashed var(--line)}
+.mapbtn.none{background:transparent;color:var(--line);border:1px dashed var(--line)}
+.btn svg{width:17px;height:17px}
+.eyebrow{font-size:10.5px;letter-spacing:.14em;font-weight:800;color:var(--accent-ink);text-transform:uppercase;margin-bottom:2px}
+@media(min-width:900px){.eyebrow{display:none}}
+.hero{background:linear-gradient(135deg,var(--hero1),var(--hero2));color:var(--hero-fg);border-radius:18px;padding:18px 18px 16px;box-shadow:var(--shadow)}
+.hero-eyebrow{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--hero-muted)}
+.hero-load{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:6px;font-size:15px;color:var(--hero-muted)}
+.hero-load b{font-size:30px;font-weight:800;letter-spacing:-.02em;color:var(--hero-fg);margin-right:2px}
+.hero-btn{background:rgba(255,255,255,.14);color:var(--hero-fg);border-color:rgba(255,255,255,.25)}
+.hero-sub{margin-top:14px;font-size:13px;color:var(--hero-muted)}
+.hero-sub b{color:var(--hero-fg)}
+.hero-bar{background:var(--hero-bar);margin-top:6px}
+.hero-bar i{background:var(--hero-fg)}
+.grid.tight{gap:12px}
+@media(max-width:760px){.grid.g2.tight{grid-template-columns:1fr}}
+.tbl.compact th,.tbl.compact td{padding:7px 8px}
+.wa{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:9px;background:var(--accent-soft);color:var(--accent-ink)}
+.wa svg{width:17px;height:17px}
+.help p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.only-m{display:flex}.only-d{display:none}
+@media(min-width:720px){.only-m{display:none}.only-d{display:block}}
+.grid.g3.keep{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:640px){.grid.g3.keep .stat .v{font-size:17px}.grid.g3.keep .card{padding:10px 12px}}
+.login{position:fixed;inset:0;z-index:30;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
+.login .box{width:100%;max-width:380px}
+.login .brand{justify-content:center;padding-bottom:22px}
+.login .brand .mark{width:46px;height:46px;border-radius:14px;font-size:22px}
+.login .brand b{font-size:22px}
+.roles{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.roles button{padding:12px 10px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);font-weight:700}
+.roles button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-ink)}
+.pin{display:flex;justify-content:center;gap:12px;margin:18px 0 10px}
+.pin i{width:16px;height:16px;border-radius:50%;border:2px solid var(--line);display:block}
+.pin i.f{background:var(--accent);border-color:var(--accent)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pad button{height:56px;border-radius:14px;background:var(--surface);border:1px solid var(--line2);font-size:22px;font-weight:700;box-shadow:var(--shadow)}
+.pad button:active{background:var(--surface2)}
+.pad button.ghost{background:transparent;border:0;box-shadow:none;font-size:14px;color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--surface2);font-size:12px;font-weight:700;color:var(--muted)}
+.pill.off{background:var(--warn-soft);color:var(--warn)}
+.setup{max-width:560px;margin:40px auto;padding:0 16px}
+.setup ol{padding-left:20px;line-height:1.6}
+.setup code{background:var(--surface2);padding:2px 6px;border-radius:6px;font-size:13px}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+.plw{overflow:auto;border:1px solid var(--line2);border-radius:var(--r);background:var(--surface);max-height:calc(100vh - 300px);min-height:300px}
+.plt{border-collapse:separate;border-spacing:0;table-layout:fixed}
+.plt th{position:sticky;top:0;z-index:3;background:var(--surface2);font-size:11.5px;padding:9px 10px;text-align:left;color:var(--muted);border-bottom:1px solid var(--line);border-right:1px solid var(--line2)}
+.plt td{vertical-align:top;padding:9px 10px;border-bottom:1px solid var(--line2);border-right:1px solid var(--line2);font-size:13px}
+.plt tr.plok td{background:color-mix(in srgb,var(--accent-soft) 40%,var(--surface))}.plt tr.plin td{color:var(--muted)}
+.plt .plgrp td{background:var(--bg);padding:7px 12px}.plc{text-align:center}.plc .ck{width:32px;height:32px;border-radius:9px;margin:0 auto}
+.plph{margin-top:5px;border:1px solid var(--line);background:var(--surface2);border-radius:7px;padding:3px 8px;font-weight:700;font-size:12.5px}
+.plflag{margin-top:6px;font-size:11.5px;font-weight:700;color:var(--warn)}
+.plfix{width:100%;border:0;background:transparent;resize:none;min-height:54px;font:inherit;font-size:12.5px;color:var(--fg);outline:none}
+.plvc{position:relative;background:var(--warn-soft);border-left:3px solid var(--warn);border-radius:6px;padding:5px 22px 5px 8px;margin-bottom:5px;font-size:12.5px}.plvc.last{border-left-color:var(--danger)}
+.plvc small{display:block;font-size:11px;font-weight:700;color:var(--warn)}
+.plx{position:absolute;top:3px;right:4px;width:18px;height:18px;opacity:.6;font-size:15px;line-height:1}
+.pladd{color:var(--accent);font-weight:700;font-size:12px;padding:2px 0}.plmini{display:grid;gap:5px}.plmini .input{padding:6px 8px;font-size:12.5px}
+.plxi{position:relative;background:var(--surface2);border-radius:6px;padding:4px 22px 4px 8px;margin-bottom:4px;font-size:12.5px}
+.plq{padding:0!important}.plq input{display:block;width:100%;height:100%;min-height:58px;border:0;background:transparent;text-align:center;font:inherit;font-size:16px;font-weight:700;color:var(--fg);outline:none}.plq.has{background:var(--accent-soft)}.plq:focus-within{box-shadow:inset 0 0 0 2px var(--accent)}
+.plh{font-size:12px;line-height:1.5;color:var(--muted)}.plh b{color:var(--fg)}
+.plstrip{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:1px;background:var(--line2);border:1px solid var(--line2);border-radius:var(--r);overflow:hidden}
+.plt1{background:var(--surface);padding:10px 12px}.plt1 .k{font-size:12px;color:var(--muted);font-weight:600}.plt1 .v{font-size:20px;font-weight:800}.plt1.z .v{color:var(--line)}.plt1.wide{grid-column:span 2}
+
+/* ---- v3 additions ---- */
+.view.wide,.top-in.wide{max-width:none}
+.btbox{background:var(--surface);border:1px solid var(--line2);border-radius:var(--r);overflow:hidden}
+.btbox .bth{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line2)}
+.btbox .bth b{font-size:14px}.btbox .bth .bts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.bttbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.bttbl th{font-size:11.5px;color:var(--muted);font-weight:700;text-align:right;padding:7px 12px;background:var(--surface2)}
+.bttbl th:first-child,.bttbl td:first-child{text-align:left}
+.bttbl td{padding:8px 12px;border-top:1px solid var(--line2);text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.bttbl td.z{color:var(--line);font-weight:600}.bttbl td:first-child{font-weight:600}
+.bttbl tr.tot td{background:var(--accent-soft);color:var(--accent-ink);font-weight:800}
+.plstrip::after{content:'';background:var(--surface);grid-column:auto / -1}
+.plt th:nth-child(1),.plt td.plc{position:sticky;left:0;z-index:2;background:var(--surface)}
+.plt th:nth-child(2),.plt td.pla{position:sticky;left:48px;z-index:2;background:var(--surface);box-shadow:inset -2px 0 0 var(--line)}
+.plt th:nth-child(1),.plt th:nth-child(2){z-index:4;background:var(--surface2)}
+.plt .plgrp td b{position:sticky;left:12px;display:inline-block}
+.plname{cursor:pointer;user-select:none;-webkit-user-select:none}
+.plname:hover{text-decoration:underline dotted}
+.bchip{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:6px;background:var(--info-soft);color:var(--info);font-weight:700;font-size:11.5px;white-space:nowrap}
+.acl{border:1px solid var(--line);border-radius:9px;background:var(--surface);max-height:190px;overflow:auto;margin-top:4px;box-shadow:var(--shadow)}
+.acl button{display:flex;justify-content:space-between;gap:8px;width:100%;padding:7px 9px;font-size:12.5px;text-align:left;border-bottom:1px solid var(--line2)}
+.acl button:last-child{border-bottom:0}
+.acl button.on,.acl button:hover{background:var(--accent-soft);color:var(--accent-ink)}
+.acl .nw{color:var(--accent);font-weight:700}
+.dupw{font-size:11.5px;color:var(--warn);font-weight:700;margin-top:3px}
+.sec{border-top:1px solid var(--line2);padding-top:12px;margin-top:12px}
+.sec>h3{margin-bottom:6px}
+.instr{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:8px 10px;font-weight:700;font-size:13.5px;margin-bottom:6px}
+.vcm{background:var(--info-soft);border-radius:10px;padding:8px 10px;font-size:13.5px;margin-bottom:6px}
+.vcm small{display:block;color:var(--muted);font-size:11.5px;font-weight:600;margin-top:2px}
+.hist{border-left:3px solid var(--line);padding:6px 10px;margin-bottom:6px;font-size:13.5px}
+.hist small{display:block;color:var(--muted);font-size:11.5px}
+.hist.act{border-left-color:var(--accent)}
+.cam video,.cam img{width:100%;border-radius:12px;background:#000;display:block;max-height:60vh;object-fit:contain}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap}
+.thumb{position:relative;width:96px}
+.thumb img{width:96px;height:96px;object-fit:cover;border-radius:10px;border:1px solid var(--line);display:block;cursor:pointer}
+.thumb span{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-top:2px}
+.seqb{width:34px;height:34px;border-radius:9px;background:var(--surface2);display:grid;place-items:center;font-weight:800}
+.rtitem{gap:8px;padding:8px 10px;position:relative;background:var(--surface);transition:background .15s}
+.rth{width:34px;height:40px;flex:none;display:grid;place-items:center;color:var(--muted);font-size:20px;touch-action:none;cursor:grab;border-radius:9px;user-select:none;-webkit-user-select:none}
+.rth:active{cursor:grabbing;background:var(--surface2)}
+.rtpos{width:52px;height:36px;flex:none;text-align:center;font-weight:800;border:1px solid var(--line);border-radius:9px;background:var(--surface2);color:var(--fg);outline:none;padding:0;-moz-appearance:textfield}
+.rtpos::-webkit-outer-spin-button,.rtpos::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.rtpos:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.rtitem.moved .rtpos{background:var(--accent-soft);color:var(--accent-ink);border-color:var(--accent)}
+.rtitem.rtdrag{opacity:.45;background:var(--surface2)}
+.rtitem.rtbefore::before,.rtitem.rtafter::after{content:"";position:absolute;left:8px;right:8px;height:3px;border-radius:3px;background:var(--accent);z-index:2}
+.rtitem.rtbefore::before{top:-2px}.rtitem.rtafter::after{bottom:-2px}
+.rtitem.flash{background:var(--accent-soft)}
+.rtbar{position:sticky;bottom:-16px;background:var(--surface);padding:10px 0 4px;margin-top:10px;display:flex;gap:8px;align-items:center;border-top:1px solid var(--line2)}
+.cpos{display:inline-grid;place-items:center;min-width:28px;height:24px;padding:0 6px;border-radius:7px;background:var(--surface2);font-weight:800;font-size:12px;color:var(--muted);flex:none}
+.wdays{display:flex;gap:4px;flex-wrap:wrap}
+.wdays label{display:inline-flex;align-items:center;gap:4px;padding:6px 9px;border:1px solid var(--line);border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer}
+.wdays input{margin:0}
+.dnote{width:100%;min-height:90px}
+.proof img{max-width:100%;border-radius:10px;display:block;margin:0 auto}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><div class="mark">O</div><div><b id="brandName">ORITIC</b><span>Delivery panel</span></div></div>
+    <div id="snav"></div>
+  </aside>
+  <main class="main">
+    <header class="top"><div class="top-in" id="top"></div></header>
+    <div id="view" class="view"></div>
+  </main>
+  <nav class="bnav" id="bnav"></nav>
+</div>
+<div id="sheet" class="sheet" hidden><div class="panel"><div class="hd"><h2 id="shTitle"></h2><button class="x" data-act="closeSheet" aria-label="Band karo">×</button></div><div class="bd" id="shBody"></div></div></div>
+<div id="toast"></div>
+<div id="login" class="login" hidden></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+'use strict';
+/* ---------- constants ---------- */
+const PRODUCTS=[
+  {k:'cow',l:'Cow milk',sh:'Cow'},
+  {k:'buffalo',l:'Buffalo milk',sh:'Buffalo'},
+  {k:'desi',l:'Desi / Gir cow',sh:'Desi'},
+  {k:'chaach',l:'Chaach',sh:'Chaach'}];
+const DEF_RATES={cow:60,buffalo:80,desi:90,chaach:30};
+const ICONS={
+  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>',
+  today:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></svg>',
+  customers:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.2c2.8 0 5 1.8 5 4.3"/></svg>',
+  bills:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-2-1.5L14 21l-2-1.5L10 21l-2-1.5L6 21z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>',
+  payments:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18"/><path d="M7 15h3"/></svg>',
+  bottles:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3h4v3.5c0 .8.3 1.3.8 1.9 1 1.2 1.7 2.4 1.7 4.1V19a2 2 0 0 1-2 2H9.5a2 2 0 0 1-2-2v-6.5c0-1.7.7-2.9 1.7-4.1.5-.6.8-1.1.8-1.9z"/><path d="M8 14h8"/></svg>',
+  settings:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  plan:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>',
+  skip:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-3.8-3.8"/></svg>',
+  pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
+  wa:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1.3-3.8A8.5 8.5 0 1 1 8.6 19z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1.2-1.4-1.8-.9-.9.8a4 4 0 0 1-2.5-2.5l.8-.9-.9-1.8z"/></svg>',
+  help:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>',
+  more:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+  products:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3.5 7.5v9L12 21l8.5-4.5v-9z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9"/></svg>',
+  forecast:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  purchase:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2.5l2.2 11h10.6L20.5 8H7"/><circle cx="9.5" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg>',
+  odo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 18a9 9 0 1 1 15 0"/><path d="m12 13 4-4"/><circle cx="12" cy="13" r="1.4"/></svg>',
+  cam:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
+  phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>'
+};
+const ROUTES=[
+  {id:'home',l:'Home',t:'Dashboard'},
+  {id:'today',l:'Aaj',t:'Aaj ki delivery'},
+  {id:'plan',l:'Kal',t:'Kal ki delivery'},
+  {id:'customers',l:'Customers',t:'Customers'},
+  {id:'bills',l:'Bills',t:'Bills'},
+  {id:'payments',l:'Payments',t:'Payments'},
+  {id:'bottles',l:'Bottles',t:'Bottles'},
+  {id:'products',l:'Products',t:'Product master'},
+  {id:'forecast',l:'Demand',t:'Other products demand'},
+  {id:'purchase',l:'Purchase',t:'Purchase'},
+  {id:'odo',l:'Meter',t:'Meter / KM'},
+  {id:'settings',l:'Settings',t:'Settings'}];
+
+/* ---------- state ---------- */
+const todayISO=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const S={db:null,user:null,canWrite:null,ready:false,offline:false,customers:{},days:{},payments:{},settings:null,
+  route:'home',date:todayISO(),boy:'all',month:todayISO().slice(0,7),period:'full',bq:'',bboy:'all',
+  cq:'',cboy:'all',cstatus:'active',csort:(()=>{try{return localStorage.getItem('oritic.csort')||'route'}catch(_){return 'route'}})(),pmonth:todayISO().slice(0,7),bottleQ:'',downloads:true,role:null,me:'',online:true,setup:false};
+let pendingRender=false;
+
+/* ---------- utils ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const inr=n=>{n=Math.round(n||0);return (n<0?'−₹':'₹')+Math.abs(n).toLocaleString('en-IN')};
+const L=n=>{n=+n||0;return (Math.round(n*100)/100).toString()};
+const addDays=(iso,n)=>{const d=new Date(iso+'T12:00:00');d.setDate(d.getDate()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const fmtDate=iso=>{const d=new Date(iso+'T12:00:00');return DOW[d.getDay()]+', '+d.getDate()+' '+MON[d.getMonth()]};
+const fmtShort=iso=>{const d=new Date(iso+'T12:00:00');return d.getDate()+' '+MON[d.getMonth()]};
+const fmtMonth=m=>{const [y,mm]=m.split('-');return MON[+mm-1]+' '+y};
+const dim=m=>{const [y,mm]=m.split('-').map(Number);return new Date(y,mm,0).getDate()};
+const settings=()=>S.settings||{};
+const boys=()=>{const b=settings().boys;if(Array.isArray(b)&&b.length)return b;const set=new Set();Object.values(S.customers).forEach(c=>c.boy&&set.add(c.boy));return [...set].sort()};
+const extrasPresets=()=>Array.isArray(settings().extras)?settings().extras:[];
+const defRates=()=>({...DEF_RATES,...(settings().rates||{})});
+const ratesOf=c=>({...defRates(),...(c.rates||{})});
+const orderOf=c=>{const o={cow:0,buffalo:0,desi:0,chaach:0};PRODUCTS.forEach(p=>o[p.k]=+(c.order&&c.order[p.k])||0);return o};
+const qtyText=q=>PRODUCTS.filter(p=>+q[p.k]>0).map(p=>L(q[p.k])+'L '+p.sh).join(' + ')||'—';
+const extrasText=x=>(x||[]).map(e=>e.n+(e.a?' '+inr(e.a):'')).join(', ');
+/* bottles: Bada = 1L, Chhota = 0.5L (doodh + chaach, sab liquid items) */
+function bottlesOf(q){let b=0,s=0;PRODUCTS.forEach(p=>{const v=+(q&&q[p.k])||0;if(v<=0)return;const B=Math.floor(v+1e-9);const rem=v-B;b+=B;if(rem>1e-9)s+=Math.ceil(rem/0.5-1e-9)});return {b,s}}
+const BTN={cow:'Cow',buffalo:'Buffalo',desi:'Gir Cow',chaach:'Chaach'};
+function btAdd(T,q){PRODUCTS.forEach(p=>{const o=bottlesOf({[p.k]:+(q&&q[p.k])||0});T[p.k].b+=o.b;T[p.k].s+=o.s})}
+function btNew(){const T={};PRODUCTS.forEach(p=>T[p.k]={b:0,s:0});return T}
+function btBreak(T,title){const tb=PRODUCTS.reduce((a,p)=>a+T[p.k].b,0),ts=PRODUCTS.reduce((a,p)=>a+T[p.k].s,0);
+  const rows=PRODUCTS.filter(p=>T[p.k].b||T[p.k].s);const z=v=>v?`<td>${v}</td>`:'<td class="z">–</td>';
+  return `<div class="btbox"><div class="bth"><b>${title||'Bottles kitni lagengi'}</b><div class="bts"><span class="bchip">${ts} × ½L</span><span class="bchip">${tb} × 1L</span></div></div>
+   ${rows.length?`<table class="bttbl"><thead><tr><th>Doodh</th><th>½L bottle</th><th>1L bottle</th><th>Total</th></tr></thead><tbody>
+   ${rows.map(p=>`<tr><td>${BTN[p.k]||p.sh}</td>${z(T[p.k].s)}${z(T[p.k].b)}${z(T[p.k].s+T[p.k].b)}</tr>`).join('')}
+   <tr class="tot"><td>Total</td><td>${ts}</td><td>${tb}</td><td>${ts+tb}</td></tr></tbody></table>`:'<div class="small muted" style="padding:10px 12px">Abhi koi bottle nahi</div>'}</div>`}
+const btText=o=>(o.b||o.s)?[o.b?o.b+'×1L':'',o.s?o.s+'×½L':''].filter(Boolean).join(' + '):'—';
+const btHtml=o=>(o.b||o.s)?`<span class="bchip" title="Bade (1L): ${o.b} · Chhote (½L): ${o.s}">${btText(o)}</span>`:'<span class="muted">–</span>';
+/* wapas aayi bottles: brS = ½L, brB = 1L, br = total (purani entries me sirf br hota hai, size nahi) */
+const brSplit=r=>{if(!r)return {s:0,b:0,u:0};const s=+r.brS||0,b=+r.brB||0;const u=(r.brS==null&&r.brB==null)?(+r.br||0):0;return {s,b,u}};
+const brText=r=>{const o=brSplit(r);return [o.s?o.s+'×½L':'',o.b?o.b+'×1L':'',o.u?o.u+' (size nahi)':''].filter(Boolean).join(' + ')};
+function readBr(px){const sEl=$('#'+px+'S'),bEl=$('#'+px+'B');if(!sEl||!bEl)return null;const s=Math.max(0,Math.round(+sEl.value||0)),b=Math.max(0,Math.round(+bEl.value||0));return {brS:s,brB:b,br:s+b}}
+function bottleBalBy(c){let s=0,b=0,u=+c.bottles||0;for(const d in S.days){const r=S.days[d].rows&&S.days[d].rows[c.id];if(!r)continue;if(r.s==='d'&&(+r.bo||0)>0){const o=bottlesOf(r.q);if(o.b+o.s===+r.bo){s+=o.s;b+=o.b}else u+=+r.bo}const x=brSplit(r);s-=x.s;b-=x.b;u-=x.u}return {s,b,u,t:s+b+u}}
+function balHtml(c){const o=bottleBalBy(c);if(!o.s&&!o.b)return '';return `<div class="small muted" style="margin-top:4px">½L: <b>${o.s}</b> · 1L: <b>${o.b}</b>${o.u?` · ${o.u} bina size (purani entry / opening)`:''}</div>`}
+const brSteppers=(px,r)=>{const o=brSplit(r);return `<div class="grid g2"><div class="field"><label class="f">½L bottle wapas</label>${stepper(px+'S',o.s,1)}</div><div class="field"><label class="f">1L bottle wapas</label>${stepper(px+'B',o.b,1)}</div></div>${o.u?`<div class="small" style="color:var(--warn);margin-top:4px">Pehle ${o.u} bottle bina size ke likhi thi. Sahi size me daal ke save karo.</div>`:''}`};
+function bottleBal(c){let n=+c.bottles||0;for(const d in S.days){const r=S.days[d].rows&&S.days[d].rows[c.id];if(!r)continue;if(r.s==='d')n+=+r.bo||0;n-=+r.br||0}return n}
+const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9ऀ-ॿ]/g,'');
+function products(){const p=settings().products;if(Array.isArray(p))return p;return extrasPresets().map(e=>({id:'p'+norm(e.n),n:e.n,u:'',a:+e.a||0}))}
+const findProd=name=>{const k=norm(name);return k?products().find(p=>norm(p.n)===k):null};
+function lastRate(cid,pid,name){const k=norm(name);const ds=Object.keys(S.days).sort().reverse();
+  for(const d of ds){const r=S.days[d].rows&&S.days[d].rows[cid];if(!r||!r.x)continue;
+    for(const e of r.x.slice().reverse()){if((pid&&e.pid===pid)||(k&&norm(e.base||e.n)===k)){if(e.rate!=null)return +e.rate;return e.qty?(+e.a||0)/e.qty:(+e.a||0)}}}
+  return null}
+const schedText=c=>c.schedule==='alternate'?'Alternate day (ek din chhod ke)':c.schedule==='custom'?'Custom: '+((c.wdays||[]).slice().sort().map(w=>DOW[w]).join(', ')||'koi din nahi'):'Regular (roz)';
+const custSince=c=>{if(c.since)return c.since;if(c.createdAt)return c.createdAt;const r=deliveredRows(c.id,null,null)[0];return r?r.date:''};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const cleanPhone=p=>{const d=String(p||'').replace(/\D/g,'');return d.length>10?d.slice(-10):d};
+const canWrite=()=>!!(S.db&&S.role);
+const MOBILE_NAV=()=>S.role==='owner'?['home','today','plan','customers']:['today','customers','payments','bottles'];
+const isOwner=()=>S.role==='owner';
+const visibleRoutes=()=>isOwner()?ROUTES:ROUTES.filter(r=>['today','customers','payments','bottles','odo'].includes(r.id));
+function toast(m){const t=document.createElement('div');t.textContent=m;$('#toast').appendChild(t);setTimeout(()=>t.remove(),2600)}
+function copyText(txt,el){const done=()=>toast('Copy ho gaya');
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done).catch(()=>fallback())}else fallback();
+  function fallback(){const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();ok?done():toast('Copy nahi hua — text select karke copy karo')}}
+
+/* ---------- computations ---------- */
+function calcAmount(q,x,rates){let a=0;PRODUCTS.forEach(p=>a+=(+q[p.k]||0)*(+rates[p.k]||0));(x||[]).forEach(e=>a+=+e.a||0);return Math.round(a*100)/100}
+function rowOf(date,cid){const d=S.days[date];return d&&d.rows?d.rows[cid]:null}
+function dueOn(c,date){
+  if(c.status!=='active')return false;
+  if(c.schedule==='custom')return (c.wdays||[]).map(Number).includes(new Date(date+'T12:00:00').getDay());
+  if(c.schedule==='alternate'){const y=rowOf(addDays(date,-1),c.id);if(y&&y.s==='d')return false}
+  return true}
+function todaysList(date,boy){
+  const out=[];
+  for(const c of Object.values(S.customers)){
+    if(boy!=='all'&&c.boy!==boy)continue;
+    const r=rowOf(date,c.id);
+    if(r||dueOn(c,date))out.push({c,r});
+  }
+  return out.sort((a,b)=>(a.c.boy||'').localeCompare(b.c.boy||'')||((a.c.seq??9999)-(b.c.seq??9999))||a.c.name.localeCompare(b.c.name))}
+function periodRange(month,period){const n=dim(month);if(period==='h1')return [month+'-01',month+'-15'];if(period==='h2')return [month+'-16',month+'-'+String(n).padStart(2,'0')];return [month+'-01',month+'-'+String(n).padStart(2,'0')]}
+function deliveredRows(cid,from,to){const out=[];for(const d in S.days){if(from&&d<from||to&&d>to)continue;const r=S.days[d].rows&&S.days[d].rows[cid];if(r&&r.s==='d')out.push({date:d,...r})}return out.sort((a,b)=>a.date<b.date?-1:1)}
+function paymentsOf(cid,from,to){return Object.values(S.payments).filter(p=>p.cid===cid&&(!from||p.date>=from)&&(!to||p.date<=to)).sort((a,b)=>a.date<b.date?-1:1)}
+function mapOf(c){
+  const m=String(c.map||'').trim();
+  if(/^https?:\/\//i.test(m))return {url:m,exact:true};
+  const q=[c.address,c.area].filter(Boolean).join(', ');
+  if(q)return {url:'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q+', Jaipur'),exact:false};
+  return null}
+function mapBtn(c,cls){const m=mapOf(c);if(!m)return `<span class="mapbtn none ${cls||''}" title="Map link nahi hai">${ICONS.pin}</span>`;
+  return `<a class="mapbtn ${m.exact?'':'approx'} ${cls||''}" href="${esc(m.url)}" target="_blank" rel="noopener" title="${m.exact?'Google Maps me kholo':'Exact link nahi — address se search'}" aria-label="Map">${ICONS.pin}</a>`}
+const sum=(arr,f)=>arr.reduce((t,x)=>t+(+f(x)||0),0);
+function balanceUpto(c,upto){ // opening + delivered amounts − payments, up to date inclusive (null = all)
+  return (+c.openingDue||0)+sum(deliveredRows(c.id,null,upto),r=>r.a)-sum(paymentsOf(c.id,null,upto),p=>p.amt)}
+function billFor(c,month,period){
+  const [from,to]=periodRange(month,period);
+  const rows=deliveredRows(c.id,from,to);
+  const pays=paymentsOf(c.id,from,to);
+  const lines=PRODUCTS.map(p=>({...p,name:p.l,l:sum(rows,r=>r.q&&r.q[p.k]),a:sum(rows,r=>(+(r.q&&r.q[p.k])||0)*(+(r.r&&r.r[p.k])||0))})).filter(x=>x.l>0);
+  const extras=sum(rows,r=>sum(r.x||[],e=>e.a));
+  const amount=sum(rows,r=>r.a);
+  const paid=sum(pays,p=>p.amt);
+  const prev=balanceUpto(c,addDays(from,-1));
+  return {c,from,to,rows,pays,lines,extras,amount,paid,prev,closing:prev+amount-paid}}
+function billText(b){
+  const c=b.c;const per=fmtShort(b.from)+' – '+fmtShort(b.to)+' '+b.from.slice(0,4);
+  const st=settings();const co=st.company||'Oritic';
+  let t=`*${co}* – Doodh ka bill\n${c.name}\n${per}\n\n`;
+  b.lines.forEach(x=>{const rate=x.l?x.a/x.l:0;t+=`${x.name}: ${L(x.l)} L`+(rate?` × ₹${L(rate)}`:'')+` = ${inr(x.a)}\n`});
+  if(b.extras)t+=`Paneer / dahi / other: ${inr(b.extras)}\n`;
+  t+=`Delivery days: ${b.rows.length}\n----------------\nIs period ka bill: ${inr(b.amount)}\n`;
+  if(Math.abs(b.prev)>0.5)t+=`Pichla baki: ${inr(b.prev)}\n`;
+  if(b.paid)t+=`Jama (paid): ${inr(b.paid)}\n`;
+  t+=`*Kul baki: ${inr(b.closing)}*\n`;
+  if(st.upi)t+=`\nUPI: ${st.upi}`;
+  t+=`\n${st.billNote||'Dhanyavaad 🙏'}`;
+  return t}
+
+/* ---------- writes ---------- */
+const Q={};
+function queue(k,fn){Q[k]=(Q[k]||Promise.resolve()).then(fn).catch(e=>{console.error(e);toast('Save nahi hua: '+(e&&e.message||e))});return Q[k]}
+async function writeRows(date,rows){ // rows: {cid: row}
+  if(!canWrite()){toast('Aapko write permission nahi hai');return}
+  const d=S.days[date]||(S.days[date]={date,rows:{}});
+  for(const cid in rows){const prev=d.rows[cid];if(prev&&prev.br!=null&&rows[cid].br==null){rows[cid].br=prev.br;if(prev.brS!=null)rows[cid].brS=prev.brS;if(prev.brB!=null)rows[cid].brB=prev.brB}}
+  Object.assign(d.rows,rows);render();
+  queue('day:'+date,async()=>{const ref=S.db.doc('days/'+date);
+    await ref.set({date,rows},{merge:true})})}
+function makeRow(c,s,q,x,note,by){const rates=ratesOf(c);q=q||orderOf(c);x=x||[];const bt=bottlesOf(q);return {s,q,x,a:s==='d'?calcAmount(q,x,rates):0,r:rates,bo:s==='d'?bt.b+bt.s:0,by:by||c.boy||'',n:note||'',t:Date.now()}}
+async function saveCustomer(c){
+  if(!canWrite()){toast('Aapko write permission nahi hai');return}
+  const id=c.id||('c'+(cleanPhone(c.phone)||uid()));const body={...c};delete body.id;
+  S.customers[id]={id,...body};render();
+  await queue('cust:'+id,()=>S.db.doc('customers/'+id).set(body));return id}
+async function savePayment(p){
+  if(!canWrite()){toast('Aapko write permission nahi hai');return}
+  const id=p.id||uid();const body={...p};delete body.id;S.payments[id]={id,...body};render();
+  await queue('pay:'+id,()=>S.db.doc('payments/'+id).set(body))}
+async function deletePayment(id){if(!canWrite())return;delete S.payments[id];render();await queue('pay:'+id,()=>S.db.doc('payments/'+id).delete())}
+async function saveSettings(st){if(!canWrite()){toast('Aapko write permission nahi hai');return}S.settings=st;render();await queue('settings',()=>S.db.doc('settings/main').set(st))}
+
+/* ---------- rendering ---------- */
+function nav(){
+  const R=visibleRoutes();const mobile=MOBILE_NAV();
+  $('#snav').innerHTML=R.map(r=>`<button class="navbtn ${S.route===r.id?'on':''}" data-act="go" data-r="${r.id}">${ICONS[r.id]}<span>${r.l}</span></button>`).join('');
+  const moreOn=!mobile.includes(S.route);
+  $('#bnav').innerHTML=R.filter(r=>mobile.includes(r.id)).map(r=>`<button class="${S.route===r.id?'on':''}" data-act="go" data-r="${r.id}">${ICONS[r.id]}<span>${r.l}</span></button>`).join('')+
+    `<button class="${moreOn?'on':''}" data-act="more">${ICONS.more}<span>More</span></button>`;
+  const bn=$('#brandName');if(bn)bn.textContent=(settings().company||'Oritic').toUpperCase()}
+function render(){
+  const top=$('#top');const view=$('#view');
+  if(S.setup){top.innerHTML='';view.innerHTML=setupHtml();$('#login').hidden=true;return}
+  renderLogin();
+  if(!S.role){top.innerHTML='';view.innerHTML='';return}
+  if(!visibleRoutes().some(x=>x.id===S.route))S.route=isOwner()?'home':'today';
+  nav();
+  const r=ROUTES.find(x=>x.id===S.route)||ROUTES[0];
+  if(!S.ready){top.innerHTML=`<h1>${r.t}</h1>`;view.innerHTML=`<div class="empty">Load ho raha hai…</div>`;return}
+  const wide=['plan','forecast'].includes(S.route);view.classList.toggle('wide',wide);top.classList.toggle('wide',wide);
+  const V={home:vHome,today:vToday,plan:vPlan,customers:vCustomers,bills:vBills,payments:vPayments,bottles:vBottles,products:vProducts,forecast:vForecast,purchase:vPurchase,odo:vOdo,settings:vSettings}[S.route];
+  const out=V();
+  top.innerHTML=`<div><div class="eyebrow">${esc(settings().company||'Oritic')} · ${esc(S.me||'')}</div><h1>${esc(out.title||r.t)}</h1></div><div class="row">${S.online?'':'<span class="pill off">Offline</span>'}${out.action||''}${isOwner()?'':'<button class="btn sm o" data-act="logout">Logout</button>'}</div>`;
+  let banner='';
+  if(S.offline)banner=`<div class="banner" style="margin-bottom:12px">Database se connect nahi ho paya. Internet check karo, ya firebase-config.js sahi hai ya nahi dekho.</div>`;
+  else if(isOwner()&&(!settings().pins||!settings().pins.owner))banner=`<div class="banner" style="margin-bottom:12px">Owner PIN abhi default (1234) hai — Settings me jaake badal do.</div>`;
+  view.innerHTML=banner+out.html;
+  pendingRender=false}
+function rerender(){if(!S.role){render();return}const a=document.activeElement;if(a&&a.closest&&a.closest('#view')&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA'||a.tagName==='SELECT')){pendingRender=true;return}render()}
+const chips=(items,cur,act,key)=>`<div class="chips">${items.map(i=>`<button class="chip ${cur===i.v?'on':''}" data-act="${act}" data-${key||'v'}="${esc(i.v)}">${esc(i.l)}</button>`).join('')}</div>`;
+const boyChips=(cur,act)=>chips([{v:'all',l:'Sab'},...boys().map(b=>({v:b,l:b}))],cur,act);
+const emptyBox=(t,s)=>`<div class="empty"><b>${t}</b>${s||''}</div>`;
+
+/* ---- Home ---- */
+function vHome(){
+  const date=todayISO();
+  const list=todaysList(date,'all');
+  const load={};PRODUCTS.forEach(p=>load[p.k]=0);
+  const byBoy={};let done=0,skip=0;
+  list.forEach(({c,r})=>{const q=r&&r.s==='k'?null:(r&&(r.s==='d'||r.pl)?r.q:orderOf(c));const b=c.boy||'—';const o=byBoy[b]||(byBoy[b]={n:0,done:0,q:{cow:0,buffalo:0,desi:0,chaach:0}});o.n++;
+    if(r&&r.s==='d'){done++;o.done++}else if(r&&r.s==='k'){skip++}
+    if(q)PRODUCTS.forEach(p=>{load[p.k]+=+q[p.k]||0;o.q[p.k]+=+q[p.k]||0})});
+  // tomorrow's expected procurement
+  const tom=addDays(date,1);const tload={};PRODUCTS.forEach(p=>tload[p.k]=0);let tn=0;
+  for(const c of Object.values(S.customers)){if(c.status!=='active')continue;
+    if(c.schedule==='alternate'){const r=rowOf(date,c.id);const dueT=dueOn(c,date);
+      // alternate: kal tabhi jab aaj nahi gaya (aaj due nahi tha, ya aaj skip hua)
+      if(dueT&&!(r&&r.s==='k'))continue}
+    tn++;const o=orderOf(c);PRODUCTS.forEach(p=>tload[p.k]+=o[p.k])}
+  const month=date.slice(0,7);const [mf,mt]=periodRange(month,'full');
+  let sales=0,coll=0,out=0,bottles=0,active=0,paused=0;const dues=[];
+  for(const c of Object.values(S.customers)){
+    if(c.status==='active')active++;else paused++;
+    sales+=sum(deliveredRows(c.id,mf,mt),r=>r.a);
+    const bal=balanceUpto(c,null);out+=bal;if(bal>0.5)dues.push({c,bal});
+    bottles+=bottleBal(c)}
+  coll=sum(Object.values(S.payments).filter(p=>p.date>=mf&&p.date<=mt),p=>p.amt);
+  dues.sort((a,b)=>b.bal-a.bal);
+  // last 7 days litres + sales
+  const week=[];for(let i=6;i>=0;i--){const d=addDays(date,-i);const rows=Object.values((S.days[d]||{}).rows||{}).filter(r=>r.s==='d');let l=0,a=0;rows.forEach(r=>{a+=+r.a||0;PRODUCTS.forEach(p=>l+=+(r.q&&r.q[p.k])||0)});week.push({d,l,a,n:rows.length})}
+  const maxL=Math.max(1,...week.map(w=>w.l));
+  const chart=`<svg viewBox="0 0 280 92" width="100%" style="max-width:420px;display:block;overflow:visible" role="img" aria-label="Pichle 7 din ka doodh">${week.map((w,i)=>{const x=10+i*39;const h=Math.round(w.l/maxL*56);const y=64-h;const isT=w.d===date;
+      return `<rect x="${x}" y="${y}" width="26" height="${h}" rx="4" fill="${isT?'var(--accent)':'var(--accent-soft)'}" stroke="${isT?'none':'var(--accent)'}" stroke-opacity=".35"/><text x="${x+13}" y="${y-5}" text-anchor="middle" font-size="10" font-weight="700" fill="var(--fg)">${w.l?L(w.l):''}</text><text x="${x+13}" y="80" text-anchor="middle" font-size="10" fill="var(--muted)">${DOW[new Date(w.d+'T12:00:00').getDay()]}</text>`}).join('')}</svg>`;
+  const total=Object.keys(S.customers).length;
+  const html=total?`
+  <div class="stack">
+    <div class="hero">
+      <div class="row sp wrap">
+        <div><div class="hero-eyebrow">${fmtDate(date)} · Aaj ka load</div>
+          <div class="hero-load">${PRODUCTS.filter(p=>load[p.k]>0).map(p=>`<span><b>${L(load[p.k])}</b> L ${p.sh}</span>`).join('')||'<span class="muted">Aaj koi delivery due nahi</span>'}</div></div>
+        <button class="btn hero-btn" data-act="go" data-r="today">Delivery list →</button>
+      </div>
+      <div class="row sp hero-sub"><span><b>${done}</b> done · <b>${list.length-done-skip}</b> pending${skip?` · ${skip} skip`:''}</span><span>${list.length} customers</span></div>
+      ${(()=>{const v=dayValue(date);const pur=sum(Object.values(S.purchases).filter(p=>p.date===date),p=>p.amt);return `<div class="row sp wrap hero-sub" style="margin-top:6px"><span>Aaj ki sale (order value) <b style="font-size:18px">${inr(v.total)}</b> · delivered ${inr(v.done)}</span><span>Aaj ki purchase <b>${inr(pur)}</b></span></div>`})()}
+      <div class="pbar hero-bar"><i style="width:${list.length?Math.round(done/list.length*100):0}%"></i></div>
+    </div>
+    <div class="grid g2 tight">
+      <div class="card">
+        <h3>Delivery boy wise</h3>
+        <div class="scroll" style="margin-top:8px"><table class="tbl compact"><thead><tr><th>Boy</th>${PRODUCTS.map(p=>`<th class="n">${p.sh}</th>`).join('')}<th class="n">Done</th></tr></thead><tbody>
+        ${Object.entries(byBoy).sort().map(([b,o])=>`<tr class="click" data-act="goBoy" data-b="${esc(b)}"><td><b>${esc(b)}</b><div class="small muted" style="white-space:nowrap">${o.n} ghar</div></td>${PRODUCTS.map(p=>`<td class="n">${o.q[p.k]?L(o.q[p.k]):'<span class="muted">–</span>'}</td>`).join('')}<td class="n"><b>${o.done}</b>/${o.n}</td></tr>`).join('')||'<tr><td colspan="6" class="muted">Aaj koi delivery due nahi</td></tr>'}
+        </tbody></table></div>
+      </div>
+      <div class="card">
+        <div class="row sp"><h3>Kal ka anumaan</h3><span class="badge n">${fmtShort(tom)} · ${tn} ghar</span></div>
+        <div class="small muted" style="margin:4px 0 10px">Kal itna doodh chahiye hoga (active customers ke roz ke order se)</div>
+        <div class="grid g4">${PRODUCTS.map(p=>`<div class="stat"><div class="l">${p.sh}</div><div class="v" style="font-size:20px">${L(tload[p.k])} <span class="small muted">L</span></div></div>`).join('')}</div>
+      </div>
+    </div>
+    <div class="grid g4">
+      <div class="card stat"><div class="l">${fmtMonth(month)} sales</div><div class="v">${inr(sales)}</div><div class="s">delivered milk + extras</div></div>
+      <div class="card stat"><div class="l">${fmtMonth(month)} collection</div><div class="v">${inr(coll)}</div><div class="s">cash + online</div></div>
+      <div class="card stat"><div class="l">Total baki (dues)</div><div class="v" style="color:${out>0.5?'var(--danger)':'inherit'}">${inr(out)}</div><div class="s">${dues.length} customers se</div></div>
+      <div class="card stat"><div class="l">Bottles bahar</div><div class="v">${bottles}</div><div class="s">${active} active · ${paused} paused</div></div>
+    </div>
+    <div class="grid g2 tight">
+      <div class="card">
+        <div class="row sp"><h3>Pichle 7 din · litre</h3><span class="small muted">${sum(week,w=>w.n)} deliveries</span></div>
+        <div style="margin-top:10px">${sum(week,w=>w.n)?chart:'<div class="small muted" style="padding:14px 0">Deliveries record hone pe yahan graph banega.</div>'}</div>
+      </div>
+      <div class="card">
+        <div class="row sp"><h3>Sabse zyada baki</h3><button class="btn xs" data-act="go" data-r="bills">Sab bills</button></div>
+        <div style="margin-top:6px">${dues.slice(0,6).map(({c,bal})=>`<button class="item click" data-act="openBill" data-id="${c.id}" style="padding:8px 0"><div class="grow"><div class="t">${esc(c.name)}</div><div class="s">${esc(c.area||'')} · ${esc(c.boy||'')}</div></div><div class="r" style="color:var(--danger);font-weight:800">${inr(bal)}</div></button>`).join('')||'<div class="muted small" style="padding:8px 0">Koi baki nahi</div>'}</div>
+      </div>
+    </div>
+    <div class="row wrap">
+      <button class="btn" data-act="addPayment">+ Payment lo</button>
+      <button class="btn" data-act="editCustomer">+ Naya customer</button>
+      <button class="btn o" data-act="help">Kaise use karein?</button>
+    </div>
+  </div>`:emptyBox('Abhi koi customer nahi','<div style="margin-top:10px"><button class="btn p" data-act="editCustomer">+ Pehla customer add karo</button></div>');
+  return {html}}
+
+/* ---- Today ---- */
+function vToday(){
+  if(!isOwner()){S.boy=S.me;S.date=todayISO()}else if(S.boy!=='all'&&!boys().includes(S.boy))S.boy='all';
+  const date=S.date;const list=todaysList(date,S.boy);
+  const pending=list.filter(x=>!x.r||x.r.s==='p');const done=list.filter(x=>x.r&&x.r.s==='d');
+  const load={};PRODUCTS.forEach(p=>load[p.k]=0);const BT=btNew();const RB={s:0,b:0,u:0};list.forEach(({r})=>{const o=brSplit(r);RB.s+=o.s;RB.b+=o.b;RB.u+=o.u});
+  const dn=(S.days[date]||{}).dnote||{};
+  list.forEach(({c,r})=>{const q=r&&r.s==='k'?null:(r&&(r.s==='d'||r.pl)?r.q:orderOf(c));if(q){PRODUCTS.forEach(p=>load[p.k]+=+q[p.k]||0);btAdd(BT,q)}});
+  let lastArea='';
+  const rows=list.map(({c,r})=>{
+    const st=r?r.s:'p';const it=rowItems(c,r);const q=it.q;
+    const grp=S.boy==='all'?(c.boy||'—'):(c.area||'—').trim();const hd=grp.toLowerCase()!==lastArea.toLowerCase()?`<div class="areahd">${esc(grp)}</div>`:'';lastArea=grp;
+    return hd+`<div class="drow ${st==='d'?'done':st==='k'?'skip':''}">
+      <button class="ck ${st==='d'?'on':st==='k'?'skip':''}" data-act="toggleDone" data-id="${c.id}" aria-label="Done">${st==='k'?ICONS.skip:ICONS.check}</button>
+      <button class="body" data-act="editRow" data-id="${c.id}">
+        <div class="nm">${esc(c.name)} ${c.schedule==='alternate'?'<span class="badge b">Alt</span>':''}${c.status!=='active'?'<span class="badge y">Paused</span>':''}</div>
+        <div class="qt"><b>${qtyText(q)}</b> ${st!=='k'?btHtml(bottlesOf(q)):''}${st!=='k'&&it.x.length?' + '+esc(extrasText(it.x)):''}${st==='k'?' · <span style="color:var(--warn)">skip</span>':''}${r&&r.n?' · '+esc(r.n):''}${r&&r.br?' · <span style="color:var(--accent)">'+brText(r)+' wapas</span>':''}${S.boy==='all'?' · '+esc(c.area||''):''}</div>
+        ${c.notes?`<div class="qt" style="color:var(--warn);font-weight:700">📌 ${esc(c.notes)}</div>`:''}
+        ${varsOf(c).map(v=>`<div class="qt" style="color:var(--info);font-weight:600">💬 ${esc(v.t)}</div>`).join('')}
+      </button>
+      ${mapBtn(c)}
+      <button class="btn xs ${st==='k'?'w':'o'}" data-act="skipRow" data-id="${c.id}">${st==='k'?'Undo':'Skip'}</button>
+    </div>`}).join('');
+  const html=`
+  <div class="stack">
+    ${isOwner()?`<div class="row sp">
+      <div class="row"><button class="btn sm o" data-act="dateShift" data-n="-1">‹</button><button class="btn sm" data-act="dateToday"><b>${date===todayISO()?'Aaj · ':''}${fmtDate(date)}</b></button><button class="btn sm o" data-act="dateShift" data-n="1" ${date>=todayISO()?'disabled':''}>›</button></div>
+      <input type="date" class="input" style="width:auto;padding:6px 10px" value="${date}" data-act="datePick" max="${todayISO()}">
+    </div>
+    ${date<todayISO()?`<div class="banner">Pichli tareekh (${fmtDate(date)}) edit ho rahi hai. Jo quantity badlogi, wahi bill aur ledger me jayegi.</div>`:''}
+    ${boyChips(S.boy,'setBoy')}`:`<div class="row sp"><b>${fmtDate(date)}</b><button class="btn sm o" data-act="routeOrder" data-b="${esc(S.me)}">⇅ Order badlo</button></div>`}
+    ${isOwner()?`<div><button class="btn sm o" data-act="routeOrder" data-b="${esc(S.boy)}">⇅ ${S.boy!=='all'?esc(S.boy)+' ka order':'Customer order'} badlo</button></div>`:''}
+    <div class="card" style="padding:12px 14px">
+      <div class="row sp wrap"><div class="small"><b>${done.length}/${list.length}</b> done · ${pending.length} pending</div><div class="small muted">${PRODUCTS.filter(p=>load[p.k]>0).map(p=>`<b style="color:var(--fg)">${L(load[p.k])}L</b> ${p.sh}`).join(' · ')||'—'}</div></div>
+      <div class="pbar" style="margin-top:8px"><i style="width:${list.length?Math.round(done.length/list.length*100):0}%"></i></div>
+    </div>
+    ${btBreak(BT,(date===todayISO()?'Aaj':fmtShort(date))+' ki bottles'+(S.boy!=='all'?' · '+esc(S.boy):''))}
+    ${RB.s||RB.b||RB.u?`<div class="card" style="padding:10px 12px"><div class="row sp wrap"><b style="font-size:14px">Khali bottles wapas aayi</b><div class="row">${RB.s?`<span class="bchip">${RB.s} × ½L</span>`:''}${RB.b?`<span class="bchip">${RB.b} × 1L</span>`:''}${RB.u?`<span class="bchip">${RB.u} bina size</span>`:''}</div></div></div>`:''}
+    ${isOwner()?`<div class="card"><div class="row sp wrap"><h3>Dispatch notes · ${fmtDate(date)}</h3><span class="small muted">${dn.by?'Last save: '+esc(dn.by)+(dn.t?' · '+new Date(dn.t).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):''):''}</span></div>
+      <textarea class="input dnote" style="margin-top:8px" data-act="dnote" data-d="${date}" placeholder="Is din ka koi dispatch note nahi likha. Yahan likh sakte ho…">${esc(dn.t0||'')}</textarea>
+      <div class="small muted" style="margin-top:4px">Kal tab wale dispatch notes hi yahan us din ke hisaab se dikhte hain. Box se bahar click karte hi save.</div></div>`
+     :(dn.t0?`<div class="card"><h3>Dispatch notes</h3><div style="margin-top:6px;white-space:pre-wrap">${esc(dn.t0)}</div></div>`:'')}
+    <div class="list">${rows||emptyBox('Aaj koi delivery due nahi','<span class="small">Customer paused ho sakte hain, ya alternate day.</span>')}</div>
+    <div class="row wrap">
+      ${pending.length?`<button class="btn p" data-act="allDone">Baaki sab done karo (${pending.length})</button>`:''}
+      <button class="btn o" data-act="addToday">+ Aur customer aaj</button>
+    </div>
+  </div>`;
+  return {title:'Aaj ki delivery',html}}
+
+/* ---- Customers ---- */
+function vCustomers(){
+  const q=S.cq.trim().toLowerCase();
+  let all=Object.values(S.customers);
+  const nAct=all.filter(c=>c.status==='active').length;
+  let list=all.filter(c=>(S.cboy==='all'||c.boy===S.cboy)&&(S.cstatus==='all'||(S.cstatus==='active'?c.status==='active':c.status!=='active'))&&(!q||(c.name+' '+c.phone+' '+(c.area||'')+' '+(c.address||'')).toLowerCase().includes(q)));
+  const byRoute=S.csort!=='az';const pos={};
+  if(byRoute){const g={};all.forEach(c=>(g[c.boy||'']=g[c.boy||'']||[]).push(c));Object.values(g).forEach(arr=>arr.sort((a,b)=>((a.seq??9999)-(b.seq??9999))||a.name.localeCompare(b.name)).forEach((c,i)=>pos[c.id]=i+1));
+    list.sort((a,b)=>(a.boy||'').localeCompare(b.boy||'')||(pos[a.id]-pos[b.id]))}
+  else list.sort((a,b)=>(a.area||'').localeCompare(b.area||'')||a.name.localeCompare(b.name));
+  let lastG=null;
+  const html=`
+  <div class="stack">
+    <div class="search">${ICONS.search}<input class="input" placeholder="Naam, phone, area…" value="${esc(S.cq)}" data-act="cq"></div>
+    <div class="row sp wrap">${boyChips(S.cboy,'setCBoy')}<div class="seg">${[['active','Active'],['paused','Paused'],['all','Sab']].map(([v,l])=>`<button class="${S.cstatus===v?'on':''}" data-act="setCStatus" data-v="${v}">${l}</button>`).join('')}</div></div>
+    <div class="row sp wrap"><div class="small muted">${list.length} dikh rahe · ${nAct} active · ${all.length-nAct} paused</div>
+     <div class="row"><div class="seg">${[['route','Route order'],['az','Area / A–Z']].map(([v,l])=>`<button class="${(S.csort||'route')===v?'on':''}" data-act="setCSort" data-v="${v}">${l}</button>`).join('')}</div>
+     <button class="btn sm o" data-act="routeOrder" data-b="${esc(S.cboy)}">⇅ Order badlo</button></div></div>
+    <div class="list">${list.map(c=>{const rt=ratesOf(c);let hd='';if(byRoute&&S.cboy==='all'&&c.boy!==lastG){lastG=c.boy;hd=`<div class="areahd">${esc(c.boy||'—')}</div>`}const o=orderOf(c);const rateStr=PRODUCTS.filter(p=>o[p.k]>0).map(p=>'₹'+rt[p.k]).join('/');
+      return hd+`<div class="item">${byRoute?`<span class="cpos">${pos[c.id]}</span>`:''}<button class="grow click" data-act="openCustomer" data-id="${c.id}" style="text-align:left"><div class="t">${esc(c.name)} ${c.schedule==='alternate'?'<span class="badge b">Alt</span>':''}</div><div class="s">${esc(c.area||'—')} · ${esc(c.boy||'—')} · ${qtyText(o)}${rateStr?' @ '+rateStr:''}</div></button><div class="r">${c.status==='active'?'<span class="badge g">Active</span>':'<span class="badge y">Paused</span>'}</div>${mapBtn(c)}</div>`}).join('')||emptyBox('Koi customer nahi mila')}</div>
+  </div>`;
+  return {html,action:isOwner()?`<button class="btn sm p" data-act="editCustomer">+ Naya</button>`:''}}
+
+/* ---- Bills ---- */
+function vBills(){
+  const q=S.bq.trim().toLowerCase();
+  const bills=Object.values(S.customers).filter(c=>(S.bboy==='all'||c.boy===S.bboy)&&(!q||(c.name+' '+c.phone+' '+(c.area||'')).toLowerCase().includes(q))).map(c=>billFor(c,S.month,S.period)).filter(b=>b.rows.length||Math.abs(b.closing)>0.5||b.paid);
+  bills.sort((a,b)=>b.closing-a.closing);
+  const T={amount:sum(bills,b=>b.amount),paid:sum(bills,b=>b.paid),closing:sum(bills,b=>b.closing)};
+  const html=`
+  <div class="stack">
+    <div class="row sp wrap">
+      <input type="month" class="input" style="width:auto" value="${S.month}" data-act="setMonth">
+      <div class="seg">${[['full','Pura mahina'],['h1','1–15'],['h2','16–'+dim(S.month)]].map(([v,l])=>`<button class="${S.period===v?'on':''}" data-act="setPeriod" data-v="${v}">${l}</button>`).join('')}</div>
+    </div>
+    <div class="row sp wrap">${boyChips(S.bboy,'setBBoy')}<div class="search grow" style="min-width:160px">${ICONS.search}<input class="input" placeholder="Customer dhoondo" value="${esc(S.bq)}" data-act="bq"></div></div>
+    <div class="grid g3 keep">
+      <div class="card stat"><div class="l">Bill total</div><div class="v">${inr(T.amount)}</div></div>
+      <div class="card stat"><div class="l">Jama</div><div class="v">${inr(T.paid)}</div></div>
+      <div class="card stat"><div class="l">Baki</div><div class="v" style="color:${T.closing>0?'var(--danger)':'inherit'}">${inr(T.closing)}</div></div>
+    </div>
+    <div class="list only-m">${bills.map(b=>`<div class="item"><button class="grow click" data-act="openBill" data-id="${b.c.id}" style="text-align:left"><div class="t">${esc(b.c.name)}</div><div class="s">${b.rows.length} din · ${b.lines.map(x=>L(x.l)+'L '+x.sh).join(' + ')||'—'}${b.extras?' + extras':''}</div><div class="s">Bill ${inr(b.amount)} · Jama ${inr(b.paid)}${Math.abs(b.prev)>0.5?' · Pichla '+inr(b.prev):''}</div></button><div class="r"><div style="font-weight:800;color:${b.closing>0.5?'var(--danger)':'var(--accent)'}">${inr(b.closing)}</div>${b.closing<-0.5?'<div class="small muted">advance</div>':''}</div>${b.c.phone?`<a class="wa" href="https://wa.me/91${cleanPhone(b.c.phone)}?text=${encodeURIComponent(billText(b))}" target="_blank" rel="noopener" title="WhatsApp pe bill bhejo">${ICONS.wa}</a>`:''}</div>`).join('')||emptyBox('Is period me koi delivery record nahi')}</div>
+    <div class="card only-d" style="padding:0"><div class="scroll"><table class="tbl"><thead><tr><th>Customer</th><th class="n">Days</th><th>Qty</th><th class="n">Bill</th><th class="n">Jama</th><th class="n">Baki</th><th></th></tr></thead><tbody>
+    ${bills.map(b=>`<tr class="click" data-act="openBill" data-id="${b.c.id}"><td><b>${esc(b.c.name)}</b><div class="small muted">${esc(b.c.area||'')} · ${esc(b.c.boy||'')}</div></td><td class="n">${b.rows.length}</td><td class="small">${b.lines.map(x=>L(x.l)+'L '+x.sh).join(', ')||'—'}${b.extras?' +extras':''}</td><td class="n">${inr(b.amount)}</td><td class="n">${inr(b.paid)}</td><td class="n" style="font-weight:800;color:${b.closing>0.5?'var(--danger)':'var(--accent)'}">${inr(b.closing)}${b.closing<-0.5?'<div class="small muted" style="font-weight:500">advance</div>':''}</td><td>${b.c.phone?`<a class="wa" href="https://wa.me/91${cleanPhone(b.c.phone)}?text=${encodeURIComponent(billText(b))}" target="_blank" rel="noopener" title="WhatsApp pe bill bhejo">${ICONS.wa}</a>`:''}</td></tr>`).join('')||`<tr><td colspan="7"><div class="empty">Is period me koi delivery record nahi</div></td></tr>`}
+    </tbody></table></div></div>
+    ${S.downloads?`<button class="btn o" data-act="exportCsv">Excel/CSV download</button>`:''}
+  </div>`;
+  return {html}}
+
+/* ---- Payments ---- */
+function vPayments(){
+  const [mf,mt]=periodRange(S.pmonth,'full');
+  const pq=(S.pq||'').trim().toLowerCase();
+  const list=Object.values(S.payments).filter(p=>p.date>=mf&&p.date<=mt&&(!pq||((S.customers[p.cid]||{}).name+' '+(p.note||'')).toLowerCase().includes(pq))).sort((a,b)=>b.date.localeCompare(a.date)||(b.t||0)-(a.t||0));
+  const cash=sum(list.filter(p=>p.mode==='cash'),p=>p.amt),online=sum(list.filter(p=>p.mode!=='cash'),p=>p.amt);
+  const html=`
+  <div class="stack">
+    <div class="row sp wrap"><input type="month" class="input" style="width:auto" value="${S.pmonth}" data-act="setPMonth"><button class="btn p" data-act="addPayment">+ Payment lo</button></div>
+    <div class="search">${ICONS.search}<input class="input" placeholder="Customer ya note dhoondo" value="${esc(S.pq||'')}" data-act="pq"></div>
+    <div class="grid g3 keep">
+      <div class="card stat"><div class="l">Total</div><div class="v">${inr(cash+online)}</div></div>
+      <div class="card stat"><div class="l">Cash</div><div class="v">${inr(cash)}</div></div>
+      <div class="card stat"><div class="l">Online / UPI</div><div class="v">${inr(online)}</div></div>
+    </div>
+    <div class="list">${list.map(p=>{const c=S.customers[p.cid];return `<div class="item"><div class="grow"><div class="t">${esc(c?c.name:'(deleted customer)')}</div><div class="s">${fmtDate(p.date)} · ${p.mode==='cash'?'Cash':'Online'}${p.by?' · '+esc(p.by):''}${p.note?' · '+esc(p.note):''}</div>${p.proof?`<button class="btn xs o" style="margin-top:4px" data-act="viewProof" data-id="${p.id}">${ICONS.cam} Screenshot</button>`:''}</div><div class="r"><b>${inr(p.amt)}</b>${isOwner()?`<div><button class="btn xs" data-act="delPayment" data-id="${p.id}">Delete</button></div>`:`<div class="small muted">${esc(p.by||'')}</div>`}</div></div>`}).join('')||emptyBox('Is mahine koi payment nahi')}</div>
+  </div>`;
+  return {html}}
+
+/* ---- Bottles ---- */
+function vBottles(){
+  const q=S.bottleQ.trim().toLowerCase();
+  const bal={};Object.values(S.customers).forEach(c=>bal[c.id]=bottleBal(c));
+  let list=Object.values(S.customers).filter(c=>q?(c.name+' '+(c.area||'')+' '+c.phone).toLowerCase().includes(q):bal[c.id]!==0);
+  list.sort((a,b)=>bal[b.id]-bal[a.id]||a.name.localeCompare(b.name));
+  const total=sum(Object.values(S.customers),c=>bal[c.id]);
+  const html=`
+  <div class="stack">
+    <div class="card stat"><div class="l">Total bottles customers ke paas</div><div class="v">${total}</div><div class="s">Delivery hote hi bottles apne aap judti hain (1L = bada, ½L = chhota). Wapas li bottles delivery screen pe likho. +/− sirf manual sudhaar ke liye.</div></div>
+    <div class="search">${ICONS.search}<input class="input" placeholder="Customer dhoondo (bottle add karne ke liye)" value="${esc(S.bottleQ)}" data-act="bottleQ"></div>
+    <div class="list">${list.map(c=>`<div class="item"><div class="grow"><div class="t">${esc(c.name)}</div><div class="s">${esc(c.area||'')} · ${esc(c.boy||'')}</div></div><div class="row"><button class="btn sm o" data-act="bottle" data-id="${c.id}" data-n="-1">−</button><b style="min-width:28px;text-align:center">${bal[c.id]}</b><button class="btn sm o" data-act="bottle" data-id="${c.id}" data-n="1">+</button></div></div>`).join('')||emptyBox('Kisi ke paas bottle pending nahi','<span class="small">Upar search karke customer ke bottles + karo.</span>')}</div>
+  </div>`;
+  return {html}}
+
+/* ---- Settings ---- */
+function vSettings(){
+  const st={boys:boys(),rates:defRates(),extras:extrasPresets(),company:settings().company||'Oritic',upi:settings().upi||'',billNote:settings().billNote||''};
+  const html=`
+  <div class="stack">
+    <div class="card"><h3>Bill pe kya dikhe</h3>
+      <div class="grid g2" style="margin-top:8px">
+        <div class="field"><label class="f">Company / dairy ka naam</label><input class="input" id="stCompany" value="${esc(st.company)}"></div>
+        <div class="field"><label class="f">UPI ID (bill me jayegi)</label><input class="input" id="stUpi" value="${esc(st.upi)}" placeholder="e.g. oritic@upi"></div>
+      </div>
+      <div class="field" style="margin-top:10px"><label class="f">Bill ke neeche line</label><input class="input" id="stNote" value="${esc(st.billNote)}" placeholder="Dhanyavaad 🙏 — payment 5 tareekh tak kar dein"></div>
+    </div>
+    <div class="card"><h3>Delivery boys</h3><div class="small muted" style="margin:4px 0 8px">Comma se alag karo</div><input class="input" id="stBoys" value="${esc(st.boys.join(', '))}"></div>
+    <div class="card"><h3>Login PIN</h3><div class="small muted" style="margin:4px 0 8px">4 digit. Owner ka PIN sirf owner ke paas rahe. Boys ka PIN unhe bata do.</div>
+      <div class="grid g2">
+        <div class="field"><label class="f">Owner PIN</label><input class="input" id="stPinOwner" inputmode="numeric" maxlength="6" value="${esc((settings().pins||{}).owner||'1234')}"></div>
+        ${st.boys.map(b=>`<div class="field"><label class="f">${esc(b)} ka PIN</label><input class="input" inputmode="numeric" maxlength="6" data-pin="${esc(b)}" value="${esc(((settings().pins||{}).boys||{})[b]||'0000')}"></div>`).join('')}
+      </div></div>
+    <div class="card"><h3>Default rates (₹ / litre)</h3><div class="small muted" style="margin:4px 0 8px">Naye customer ke liye. Har customer ka apna rate uske profile me set hota hai.</div>
+      <div class="grid g4">${PRODUCTS.map(p=>`<div class="field"><label class="f">${p.sh}</label><input class="input" type="number" inputmode="decimal" id="stRate_${p.k}" value="${st.rates[p.k]}"></div>`).join('')}</div></div>
+    <div class="card"><h3>Other products (paneer, dahi, ghee…)</h3><div class="small muted" style="margin:4px 0 8px">Ab ye <b>Product master</b> me manage hote hain (${products().length} products).</div><button class="btn o" data-act="go" data-r="products">Product master kholo</button></div>
+    <div class="card"><h3>Meter / KM incentive</h3><div class="grid g2" style="margin-top:8px">
+      <div class="field"><label class="f">₹ per km</label><input class="input" type="number" inputmode="decimal" id="stKm" value="${esc(settings().kmRate??2)}"></div>
+      <div class="field"><label class="f">Raat 11 baje Excel backup apne aap download</label><select class="input" id="stAuto"><option value="1" ${settings().autoExport!==false?'selected':''}>Haan (panel khula ho to)</option><option value="0" ${settings().autoExport===false?'selected':''}>Nahi</option></select></div></div></div>
+    <button class="btn p" data-act="saveSettings">Save settings</button>
+    <button class="btn o" data-act="help">Kaise use karein? (guide)</button>
+    <div class="card"><h3>Data</h3><div class="small muted" style="margin:4px 0 10px">${Object.keys(S.customers).length} customers · ${Object.keys(S.days).length} delivery days · ${Object.keys(S.payments).length} payments</div>
+      <div class="row wrap">
+        <label class="btn o" style="cursor:pointer">Customers import (JSON)<input type="file" accept=".json,application/json" id="impFile" hidden></label>
+        <button class="btn o" data-act="backup">Backup download</button>
+        <button class="btn o" data-act="xlsx" data-d="${addDays(todayISO(),1)}">Excel backup (kal ki delivery)</button>
+        <button class="btn o" data-act="logout">Logout</button>
+      </div>
+      <div class="small muted" style="margin-top:8px">Import: pehli baar June wali customer list daalne ke liye. Backup: pura data ek JSON file me.</div></div>
+  </div>`;
+  return {html}}
+
+/* ---------- sheets ---------- */
+function openSheet(title,html){stopCam();$('#shTitle').textContent=title;$('#shBody').innerHTML=html;$('#sheet').hidden=false;document.body.style.overflow='hidden'}
+function closeSheet(){stopCam();$('#sheet').hidden=true;$('#shBody').innerHTML='';document.body.style.overflow=''}
+function stepper(id,val,step){return `<div class="step"><button type="button" data-act="step" data-t="${id}" data-n="${-step}">−</button><input id="${id}" type="number" inputmode="decimal" step="${step}" min="0" value="${val}"><button type="button" data-act="step" data-t="${id}" data-n="${step}">+</button></div>`}
+
+function sheetRow(cid){
+  const c=S.customers[cid];if(!c)return;const r=rowOf(S.date,cid);const {q,x}=rowItems(c,r);
+  const presets=products().filter(p=>p.on!==false).slice(0,12);
+  openSheet(c.name,`
+    <div class="small muted" style="margin-bottom:8px">${esc(c.area||'')} · ${esc(c.boy||'')} · ${fmtDate(S.date)}</div>
+    ${c.notes?`<div class="instr">📌 ${esc(c.notes)}</div>`:''}
+    ${varsOf(c).map(v=>`<div class="vcm">💬 ${esc(v.t)}<small>${v.by?esc(v.by)+' · ':''}${fmtShort(v.till)} tak</small></div>`).join('')}
+    <div class="qgrid" style="margin-top:8px">${PRODUCTS.map(p=>`<div><b>${p.l}</b><div class="small muted">₹${ratesOf(c)[p.k]}/L</div></div>${stepper('q_'+p.k,q[p.k]||0,0.5)}`).join('')}</div>
+    <div class="small muted" style="margin-top:6px">Bottles: <span id="rowBt">${btHtml(bottlesOf(q))}</span></div>
+    <div style="margin-top:16px"><label class="f">Other products</label>
+      <div class="extras" id="xList">${x.map((e,i)=>`<span class="badge n" style="font-size:13px;padding:6px 10px">${esc(e.n)} ${inr(e.a)} <button data-act="xDel" data-i="${i}" style="margin-left:4px;font-weight:800">×</button></span>`).join('')}</div>
+      <div class="extras" style="margin-top:8px">${presets.map(p=>{const lr=lastRate(cid,p.id,p.n);const rt=lr!=null?lr:+p.a||0;return `<button class="chip" data-act="xAdd" data-n="${esc(p.n)}" data-pid="${esc(p.id)}" data-a="${rt}">+ ${esc(p.n)} ${inr(rt)}</button>`}).join('')}</div>
+      ${prodForm('x',cid)}
+    </div>
+    <div style="margin-top:12px">${brSteppers('rBr',r)}<div class="row sp" style="margin-top:6px"><span class="small muted">Customer ke paas khali bottles</span><b style="font-size:18px">${bottleBal(c)}</b></div>${balHtml(c)}</div>
+    <div class="row sp" style="margin-top:14px;padding:10px 12px;border-radius:10px;background:var(--surface2)"><span class="small muted">Aaj ka bill</span><b id="liveTotal">${inr(calcAmount(q,x,ratesOf(c)))}</b></div>
+    <div style="margin-top:12px"><label class="f">Note (optional)</label><input class="input" id="rNote" value="${esc(r&&r.n||'')}" placeholder="e.g. bottle wapas nahi di"></div>
+    <div class="row wrap" style="margin-top:16px">
+      <button class="btn p grow" data-act="rowSave" data-id="${cid}" data-s="d">✓ Delivered</button>
+      <button class="btn w" data-act="rowSave" data-id="${cid}" data-s="k">Skip (nahi gaya)</button>
+      ${r?`<button class="btn o" data-act="rowSave" data-id="${cid}" data-s="p">Pending karo</button>`:''}
+    </div>
+    <div class="row sp wrap" style="margin-top:14px"><button class="btn sm o" data-act="openCustomer" data-id="${cid}">Customer profile</button>${mapOf(c)?`<a class="btn sm o" href="${esc(mapOf(c).url)}" target="_blank" rel="noopener">${ICONS.pin} Map</a>`:''}<button class="btn sm o" data-act="bottle" data-id="${cid}" data-n="-1">Bottle wapas (−1) · ${bottleBal(c)}</button></div>`);
+  $('#shBody').dataset.extras=JSON.stringify(x)}
+function liveTotal(){const el=$('#liveTotal');if(!el)return;const cid=($('[data-act=rowSave]')||{}).dataset;if(!cid)return;const c=S.customers[cid.id];if(!c)return;const {q,x}=readRowSheet();el.textContent=inr(calcAmount(q,x,ratesOf(c)));const b=$('#rowBt');if(b)b.innerHTML=btHtml(bottlesOf(q))}
+function readRowSheet(){const q={};PRODUCTS.forEach(p=>q[p.k]=Math.max(0,+$('#q_'+p.k).value||0));const x=JSON.parse($('#shBody').dataset.extras||'[]');return {q,x,n:$('#rNote').value.trim()}}
+function renderExtras(){liveTotal();const x=JSON.parse($('#shBody').dataset.extras||'[]');$('#xList').innerHTML=x.map((e,i)=>`<span class="badge n" style="font-size:13px;padding:6px 10px">${esc(e.n)} ${inr(e.a)} <button data-act="xDel" data-i="${i}" style="margin-left:4px;font-weight:800">×</button></span>`).join('')}
+
+function sheetCustomer(cid){
+  const c=S.customers[cid];if(!c)return;
+  const month=todayISO().slice(0,7);const b=billFor(c,month,'full');const bal=balanceUpto(c,null);
+  const recent=deliveredRows(c.id,null,null).slice(-8).reverse();const rt=ratesOf(c);const o=orderOf(c);
+  openSheet(c.name,`
+    <div class="row wrap" style="margin-bottom:10px">${c.status==='active'?'<span class="badge g">Active</span>':'<span class="badge y">Paused</span>'}<span class="badge b">${c.schedule==='alternate'?'Ek din chhod ke':'Roz'}</span><span class="badge n">${esc(c.boy||'—')}</span>${recent[0]?`<span class="badge n">Last delivery ${fmtShort(recent[0].date)}</span>`:''}</div>
+    <div class="kv">
+      <span class="muted">Phone</span><span><b>${esc(c.phone||'—')}</b> ${c.phone?`<button class="btn xs" data-act="copy" data-t="${esc(c.phone)}">Copy</button> <a class="btn xs" href="https://wa.me/91${cleanPhone(c.phone)}" target="_blank" rel="noopener">WhatsApp</a>`:''}</span>
+      <span class="muted">Makan</span><span>${esc(c.house||'—')}</span>
+      <span class="muted">Area</span><span>${esc(c.area||'—')}</span>
+      <span class="muted">Address</span><span>${esc(c.address||'—')}</span>
+      <span class="muted">Landmark</span><span>${esc(c.landmark||'—')}</span>
+      <span class="muted">Schedule</span><span>${esc(schedText(c))}</span>
+      <span class="muted">Customer since</span><span>${custSince(c)?fmtDate(custSince(c))+' '+custSince(c).slice(0,4):'—'}</span>
+      <span class="muted">Order</span><span><b>${qtyText(o)}</b></span>
+      <span class="muted">Rates</span><span>${PRODUCTS.map(p=>p.sh+' ₹'+rt[p.k]).join(' · ')}</span>
+      ${c.notes?`<span class="muted">Note</span><span>${esc(c.notes)}</span>`:''}
+    </div>
+    ${(()=>{const m=mapOf(c);return m?`<div class="row" style="margin-top:12px"><a class="btn p" style="flex:1;min-width:0" href="${esc(m.url)}" target="_blank" rel="noopener">${ICONS.pin} ${m.exact?'Google Maps me kholo':'Address se search'}</a><button class="btn o" data-act="copy" data-t="${esc(c.name+' — '+(c.address||'')+'\n'+m.url)}">Location copy</button></div>${m.exact?'':'<div class="small" style="color:var(--warn);margin-top:6px">Is customer ka exact map link nahi hai — Edit me link daal do.</div>'}`:'<div class="small" style="color:var(--warn);margin-top:12px">Map link aur address dono nahi hain — Edit me daal do.</div>'})()}
+    <div class="hr" style="margin:12px 0"></div>
+    <div class="grid g3">
+      <div class="stat"><div class="l">${fmtMonth(month)}</div><div class="v" style="font-size:18px">${inr(b.amount)}</div><div class="s">${b.rows.length} days</div></div>
+      <div class="stat"><div class="l">Jama (${MON[+month.slice(5)-1]})</div><div class="v" style="font-size:18px">${inr(b.paid)}</div></div>
+      <div class="stat"><div class="l">Kul baki</div><div class="v" style="font-size:18px;color:${bal>0.5?'var(--danger)':'var(--accent)'}">${inr(bal)}</div><div class="s">bottles: ${bottleBal(c)}</div></div>
+    </div>
+    <div class="row wrap" style="margin-top:14px">
+      <button class="btn p" data-act="openBill" data-id="${cid}">Bill dekho</button>
+      <button class="btn" data-act="addPayment" data-id="${cid}">Payment lo</button>
+      ${isOwner()?`<button class="btn" data-act="editCustomer" data-id="${cid}">Edit</button>
+      <button class="btn o" data-act="togglePause" data-id="${cid}">${c.status==='active'?'Pause karo':'Resume karo'}</button>`:''}
+    </div>
+    <h3 style="margin-top:18px">Recent deliveries</h3>
+    <div style="margin-top:6px">${recent.map(r=>`<div class="row sp small" style="padding:6px 0;border-bottom:1px solid var(--line2)"><span>${fmtDate(r.date)}</span><span class="muted">${qtyText(r.q)}${r.x&&r.x.length?' + '+esc(extrasText(r.x)):''}</span><b>${inr(r.a)}</b></div>`).join('')||'<div class="small muted">Abhi koi delivery record nahi</div>'}</div>
+    ${commentHistoryHtml(c)}`)}
+
+function sheetEditCustomer(cid){
+  const c=cid&&S.customers[cid]||{name:'',phone:'',area:'',address:'',map:'',boy:boys()[0]||'',schedule:'daily',status:'active',order:{},rates:{},notes:'',openingDue:0,bottles:0};
+  const rt=cid?ratesOf(c):defRates();const o=orderOf(c);
+  const f=(id,l,v,ph,type)=>`<div class="field"><label class="f">${l}</label><input class="input" id="${id}" value="${esc(v)}" placeholder="${ph||''}" ${type?`type="${type}" inputmode="decimal"`:''}></div>`;
+  openSheet(cid?'Customer edit':'Naya customer',`
+    <div class="stack">
+      ${f('fName','Naam *',c.name,'Customer ka naam')}
+      <div class="grid g2">${f('fPhone','Mobile',c.phone,'10 digit')}${f('fArea','Area',c.area,'e.g. Raja Park')}</div>
+      <div class="grid g2">${f('fHouse','Makan no. / floor / tower-wing',c.house||'','e.g. B-204, 2nd floor, Tower B')}${f('fLandmark','Landmark',c.landmark||'','e.g. Shiv mandir ke saamne')}</div>
+      ${f('fAddress','Address',c.address,'Flat / plot, colony')}
+      <div class="field"><label class="f">Google Map link</label><div class="row"><input class="input grow" id="fMap" value="${esc(c.map||'')}" placeholder="https://maps.app.goo.gl/…" inputmode="url"><button type="button" class="btn sm o" data-act="mapFind">Address se dhoondo</button></div>
+        <div class="small muted" style="margin-top:4px">Customer ki WhatsApp location ya Google Maps "Share" wala link yahan paste karo.</div></div>
+      <div class="grid g3">
+        <div class="field"><label class="f">Delivery boy</label><select class="input" id="fBoy">${boys().map(b=>`<option ${c.boy===b?'selected':''}>${esc(b)}</option>`).join('')}${c.boy&&!boys().includes(c.boy)?`<option selected>${esc(c.boy)}</option>`:''}</select></div>
+        <div class="field"><label class="f">Schedule</label><select class="input" id="fSched" onchange="document.getElementById('fWd').hidden=this.value!=='custom'"><option value="daily" ${!c.schedule||c.schedule==='daily'?'selected':''}>Roz (Regular)</option><option value="alternate" ${c.schedule==='alternate'?'selected':''}>Ek din chhod ke</option><option value="custom" ${c.schedule==='custom'?'selected':''}>Custom din</option></select></div>
+        <div class="field"><label class="f">Status</label><select class="input" id="fStatus"><option value="active" ${c.status==='active'?'selected':''}>Active</option><option value="paused" ${c.status!=='active'?'selected':''}>Paused</option></select></div>
+      </div>
+      <div class="field" id="fWd" ${c.schedule==='custom'?'':'hidden'}><label class="f">Kin dino me delivery (custom)</label><div class="wdays">${DOW.map((w,i)=>`<label><input type="checkbox" data-wd="${i}" ${(c.wdays||[]).map(Number).includes(i)?'checked':''}> ${w}</label>`).join('')}</div></div>
+      ${f('fSince','Customer kab se (onboarding date)',custSince(c)||todayISO(),'','date')}
+      <div class="card" style="padding:12px"><h3>Roz ka order & rate</h3>
+        <div class="scroll"><table class="tbl" style="margin-top:6px"><thead><tr><th>Item</th><th>Litre / din</th><th>₹ / litre</th></tr></thead><tbody>
+        ${PRODUCTS.map(p=>`<tr><td><b>${p.sh}</b></td><td><input class="input" style="width:84px" type="number" inputmode="decimal" step="0.5" min="0" id="fQ_${p.k}" value="${o[p.k]||0}"></td><td><input class="input" style="width:84px" type="number" inputmode="decimal" id="fR_${p.k}" value="${rt[p.k]}"></td></tr>`).join('')}
+        </tbody></table></div></div>
+      <div class="field"><label class="f">Roz ke other products (standing order)</label><textarea class="input" id="fXo" placeholder="Ek line me ek: Product naam = qty&#10;e.g. Dahi 400g = 1">${esc((c.xorder||[]).map(e=>e.n+' = '+L(e.qty)).join('\n'))}</textarea><div class="small muted" style="margin-top:4px">Ye Kal ki delivery me apne aap bharega aur Demand forecast me jud-ega. Naam Product master se match karo.</div></div>
+      <div class="grid g2">${f('fOpen','Purana baki (₹)',c.openingDue||0,'0','number')}${f('fBottles','Bottles adjustment (opening)',c.bottles||0,'0','number')}</div>
+      <div class="small muted" style="margin-top:-6px">Bottle balance = opening + delivery pe gayi bottles − wapas aayi. Abhi: <b>${cid?bottleBal(c):0}</b></div>
+      <div class="field"><label class="f">Notes</label><textarea class="input" id="fNotes" placeholder="e.g. gate pe rakhna, call karke jana">${esc(c.notes||'')}</textarea></div>
+      <button class="btn p block" data-act="custSave" data-id="${cid||''}">Save</button>
+      ${cid?`<div class="confirm" id="delWrap"><button class="btn o" data-act="custDelAsk">Customer delete…</button></div>`:''}
+    </div>`)}
+
+function sheetBill(cid){
+  const c=S.customers[cid];if(!c)return;const b=billFor(c,S.month,S.period);const txt=billText(b);
+  openSheet('Bill · '+c.name,`
+    <div class="row sp wrap" style="margin-bottom:10px">
+      <input type="month" class="input" style="width:auto" value="${S.month}" data-act="setMonth" data-bill="${cid}">
+      <div class="seg">${[['full','Pura'],['h1','1–15'],['h2','16–'+dim(S.month)]].map(([v,l])=>`<button class="${S.period===v?'on':''}" data-act="setPeriod" data-v="${v}" data-bill="${cid}">${l}</button>`).join('')}</div>
+    </div>
+    <div class="billbox">${esc(txt)}</div>
+    <div class="row wrap" style="margin-top:12px">
+      <button class="btn p" data-act="copy" data-t="${esc(txt)}">Bill copy karo</button>
+      ${c.phone?`<a class="btn" href="https://wa.me/91${cleanPhone(c.phone)}?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener">WhatsApp pe bhejo</a>`:''}
+      <button class="btn o" data-act="addPayment" data-id="${cid}">Payment lo</button>
+    </div>
+    <h3 style="margin-top:18px">Din-wise</h3>
+    <div class="scroll"><table class="tbl" style="margin-top:6px"><thead><tr><th>Date</th><th>Qty</th><th>Extras</th><th class="n">₹</th></tr></thead><tbody>
+    ${b.rows.map(r=>`<tr><td>${fmtShort(r.date)}</td><td>${qtyText(r.q)}</td><td class="small muted">${esc(extrasText(r.x))}</td><td class="n">${inr(r.a)}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">Koi delivery nahi</td></tr>'}
+    </tbody></table></div>
+    ${b.pays.length?`<h3 style="margin-top:14px">Payments</h3>${b.pays.map(p=>`<div class="row sp small" style="padding:5px 0"><span>${fmtShort(p.date)} · ${p.mode==='cash'?'Cash':'Online'}${p.note?' · '+esc(p.note):''}</span><b>${inr(p.amt)}</b></div>`).join('')}`:''}`)}
+
+function sheetPayment(cid){
+  const c=cid&&S.customers[cid];
+  openSheet('Payment lo',`
+    <div class="stack">
+      <div class="field"><label class="f">Customer</label>
+        ${c?`<div class="row sp"><b id="payCust" data-id="${c.id}">${esc(c.name)} <span class="muted small">· baki ${inr(balanceUpto(c,null))}</span></b><button class="btn xs" data-act="payPick">Badlo</button></div>`:`<div class="search">${ICONS.search}<input class="input" id="payQ" placeholder="Naam ya phone type karo" autocomplete="off"></div><div class="list" id="payRes" style="margin-top:6px;max-height:200px;overflow:auto"></div><b id="payCust" data-id=""></b>`}
+      </div>
+      <div class="grid g2">
+        <div class="field"><label class="f">Amount (₹) *</label><input class="input" id="payAmt" type="number" inputmode="decimal" placeholder="0" value="${c&&balanceUpto(c,null)>0?Math.round(balanceUpto(c,null)):''}"></div>
+        <div class="field"><label class="f">Date</label><input class="input" id="payDate" type="date" value="${todayISO()}" max="${todayISO()}"></div>
+      </div>
+      <div class="field"><label class="f">Mode</label><div class="seg" id="payMode"><button class="on" data-mode="cash">Cash</button><button data-mode="online">Online / UPI</button></div></div>
+      <div class="field" id="payProof" hidden><label class="f">Payment screenshot ${isOwner()?'(optional)':'(zaroori)'}</label>
+        <label class="btn o" style="cursor:pointer">${ICONS.cam} Screenshot chuno<input type="file" accept="image/*" id="payImg" hidden></label>
+        <div id="payPrev" class="proof" style="margin-top:8px"></div></div>
+      <div class="field"><label class="f">Note</label><input class="input" id="payNote" placeholder="optional"></div>
+      <button class="btn p block" data-act="paySave">Save payment</button>
+    </div>`);
+  if(!c)bindPicker('#payQ','#payRes','#payCust')}
+function bindPicker(qSel,resSel,outSel,onPick){
+  const inp=$(qSel),res=$(resSel);
+  const draw=()=>{const q=inp.value.trim().toLowerCase();const list=Object.values(S.customers).filter(c=>!q||(c.name+' '+c.phone+' '+(c.area||'')).toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name)).slice(0,30);
+    res.innerHTML=list.map(c=>`<button class="item click" data-pick="${c.id}" style="padding:8px 12px"><div class="grow"><div class="t">${esc(c.name)}</div><div class="s">${esc(c.area||'')} · ${esc(c.phone||'')}</div></div>${c.status!=='active'?'<span class="badge y">Paused</span>':''}</button>`).join('')||'<div class="empty small">Nahi mila</div>'};
+  inp.addEventListener('input',draw);draw();
+  res.addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if(!b)return;const c=S.customers[b.dataset.pick];if(onPick){onPick(c);return}
+    const out=$(outSel);out.dataset.id=c.id;out.innerHTML=esc(c.name)+` <span class="muted small">· baki ${inr(balanceUpto(c,null))}</span>`;res.innerHTML='';inp.value=c.name;const amt=$('#payAmt');if(amt&&!amt.value&&balanceUpto(c,null)>0)amt.value=Math.round(balanceUpto(c,null))});
+  setTimeout(()=>inp.focus(),50)}
+function sheetAddToday(){
+  openSheet('Aaj ke liye customer add',`<div class="search">${ICONS.search}<input class="input" id="atQ" placeholder="Naam ya phone" autocomplete="off"></div><div class="list" id="atRes" style="margin-top:8px"></div>`);
+  bindPicker('#atQ','#atRes',null,c=>{if(!rowOf(S.date,c.id))writeRows(S.date,{[c.id]:makeRow(c,'p')});closeSheet();toast(c.name+' aaj ki list me add')})}
+function sheetMore(){openSheet('More',`<div class="stack">${visibleRoutes().filter(r=>!MOBILE_NAV().includes(r.id)).map(r=>`<button class="item click" data-act="go" data-r="${r.id}" style="border:1px solid var(--line2);border-radius:12px"><span style="width:22px;height:22px;color:var(--accent)">${ICONS[r.id]}</span><div class="grow"><div class="t">${r.t}</div></div></button>`).join('')}<button class="item click" data-act="help" style="border:1px solid var(--line2);border-radius:12px"><span style="width:22px;height:22px;color:var(--accent)">${ICONS.help}</span><div class="grow"><div class="t">Kaise use karein?</div></div></button><button class="item click" data-act="logout" style="border:1px solid var(--line2);border-radius:12px"><span style="width:22px;height:22px;color:var(--muted)">${ICONS.more}</span><div class="grow"><div class="t">Logout</div><div class="s">${esc(S.me||'')}</div></div></button></div>`)}
+function sheetHelp(){openSheet('Panel kaise chalta hai',`<div class="stack help">
+  <div><b>1. Aaj ki delivery (roz ka kaam)</b><p>Apna naam (Sunil / Anil / Nitu) chuno. Har ghar ka roz wala order pehle se bhara hai. Doodh de diya to <b>✓</b> dabao. Nahi gaya to <b>Skip</b>. Quantity alag hai ya paneer/ghee diya, to naam pe tap karke badlo. Ghar dhoondna ho to <b>📍</b> dabao, Google Maps khul jayega.</p></div>
+  <div><b>2. Payment</b><p>Customer se paisa aaye to Payments me <b>+ Payment lo</b>. Cash ya Online chuno. Customer ki profile se bhi le sakte ho.</p></div>
+  <div><b>3. Bill</b><p>Bills tab me har customer ka bill apne aap bana hota hai: jitne din doodh gaya × uska rate + extras − jama. <b>WhatsApp</b> dabao, bill ka message ready milega. 1–15 ya 16–30 ka bill bhi nikal sakte ho.</p></div>
+  <div><b>4. Customers</b><p>Naya customer add karo, rate/order badlo, chhutti pe gaya to <b>Pause</b>. "Ek din chhod ke" wale apne aap alternate din list me aate hain.</p></div>
+  <div><b>5. Bottles</b><p>Bottle di to +, wapas aayi to −. Kiske paas kitni bottles hain, ek jagah dikhta hai.</p></div>
+  <div><b>6. Phone me app jaise lagao</b><p>Android: Chrome me ye link kholo → upar ⋮ menu → <b>"Add to Home screen"</b>. iPhone: Safari → Share → <b>"Add to Home Screen"</b>. Phir home screen pe Oritic ka icon aa jayega, app ki tarah khulega.</p></div>
+  <div class="small muted">Sab data online save hota hai — jo ek phone pe tick lagega, sabko turant dikhega. Net chala jaye to bhi tick lagta rahega, net aate hi apne aap sync ho jayega.</div>
+</div>`)}
+
+/* ---------- actions ---------- */
+const A={
+  plShift(d){S.pld=addDays(S.pld,+d.n);if(S.pld<todayISO())S.pld=todayISO();render()},
+  plSt(d){S.plst=d.v;render()},plBoy(d){S.plboy=d.v;render()},
+  plHist(d){S.plhe=addDays(S.plhe,+d.n*7);if(S.plhe>todayISO())S.plhe=todayISO();render()},
+  plCopy(d){copyText(cleanPhone(S.customers[d.id].phone))},
+  plAuto(){plList().forEach(c=>{if(!plConf(c))delete S.pldr[S.pld+'|'+c.id]});render();toast('Pattern se dobara bhar diya')},
+  plOk(d){const c=S.customers[d.id],r=rowOf(S.pld,d.id),dr=plDraft(c);
+    if(r&&r.s==='d'){toast('Ye delivery delivered mark ho chuki hai');return}
+    if(plConf(c)&&!dr.dirty){writeRows(S.pld,{[c.id]:makeRow(c,'p')});delete S.pldr[S.pld+'|'+c.id];render();return}
+    writeRows(S.pld,{[c.id]:plBuild(c)});dr.dirty=false;render()},
+  plAll(d,el){if(el.dataset.c!=='1'){el.dataset.c='1';el.textContent='Pakka? Sab active customer confirm honge';setTimeout(()=>{if(el.isConnected){el.dataset.c='';el.textContent='Sab confirm karo'}},4000);return}
+    const rows={};plList().filter(c=>c.status==='active').forEach(c=>{const r=rowOf(S.pld,c.id);if(r&&r.s==='d')return;const dr=plDraft(c);if(plConf(c)&&!dr.dirty)return;rows[c.id]=plBuild(c);dr.dirty=false});
+    if(Object.keys(rows).length)writeRows(S.pld,rows);render();toast('Sab confirm ho gaye')},
+  plVf(d){S.plvf=d.id;S.plxf='';render();setTimeout(()=>{const f=$('#pvt');if(f)f.focus()},30)},
+  plVs(d){const t=$('#pvt').value.trim(),till=$('#pvd').value;if(!t){toast('Pehle comment likho');return}if(!till){toast('Kab tak ki tareekh chuno');return}
+    addVar(d.id,{t,till});S.plvf='';render();toast('Comment '+fmtShort(till)+' tak laga diya')},
+  plVd(d){const all=[...(S.customers[d.id].vars||[])];if(!all[+d.i])return;all[+d.i]={...all[+d.i],rm:todayISO(),rmBy:S.me||''};saveCustField(d.id,{vars:all});render();toast('Panel se hata diya, customer history me save hai')},
+  plXf(d){S.plxf=d.id;S.plvf='';render();setTimeout(()=>{const f=$('#pxName');if(f)f.focus()},30)},
+  plXs(d){const e=readProdForm('px');if(!e)return;
+    const dr=plDraft(S.customers[d.id]);dr.x.push(e);dr.dirty=true;S.plxf='';render()},
+  plXc(){S.plxf='';render()},
+  plXd(d){const dr=plDraft(S.customers[d.id]);dr.x.splice(+d.i,1);dr.dirty=true;render()},
+  go(d){S.route=d.r;closeSheet();render();window.scrollTo(0,0)},
+  goBoy(d){S.route='today';S.boy=d.b;S.date=todayISO();render()},
+  more(){sheetMore()},
+  help(){sheetHelp()},
+  closeSheet(){closeSheet()},
+  dateShift(d){const n=addDays(S.date,+d.n);if(n<=todayISO())S.date=n;render()},
+  dateToday(){S.date=todayISO();render()},
+  setBoy(d){S.boy=d.v;try{localStorage.setItem('oritic.boy',d.v)}catch(_){}render()},setCBoy(d){S.cboy=d.v;render()},setBBoy(d){S.bboy=d.v;render()},setCStatus(d){S.cstatus=d.v;render()},setCSort(d){S.csort=d.v;try{localStorage.setItem('oritic.csort',d.v)}catch(_){}render()},
+  setPeriod(d){S.period=d.v;render();if(d.bill)sheetBill(d.bill)},
+  toggleDone(d){const c=S.customers[d.id];const r=rowOf(S.date,d.id);if(r&&r.s==='d')writeRows(S.date,{[d.id]:makeRow(c,'p')});else{const it=rowItems(c,r);writeRows(S.date,{[d.id]:makeRow(c,'d',it.q,it.x,r&&r.n,isOwner()?null:S.me)})}},
+  skipRow(d){const c=S.customers[d.id];const r=rowOf(S.date,d.id);writeRows(S.date,{[d.id]:makeRow(c,r&&r.s==='k'?'p':'k',null,[],r&&r.n)})},
+  editRow(d){if(isOwner())sheetRow(d.id);else sheetDetail(d.id)},
+  rowSave(d){const c=S.customers[d.id];const {q,x,n}=readRowSheet();const row=makeRow(c,d.s,q,x,n);const br=readBr('rBr');if(br)Object.assign(row,br);writeRows(S.date,{[d.id]:row});closeSheet()},
+  allDone(d,el){if(el.dataset.c!=='1'){el.dataset.c='1';el.textContent='Pakka? Sab pending ko delivered mark karo';el.classList.add('w');setTimeout(()=>{if(el.isConnected){el.dataset.c='';el.classList.remove('w');el.textContent='Baaki sab done karo'}},4000);return}
+    const rows={};todaysList(S.date,S.boy).forEach(({c,r})=>{if(!r||r.s==='p'){const it=rowItems(c,r);rows[c.id]=makeRow(c,'d',it.q,it.x,r&&r.n)}});writeRows(S.date,rows);toast(Object.keys(rows).length+' deliveries done')},
+  addToday(){sheetAddToday()},
+  step(d){const i=$('#'+d.t);i.value=Math.max(0,(+i.value||0)+(+d.n));liveTotal()},
+  xAdd(d){const x=JSON.parse($('#shBody').dataset.extras||'[]');x.push({n:d.n,base:d.n,pid:d.pid||'',qty:1,rate:+d.a||0,a:+d.a||0});$('#shBody').dataset.extras=JSON.stringify(x);renderExtras()},
+  xAddCustom(){const e=readProdForm('x');if(!e)return;const x=JSON.parse($('#shBody').dataset.extras||'[]');x.push(e);$('#shBody').dataset.extras=JSON.stringify(x);resetProdForm('x');renderExtras()},
+  xDel(d){const x=JSON.parse($('#shBody').dataset.extras||'[]');x.splice(+d.i,1);$('#shBody').dataset.extras=JSON.stringify(x);renderExtras()},
+  openCustomer(d){sheetCustomer(d.id)},
+  editCustomer(d){if(!isOwner())return toast('Sirf owner kar sakta hai');sheetEditCustomer(d.id||null)},
+  custSave(d){if(!isOwner())return toast('Sirf owner kar sakta hai');
+    const name=$('#fName').value.trim();if(!name)return toast('Naam zaroori hai');
+    const old=d.id&&S.customers[d.id]||{};const order={},rates={};
+    PRODUCTS.forEach(p=>{order[p.k]=Math.max(0,+$('#fQ_'+p.k).value||0);rates[p.k]=+$('#fR_'+p.k).value||0});
+    const wdays=[...document.querySelectorAll('[data-wd]:checked')].map(i=>+i.dataset.wd);
+    if($('#fSched').value==='custom'&&!wdays.length)return toast('Custom schedule ke liye kam se kam ek din chuno');
+    const xorder=$('#fXo').value.split('\n').map(l=>{const m=l.match(/^(.*?)\s*[=:]\s*(\d+(?:\.\d+)?)\s*$/);const n=(m?m[1]:l).trim();if(!n)return null;const p=findProd(n);return {n:p?p.n:n,pid:p?p.id:'',qty:m?+m[2]:1}}).filter(Boolean);
+    const c={...old,id:d.id||null,name,phone:cleanPhone($('#fPhone').value),area:$('#fArea').value.trim(),address:$('#fAddress').value.trim(),house:$('#fHouse').value.trim(),landmark:$('#fLandmark').value.trim(),wdays,xorder,since:$('#fSince').value||old.since||todayISO(),map:(()=>{const v=$('#fMap').value.trim();const m=v.match(/https?:\/\/\S+/);return m?m[0]:v})(),boy:$('#fBoy').value,schedule:$('#fSched').value,status:$('#fStatus').value,order,rates,openingDue:+$('#fOpen').value||0,bottles:+$('#fBottles').value||0,notes:$('#fNotes').value.trim(),createdAt:old.createdAt||todayISO()};
+    if(old.seq==null||old.boy!==c.boy)c.seq=Object.values(S.customers).filter(x=>x.boy===c.boy&&x.id!==c.id).reduce((m,x)=>Math.max(m,+x.seq||0),0)+10;
+    if(!d.id&&c.phone&&S.customers['c'+c.phone])return toast('Is number ka customer pehle se hai');
+    saveCustomer(c).then(()=>toast('Saved'));closeSheet()},
+  mapFind(){const q=[$('#fAddress').value,$('#fArea').value].map(x=>x.trim()).filter(Boolean).join(', ');if(!q)return toast('Pehle address ya area likho');
+    const a=document.createElement('a');a.href='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q+', Jaipur');a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();a.remove();toast('Maps me sahi jagah pe Share → Copy link karke yahan paste karo')},
+  custDelAsk(d,el){$('#delWrap').innerHTML=`<span class="small muted">History bhi hat jayegi.</span><button class="btn d" data-act="custDel" data-id="${$('[data-act=custSave]').dataset.id}">Haan, delete</button><button class="btn o" data-act="editCustomer" data-id="${$('[data-act=custSave]').dataset.id}">Nahi</button>`},
+  custDel(d){if(!isOwner())return toast('Sirf owner kar sakta hai');if(!canWrite())return;delete S.customers[d.id];closeSheet();render();queue('cust:'+d.id,()=>S.db.doc('customers/'+d.id).delete()).then(()=>toast('Customer delete ho gaya'))},
+  togglePause(d){if(!isOwner())return toast('Sirf owner kar sakta hai');const c=S.customers[d.id];saveCustomer({...c,status:c.status==='active'?'paused':'active'}).then(()=>sheetCustomer(d.id))},
+  openBill(d){S.route==='bills'||true;sheetBill(d.id)},
+  copy(d){copyText(d.t)},
+  addPayment(d){sheetPayment(d.id||null)},
+  payPick(){const id=$('#payCust').dataset.id;sheetPayment(null);},
+  paySave(){const cid=$('#payCust').dataset.id;const amt=+$('#payAmt').value;if(!cid)return toast('Customer chuno');if(!(amt>0))return toast('Amount likho');
+    const mode=$('#payMode .on').dataset.mode;const proof=mode!=='cash'?($('#payPrev').dataset.img||''):'';
+    if(mode!=='cash'&&!proof&&!isOwner())return toast('Online payment ka screenshot lagao');
+    const id=uid();
+    savePayment({id,cid,amt,mode,date:$('#payDate').value||todayISO(),note:$('#payNote').value.trim(),by:S.me||'',t:Date.now(),proof:!!proof}).then(()=>toast('Payment save'));
+    if(proof)queue('proof:'+id,()=>S.db.doc('proofs/'+id).set({img:proof,cid,date:todayISO(),by:S.me||'',t:Date.now()}));
+    closeSheet()},
+  viewProof(d){openSheet('Payment screenshot','<div class="empty">Load ho raha hai…</div>');S.db.doc('proofs/'+d.id).get().then(s=>{if($('#sheet').hidden)return;$('#shBody').innerHTML=s.exists?`<div class="proof"><img src="${s.data().img}" alt="Screenshot"></div>`:'<div class="empty">Screenshot nahi mila</div>'}).catch(()=>{$('#shBody').innerHTML='<div class="empty">Load nahi hua</div>'})},
+  delPayment(d,el){if(!isOwner())return toast('Sirf owner kar sakta hai');if(el.dataset.c!=='1'){el.dataset.c='1';el.textContent='Pakka delete?';el.classList.add('d');setTimeout(()=>{el.dataset.c='';el.textContent='Delete';el.classList.remove('d')},3000);return}deletePayment(d.id)},
+  bottle(d){const c=S.customers[d.id];if(!c)return;if(bottleBal(c)+(+d.n)<0)return toast('Balance 0 se kam nahi ho sakta');saveCustField(d.id,{bottles:(+c.bottles||0)+(+d.n)});render();const n=bottleBal(S.customers[d.id]);const b=$('[data-act=bottle][data-id="'+d.id+'"]');if($('#sheet').hidden===false&&b&&b.textContent.includes('Bottle wapas'))b.textContent='Bottle wapas (−1) · '+n},
+  saveSettings(){if(!isOwner())return toast('Sirf owner kar sakta hai');const boysL=$('#stBoys').value.split(',').map(s=>s.trim()).filter(Boolean);const rates={};PRODUCTS.forEach(p=>rates[p.k]=+$('#stRate_'+p.k).value||DEF_RATES[p.k]);
+    const extras=extrasPresets();
+    const pins={owner:($('#stPinOwner').value.trim()||'1234'),boys:{}};document.querySelectorAll('[data-pin]').forEach(i=>pins.boys[i.dataset.pin]=i.value.trim()||'0000');
+    if(!/^\d{4,6}$/.test(pins.owner))return toast('Owner PIN 4-6 digit ka ho');
+    saveSettings({...settings(),boys:boysL,rates,extras,pins,kmRate:+$('#stKm').value||0,autoExport:$('#stAuto').value==='1',company:$('#stCompany').value.trim()||'Oritic',upi:$('#stUpi').value.trim(),billNote:$('#stNote').value.trim()}).then(()=>toast('Settings saved'))},
+  exportCsv(){const [from,to]=periodRange(S.month,S.period);const bills=Object.values(S.customers).map(c=>billFor(c,S.month,S.period)).filter(b=>b.rows.length||Math.abs(b.closing)>0.5);
+    const head=['Name','Phone','Area','Boy','Days',...PRODUCTS.map(p=>p.sh+' L'),'Extras','Bill','Prev balance','Paid','Balance'];
+    const csv=[head].concat(bills.map(b=>[b.c.name,b.c.phone,b.c.area,b.c.boy,b.rows.length,...PRODUCTS.map(p=>{const l=b.lines.find(x=>x.k===p.k);return l?l.l:0}),b.extras,b.amount,Math.round(b.prev),b.paid,Math.round(b.closing)])).map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');
+    saveFile(`oritic-bills-${from}-to-${to}.csv`,new Blob(['\ufeff'+csv],{type:'text/csv'}))},
+  backup(){const data={exportedAt:new Date().toISOString(),customers:S.customers,days:S.days,payments:S.payments,settings:S.settings,purchases:S.purchases,kms:S.kms};saveFile(`oritic-backup-${todayISO()}.json`,new Blob([JSON.stringify(data)],{type:'application/json'}))},
+  logout(){try{localStorage.removeItem('oritic.login')}catch(_){}S.role=null;S.me='';closeSheet();render()},
+  loginRole(d){LG.role=d.r;LG.name=d.n||'';LG.pin='';renderLogin()},
+  key(d){if(d.k==='del')LG.pin=LG.pin.slice(0,-1);else if(LG.pin.length<6)LG.pin+=d.k;renderLogin();if(LG.pin.length>=4)tryLogin()},
+};
+document.addEventListener('click',e=>{
+  const seg=e.target.closest('#payMode button');if(seg){seg.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('on'));seg.classList.add('on');const pp=$('#payProof');if(pp)pp.hidden=seg.dataset.mode==='cash';return}
+  const img=e.target.closest('img[data-big]');if(img){openSheet(img.dataset.big||'Photo',`<div class="proof"><img src="${img.src}" alt=""></div>`);return}
+  if(e.target.closest('a[href]'))return;
+  const el=e.target.closest('[data-act]');if(!el)return;
+  if(el.tagName==='INPUT')return;
+  const fn=A[el.dataset.act];if(fn){e.preventDefault();fn(el.dataset,el)}
+});
+document.addEventListener('input',e=>{const el=e.target;if(el.dataset.ac){acInput(el);return}if(el.dataset.pfq){if(/Rate$/.test(el.id))el.dataset.auto='';pfAmt(el.dataset.pfq);return}if(el.id==='payImg')return;const act=el.dataset.act;if(!act)return;
+  if(act==='cq'){S.cq=el.value;softRender()}
+  if(act==='bq'){S.bq=el.value;softRender()}
+  if(act==='bottleQ'){S.bottleQ=el.value;softRender()}
+  if(act==='pq'){S.pq=el.value;softRender()}
+  if(act==='plq'){S.plq=el.value;softRender()}
+  if(act==='pqty'){const c=S.customers[el.dataset.id],d=plDraft(c);d.qty[el.dataset.p]=Math.max(0,+el.value||0);d.dirty=true;el.parentElement.classList.toggle('has',(+el.value)>0);const s=$('#plstrip');if(s)s.innerHTML=plStrip();const b=el.closest('tr').querySelector('.ck');if(b)b.classList.remove('on');const bc=$('#plb_'+c.id);if(bc)bc.innerHTML=btHtml(bottlesOf(d.qty))}
+  if(act==='chq')chFilter(el);
+  if(act==='prq'){S.prq=el.value;softRender()}
+  if(el.closest('#shBody')&&/^q_/.test(el.id))liveTotal()});
+document.addEventListener('change',e=>{const el=e.target;const act=el.dataset.act;if(!act)return;
+  if(act==='datePick'&&el.value){S.date=el.value;render()}
+  if(act==='plHd'&&el.value){S.plhe=el.value>todayISO()?todayISO():el.value;render()}
+  if(act==='pfix')saveCustField(el.dataset.id,{notes:el.value.trim()});
+  if(act==='dnote')saveDayField(el.dataset.d,{dnote:{t0:el.value.trim(),by:S.me||'',t:Date.now()}});
+  if(act==='purD'&&el.value){S.purd=el.value;render()}
+  if(act==='odoD'&&el.value){S.odod=el.value;render()}
+  if(act==='odoM'&&el.value){S.odom=el.value;render()}
+  if(act==='setMonth'&&el.value){S.month=el.value;render();if(el.dataset.bill)sheetBill(el.dataset.bill)}
+  if(act==='setPMonth'&&el.value){S.pmonth=el.value;render()}});
+function saveFile(name,blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);toast('Download shuru')}
+document.addEventListener('change',async e=>{if(e.target.id!=='impFile')return;const f=e.target.files[0];if(!f)return;
+  try{const j=JSON.parse(await f.text());const writes=[];
+    const custs=Array.isArray(j)?j:(j.customers?(Array.isArray(j.customers)?j.customers:Object.entries(j.customers).map(([id,c])=>({id,...c}))):[]);
+    custs.forEach((c,i)=>{const id=String(c.id||('c'+(cleanPhone(c.phone)||uid()))).replace(/[^A-Za-z0-9_-]/g,'')||('c'+uid());const body={...c};delete body.id;if(body.seq==null)body.seq=i+1;writes.push(['customers/'+id,body])});
+    if(!Array.isArray(j)){if(j.settings)writes.push(['settings/main',j.settings]);Object.entries(j.days||{}).forEach(([id,d])=>writes.push(['days/'+id,d]));Object.entries(j.payments||{}).forEach(([id,p])=>{const body={...p};delete body.id;writes.push(['payments/'+id,body])})}
+    if(!writes.length)throw new Error('empty');
+    for(let i=0;i<writes.length;i+=200){const batch=S.db.batch();writes.slice(i,i+200).forEach(([path,body])=>batch.set(S.db.doc(path),body,{merge:true}));await batch.commit()}
+    toast(custs.length+' customers'+(writes.length>custs.length?' + baaki data':'')+' import ho gaya')}catch(err){console.error(err);toast('Import fail: JSON file sahi nahi hai')}
+  e.target.value=''});
+document.addEventListener('focusout',()=>{if(pendingRender)setTimeout(()=>{if(pendingRender)render()},100)});
+$('#sheet').addEventListener('click',e=>{if(e.target===e.currentTarget)closeSheet()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
+let softT=null;
+function softRender(){ // re-render list while keeping focus in the search box
+  clearTimeout(softT);softT=setTimeout(()=>{const a=document.activeElement;const act=a&&a.dataset&&a.dataset.act;const pos=a&&a.selectionStart;render();if(act){const n=$('#view [data-act="'+act+'"]');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(_){}}}},120)}
+
+/* ---------- Kal ki delivery (plan) ---------- */
+const PLN=[...PRODUCTS.map(p=>({k:p.k,sh:p.k==='desi'?'Gir Cow':p.sh,u:'L',s:.5})),{k:'paneer',sh:'Paneer',u:'kg',s:.25},{k:'ghee',sh:'Ghee',u:'kg',s:.25}];
+Object.assign(S,{pld:addDays(todayISO(),1),plst:'active',plboy:'all',plq:'',plhe:todayISO(),pldr:{},plvf:'',plxf:''});
+const fq=(v,u)=>u==='kg'&&v<1?Math.round(v*1000)+'g':L(v)+u;
+const dd=(a,b)=>Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/864e5);
+/* variable comments: kabhi delete nahi hote. Date nikalne pe ya × dabane pe sirf panel se hat-te hain, history me rehte hain */
+const varsOf=c=>(c.vars||[]).map((v,i)=>({...v,_i:i})).filter(v=>!v.rm&&v.till>=todayISO());
+const plConf=c=>{const r=rowOf(S.pld,c.id);return !!r&&(r.s!=='p'||!!r.pl)};
+function saveCustField(id,patch){if(!canWrite()){toast('Aapko write permission nahi hai');return}
+  S.customers[id]={...S.customers[id],...patch};queue('cust:'+id,()=>S.db.doc('customers/'+id).set(patch,{merge:true}))}
+function plDraft(c){
+  const key=S.pld+'|'+c.id;if(S.pldr[key])return S.pldr[key];
+  const r=rowOf(S.pld,c.id);const qty={cow:0,buffalo:0,desi:0,chaach:0,paneer:0,ghee:0};const x=[];let why='';
+  if(r&&(r.s!=='p'||r.pl)){if(r.s==='k')why='skip';else{PRODUCTS.forEach(p=>qty[p.k]=+(r.q&&r.q[p.k])||0);(r.x||[]).forEach(e=>{if(e.k&&e.k in qty)qty[e.k]=+e.u||0;else x.push({...e,a:+e.a||0})})}}
+  else if(c.status!=='active')why='off';
+  else if(!dueOn(c,S.pld))why=c.schedule==='custom'?'cus':'alt';
+  else{Object.assign(qty,orderOf(c));x.push(...standingX(c))}
+  return S.pldr[key]={qty,x,why,dirty:false}}
+function plBuild(c){const d=plDraft(c),rates=ratesOf(c),q={};PRODUCTS.forEach(p=>q[p.k]=+d.qty[p.k]||0);
+  const x=d.x.map(e=>({...e,a:+e.a||0}));
+  ['paneer','ghee'].forEach(k=>{const v=+d.qty[k]||0;if(v>0)x.push({n:(k==='ghee'?'Ghee ':'Paneer ')+fq(v,'kg'),a:Math.round(v*(+rates[k]||0)*100)/100,k,u:v})});
+  return (PRODUCTS.some(p=>q[p.k]>0)||x.length)?{...makeRow(c,'p',q,x,''),pl:1}:makeRow(c,'k',null,[],'Kal nahi')}
+function plList(){const qq=S.plq.trim().toLowerCase();
+  return Object.values(S.customers).filter(c=>(S.plst==='all'||(S.plst==='active')===(c.status==='active'))&&(S.plboy==='all'||c.boy===S.plboy)&&(!qq||(c.name+' '+c.phone).toLowerCase().includes(qq)))
+   .sort((a,b)=>(a.boy||'').localeCompare(b.boy||'')||((a.seq??9999)-(b.seq??9999))||a.name.localeCompare(b.name))}
+function plValue(c){const d=plDraft(c),r=ratesOf(c);let a=0;PLN.forEach(p=>a+=(+d.qty[p.k]||0)*(+r[p.k]||0));d.x.forEach(e=>a+=+e.a||0);return Math.round(a*100)/100}
+function plStrip(){const v=plList().filter(c=>c.status==='active');const t={},BT=btNew();let xc=0,done=0,bb=0,bs=0,val=0;
+  v.forEach(c=>{const d=plDraft(c);PLN.forEach(p=>t[p.k]=(t[p.k]||0)+(+d.qty[p.k]||0));xc+=d.x.length;if(plConf(c)&&!d.dirty)done++;const o=bottlesOf(d.qty);bb+=o.b;bs+=o.s;btAdd(BT,d.qty);val+=plValue(c)});
+  const pct=v.length?Math.round(done/v.length*100):0;
+  return `<div class="plstrip">${PLN.map(p=>`<div class="plt1 ${t[p.k]?'':'z'}"><div class="k">${p.sh}</div><div class="v">${t[p.k]?fq(t[p.k],p.u):'–'}</div></div>`).join('')}
+   <div class="plt1 ${xc?'':'z'}"><div class="k">Other</div><div class="v">${xc||'–'}</div></div>
+   <div class="plt1 ${bb?'':'z'}"><div class="k">Bade bottle (1L)</div><div class="v">${bb||'–'}</div></div>
+   <div class="plt1 ${bs?'':'z'}"><div class="k">Chhote bottle (½L)</div><div class="v">${bs||'–'}</div></div>
+   <div class="plt1 wide ${val?'':'z'}"><div class="k">Order value (sale)</div><div class="v">${val?inr(val):'–'}</div></div>
+   <div class="plt1 wide"><div class="k">Confirm hue <b>${done} / ${v.length}</b></div><div class="pbar" style="margin-top:6px"><i style="width:${pct}%"></i></div></div></div>
+   <div style="margin-top:10px">${btBreak(BT,'Bottles kitni lagengi'+(S.plboy!=='all'?' · '+esc(S.plboy):''))}</div>`}
+function plHistCell(c,day){const r=rowOf(day,c.id);if(!r)return '<span class="muted">–</span>';
+  if(r.s==='k')return '<span class="muted">skip</span>';if(r.s==='p'&&!r.pl)return '<span class="muted">pending</span>';
+  const q=PRODUCTS.filter(p=>+(r.q&&r.q[p.k])>0).map(p=>`<div><b>${L(r.q[p.k])}L</b> ${p.k==='desi'?'Gir Cow':p.sh}</div>`).join('');
+  return q+(r.x||[]).map(e=>`<div>${esc(e.n)}</div>`).join('')||'<span class="muted">–</span>'}
+function plRowHtml(c,n){const d=plDraft(c),ok=plConf(c)&&!d.dirty,days=Array.from({length:7},(_,i)=>addDays(S.plhe,-i));
+  const flag={alt:'Alt din, kal nahi jayega',cus:'Custom schedule: is din nahi',off:'Paused / inactive',skip:'Kal nahi (skip)'}[d.why];
+  const vv=varsOf(c).map(v=>{const left=dd(todayISO(),v.till);return `<div class="plvc ${left===0?'last':''}">${esc(v.t)}<small>${v.src==='field'?'🛵 '+esc(v.by||'')+' · ':''}${fmtShort(v.till)} tak · ${left===0?'aaj aakhri din':left+' din baaki'}</small><button class="plx" data-act="plVd" data-id="${c.id}" data-i="${v._i}" aria-label="Panel se hatao" title="Panel se hatao (history me rahega)">×</button></div>`}).join('')
+   +(S.plvf===c.id?`<div class="plmini"><input class="input" id="pvt" placeholder="Jaise: 3 din 2L Cow"><div class="row"><input class="input" type="date" id="pvd" min="${todayISO()}" value="${addDays(todayISO(),3)}"><button class="btn sm p" data-act="plVs" data-id="${c.id}">Save</button></div></div>`:`<button class="pladd" data-act="plVf" data-id="${c.id}">+ Comment jodo</button>`);
+  const xx=d.x.map((e,i)=>`<div class="plxi"><span>${esc(e.n)}${e.a?' · '+inr(e.a):''}</span><button class="plx" data-act="plXd" data-id="${c.id}" data-i="${i}" aria-label="Hatao">×</button></div>`).join('')
+   +(S.plxf===c.id?prodForm('px',c.id):`<button class="pladd" data-act="plXf" data-id="${c.id}">+ Product jodo</button>`);
+  return `<tr class="${ok?'plok':''} ${c.status!=='active'?'plin':''}"><td class="plc"><button class="ck ${ok?'on':''}" data-act="plOk" data-id="${c.id}" aria-label="Confirm">${ICONS.check}</button><div class="small muted">${n}</div></td>
+   <td class="pla"><b class="plname" data-dbl="${c.id}" title="Double click: customer details">${esc(c.name)}</b>${c.schedule==='alternate'?' <span class="badge b">Alt</span>':''}${c.status!=='active'?' <span class="badge y">Inactive</span>':''}<div><button class="plph" data-act="plCopy" data-id="${c.id}">${esc(c.phone||'—')} ⧉</button></div>${flag?`<div class="plflag">${flag}</div>`:''}</td>
+   <td><div>${esc(c.area||'—')}</div><div class="small muted"><b>${esc(c.boy||'—')}</b></div></td>
+   <td><textarea class="plfix" data-act="pfix" data-id="${c.id}" placeholder="Note likho">${esc(c.notes||'')}</textarea></td><td>${vv}</td>
+   ${PLN.map(p=>{const v=+d.qty[p.k]||0;return `<td class="plq ${v>0?'has':''}"><input type="number" inputmode="decimal" min="0" step="${p.s}" value="${v>0?v:''}" placeholder="–" data-act="pqty" data-id="${c.id}" data-p="${p.k}" aria-label="${esc(c.name)} ${p.sh}"></td>`}).join('')}
+   <td class="plh" id="plb_${c.id}">${btHtml(bottlesOf(d.qty))}</td>
+   <td>${xx}</td>${days.map(x=>`<td class="plh">${plHistCell(c,x)}</td>`).join('')}</tr>`}
+function vPlan(){
+  const list=plList(),days=Array.from({length:7},(_,i)=>addDays(S.plhe,-i));let n=0,body='',lastBoy=null;
+  const W=[48,200,130,170,210,74,74,74,74,74,74,110,230,...days.map(()=>104)];const NC=W.length;
+  list.forEach(c=>{if(c.boy!==lastBoy){lastBoy=c.boy;body+=`<tr class="plgrp"><td colspan="${NC}"><b>${esc(c.boy||'—')}</b></td></tr>`}body+=plRowHtml(c,++n)});
+  if(!list.length)body=`<tr><td colspan="${NC}" class="empty">Is filter mein koi customer nahi hai.</td></tr>`;
+  const head=['','Customer','Location · Partner','Fix comment','Variable comment',...PLN.map(p=>p.sh),'Bottles','Other products',...days.map(d=>fmtShort(d)+' '+DOW[new Date(d+'T12:00:00').getDay()])];
+  const dn=(S.days[S.pld]||{}).dnote||{};
+  const html=`<div class="stack">
+   <div class="row sp wrap"><div class="row"><button class="btn sm o" data-act="plShift" data-n="-1" ${S.pld<=todayISO()?'disabled':''}>‹</button><button class="btn sm"><b>${fmtDate(S.pld)}</b></button><button class="btn sm o" data-act="plShift" data-n="1">›</button></div>
+    <div class="row wrap"><button class="btn o" data-act="routeOrder" data-b="${esc(S.plboy)}">⇅ Order badlo</button><button class="btn o" data-act="xlsx" data-d="${S.pld}">Excel backup</button><button class="btn o" data-act="plAuto">Auto-fill dobara</button><button class="btn p" data-act="plAll">Sab confirm karo</button></div></div>
+   <div id="plstrip">${plStrip()}</div>
+   <div class="row wrap">${chips([{v:'active',l:'Active'},{v:'paused',l:'Inactive'},{v:'all',l:'Sab'}],S.plst,'plSt')}${boyChips(S.plboy,'plBoy')}</div>
+   <div class="row sp wrap"><input class="input" style="max-width:260px" placeholder="Naam ya mobile" value="${esc(S.plq)}" data-act="plq">
+    <div class="row small muted">History <button class="btn sm o" data-act="plHist" data-n="-1">‹</button><span>${fmtShort(days[6])} – ${fmtShort(days[0])}</span><button class="btn sm o" data-act="plHist" data-n="1" ${S.plhe>=todayISO()?'disabled':''}>›</button><input type="date" class="input" style="width:auto;padding:6px 8px" value="${S.plhe}" max="${todayISO()}" data-act="plHd"></div></div>
+   <div class="plw"><table class="plt" style="min-width:${W.reduce((a,b)=>a+b,0)}px;width:100%"><colgroup>${W.map(w=>`<col style="width:${w}px">`).join('')}</colgroup><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>
+   <div class="small muted">Number likho, phir Enter ya ↓ se agle customer pe. Tick = confirm (kal ki list mein jata hai). Quantity 0 + tick = kal delivery nahi. Customer ke naam pe double click = poori details.</div>
+   <div class="card"><div class="row sp wrap"><h3>Dispatch notes · ${fmtDate(S.pld)}</h3><span class="small muted">${dn.by?'Last save: '+esc(dn.by)+(dn.t?' · '+new Date(dn.t).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):''):'Date-wise save hota hai'}</span></div>
+    <textarea class="input dnote" style="margin-top:8px" data-act="dnote" data-d="${S.pld}" placeholder="Bottle count verify, warehouse instructions, packing notes, din ke dispatch updates…">${esc(dn.t0||'')}</textarea>
+    <div class="small muted" style="margin-top:4px">Box se bahar click karte hi save ho jaata hai.</div></div></div>`;
+  return {title:'Kal ki delivery',html}}
+document.addEventListener('keydown',e=>{const t=e.target;if(!t.dataset||t.dataset.act!=='pqty'||!['Enter','ArrowDown','ArrowUp'].includes(e.key))return;e.preventDefault();
+  const all=[...document.querySelectorAll('input[data-act="pqty"][data-p="'+t.dataset.p+'"]')],i=all.indexOf(t),nx=all[i+(e.key==='ArrowUp'?-1:1)];if(nx){nx.focus();nx.select()}});
+
+/* ================= v3: naye modules ================= */
+Object.assign(S,{purchases:{},kms:{},odo:{},purd:todayISO(),odod:todayISO(),odom:todayISO().slice(0,7),fcr:'7',prq:'',cam:null,camCb:null,camUrl:'',purged:false,rt:[],rt0:[],rtBoy:'',rtq:'',rtWarn:false});
+
+function saveDayField(date,patch){if(!canWrite()){toast('Aapko write permission nahi hai');return}
+  const d=S.days[date]||(S.days[date]={date,rows:{}});Object.assign(d,patch);
+  queue('day:'+date,()=>S.db.doc('days/'+date).set({date,...patch},{merge:true})).then(()=>toast('Notes save ho gaye'))}
+function addVar(cid,v){const c=S.customers[cid];if(!c)return;saveCustField(cid,{vars:[...(c.vars||[]),{id:uid(),at:todayISO(),by:S.me||'',t0:Date.now(),...v}]})}
+
+/* --- items: kisi din customer ko kya jayega (row ho to row, warna schedule + standing order) --- */
+function standingX(c){return (c.xorder||[]).filter(e=>+e.qty>0).map(e=>{const p=(e.pid&&products().find(x=>x.id===e.pid))||findProd(e.n);const lr=lastRate(c.id,p?p.id:'',e.n);const rate=lr!=null?lr:(p?+p.a||0:0);const base=p?p.n:e.n;const qty=+e.qty;
+  return {n:base+(qty!==1?' ×'+L(qty):''),base,pid:p?p.id:'',qty,rate,a:Math.round(qty*rate*100)/100,so:1}})}
+function rowItems(c,r){if(r&&(r.s!=='p'||r.pl))return {q:r.q||orderOf(c),x:r.x||[]};return {q:orderOf(c),x:r&&r.x&&r.x.length?r.x:standingX(c)}}
+function projDue(c,date){if(c.status!=='active')return false;if(date<=addDays(todayISO(),1)||c.schedule!=='alternate')return dueOn(c,date);
+  for(let i=1;i<=14;i++){const r=rowOf(addDays(date,-i),c.id);if(r&&(r.s==='d'||r.pl))return i%2===0}
+  const t=addDays(todayISO(),1);return dueOn(c,t)===(dd(t,date)%2===0)}
+function itemsFor(c,date){const r=rowOf(date,c.id);
+  if(r&&(r.s!=='p'||r.pl)){if(r.s==='k')return null;const q=r.q||{},x=r.x||[];return {q,x,a:r.s==='d'?+r.a||0:calcAmount(q,x,r.r||ratesOf(c)),src:r.s==='d'?'d':'pl'}}
+  if(!r&&!projDue(c,date))return null;
+  const it=rowItems(c,r);return {...it,a:calcAmount(it.q,it.x,ratesOf(c)),src:'proj'}}
+function dayValue(date){let total=0,done=0;for(const c of Object.values(S.customers)){const it=itemsFor(c,date);if(!it)continue;total+=it.a;if(it.src==='d')done+=it.a}return {total,done}}
+
+/* --- customer quick view (Kal ki delivery: naam pe double click) --- */
+const sinceText=d=>{const n=dd(d,todayISO());if(n<0)return 'aane wali date';if(n<31)return n+' din se';const m=Math.floor(n/30.44);return (m<12?m+' mahine':Math.floor(m/12)+' saal'+(m%12?' '+(m%12)+' mahine':''))+' se'};
+function sheetQuick(cid){const c=S.customers[cid];if(!c)return;const bal=balanceUpto(c,null);const since=custSince(c);
+  openSheet(c.name,`<div class="kv">
+    <span class="muted">Phone</span><span><b>${esc(c.phone||'—')}</b> ${c.phone?`<button class="btn xs" data-act="copy" data-t="${esc(c.phone)}">Copy</button>`:''}</span>
+    <span class="muted">Address</span><span>${esc([c.house,c.address,c.area].filter(Boolean).join(', ')||'—')}${c.landmark?`<div class="small muted">Landmark: ${esc(c.landmark)}</div>`:''}</span>
+    <span class="muted">Customer since</span><span>${since?`${fmtDate(since)} ${since.slice(0,4)} <span class="small muted">(${sinceText(since)})</span>`:'—'}</span>
+    <span class="muted">Pending bill</span><span style="font-weight:800;color:${bal>0.5?'var(--danger)':'var(--accent)'}">${inr(bal)}${bal<-0.5?' <span class="small muted">(advance)</span>':''}</span>
+    <span class="muted">Frequency</span><span><b>${esc(schedText(c))}</b></span>
+    <span class="muted">Status</span><span>${c.status==='active'?'Active':'Paused'} · ${esc(c.boy||'—')} · bottles ${bottleBal(c)}</span>
+  </div>
+  <div class="row wrap" style="margin-top:14px"><button class="btn p" data-act="openCustomer" data-id="${cid}">Poori profile</button><button class="btn" data-act="openBill" data-id="${cid}">Bill</button>${mapOf(c)?`<a class="btn o" href="${esc(mapOf(c).url)}" target="_blank" rel="noopener">${ICONS.pin} Map</a>`:''}</div>`)}
+document.addEventListener('dblclick',e=>{const b=e.target.closest('[data-dbl]');if(!b)return;e.preventDefault();sheetQuick(b.dataset.dbl)});
+
+/* --- comment history (customer profile) --- */
+function commentHistoryHtml(c){const all=(c.vars||[]).slice().sort((a,b)=>((b.at||b.till||'')+(b.t0||0)).localeCompare((a.at||a.till||'')+(a.t0||0)));
+  return `<div class="sec"><div class="row sp"><h3>Comment history</h3><span class="small muted">${all.length} comments</span></div>
+    ${c.notes?`<div class="instr">📌 Fix: ${esc(c.notes)}</div>`:''}
+    ${all.length>3?`<input class="input" data-act="chq" placeholder="Purane comments me dhoondo…" style="margin-bottom:8px">`:''}
+    <div id="chList">${all.map(v=>{const act=!v.rm&&v.till>=todayISO();return `<div class="hist ${act?'act':''}" data-s="${esc(((v.t||'')+' '+(v.by||'')+' '+(v.at||'')).toLowerCase())}">${esc(v.t)}<small>${v.at?fmtShort(v.at)+' '+v.at.slice(0,4):''}${v.by?' · '+esc(v.by):''}${v.src==='field'?' · delivery feedback':''} · ${act?'Active, '+fmtShort(v.till)+' tak':v.rm?'Panel se hataya '+fmtShort(v.rm):'Khatam '+fmtShort(v.till)}</small></div>`}).join('')||'<div class="small muted">Abhi koi comment nahi</div>'}</div></div>`}
+function chFilter(el){const q=el.value.trim().toLowerCase();document.querySelectorAll('#chList .hist').forEach(h=>h.hidden=!!q&&!h.dataset.s.includes(q))}
+
+/* --- Tally-style product picker --- */
+function prodForm(px,cid){return `<div class="plmini" style="margin-top:8px">
+  <input class="input" id="${px}Name" data-ac="${px}" data-cid="${cid||''}" placeholder="Product type karo…" autocomplete="off">
+  <div class="acl" id="${px}Ac" hidden></div><input type="hidden" id="${px}Pid" value="">
+  <div class="row"><input class="input" id="${px}Qty" data-pfq="${px}" type="number" inputmode="decimal" min="0" step="any" value="1" style="width:68px" title="Qty"><input class="input" id="${px}Rate" data-pfq="${px}" type="number" inputmode="decimal" min="0" step="any" placeholder="₹ rate" title="Rate (badal sakte ho)"></div>
+  <div class="row sp"><span class="small muted" id="${px}Hint">Last rate apne aap aayega</span><b class="small" id="${px}Amt"></b></div>
+  <label class="small muted" id="${px}MW" style="display:flex;gap:6px;align-items:center" hidden><input type="checkbox" id="${px}Mst" checked> Master list me bhi jodo</label>
+  <div class="row"><button class="btn sm p" data-act="${px==='x'?'xAddCustom':'plXs'}" data-id="${cid||''}">Add</button>${px==='px'?'<button class="btn sm o" data-act="plXc">Cancel</button>':''}</div></div>`}
+function acMatches(q){const k=norm(q);const all=products().filter(p=>p.on!==false);if(!k)return all.slice(0,8);
+  const sc=p=>{const n=norm(p.n);return n===k?0:n.startsWith(k)?1:String(p.n).toLowerCase().split(/\s+/).some(w=>norm(w).startsWith(k))?2:n.includes(k)?3:9};
+  return all.map(p=>[sc(p),p]).filter(x=>x[0]<9).sort((a,b)=>a[0]-b[0]||a[1].n.localeCompare(b[1].n)).map(x=>x[1]).slice(0,8)}
+function acInput(el){const px=el.dataset.ac,q=el.value;const box=$('#'+px+'Ac');if(!box)return;const list=acMatches(q);const exact=findProd(q);
+  $('#'+px+'Pid').value=exact?exact.id:'';
+  if(exact)acFillRate(px,el.dataset.cid,exact,true);
+  else{const r=$('#'+px+'Rate');if(r.dataset.auto==='1'){r.value='';r.dataset.auto=''}$('#'+px+'Hint').textContent=q.trim()?'Naya product (custom)':'Last rate apne aap aayega'}
+  $('#'+px+'MW').hidden=!!exact||!q.trim()||!isOwner();
+  box.innerHTML=list.map((p,i)=>`<button type="button" data-acp="${esc(p.id)}" data-px="${px}" class="${i===0&&q.trim()?'on':''}"><span>${esc(p.n)}</span><span class="muted">${p.a?inr(p.a):''}${p.u?' / '+esc(p.u):''}</span></button>`).join('')
+    +(q.trim()&&!exact?`<button type="button" data-acnew="1" data-px="${px}" class="${list.length?'':'on'}"><span class="nw">+ "${esc(q.trim())}" naya product</span><span class="muted">custom</span></button>`:'');
+  box.hidden=!box.innerHTML;pfAmt(px)}
+function acFillRate(px,cid,p,auto){const lr=cid?lastRate(cid,p.id,p.n):null;const r=$('#'+px+'Rate');
+  if(!auto||!r.value||r.dataset.auto==='1'){r.value=lr!=null?L(lr):(p.a||'');r.dataset.auto='1'}
+  $('#'+px+'Hint').textContent=lr!=null?'Is customer ka pichla rate: '+inr(lr):(p.a?'Master rate':'Rate likho');pfAmt(px)}
+function acPick(px,pid){const p=products().find(x=>x.id===pid);if(!p)return;const inp=$('#'+px+'Name');inp.value=p.n;$('#'+px+'Pid').value=p.id;$('#'+px+'Ac').hidden=true;$('#'+px+'MW').hidden=true;acFillRate(px,inp.dataset.cid,p,false);const q=$('#'+px+'Qty');q.focus();q.select()}
+function acNew(px){$('#'+px+'Ac').hidden=true;$('#'+px+'MW').hidden=!isOwner();$('#'+px+'Rate').focus()}
+function pfAmt(px){const q=+(($('#'+px+'Qty')||{}).value)||0,r=+(($('#'+px+'Rate')||{}).value)||0;const a=$('#'+px+'Amt');if(a)a.textContent=r?'= '+inr(q*r):''}
+function readProdForm(px){const name=$('#'+px+'Name').value.trim();if(!name){toast('Product ka naam likho');return null}
+  let pid=$('#'+px+'Pid').value;let p=pid?products().find(x=>x.id===pid):findProd(name);if(p)pid=p.id;
+  const qty=+$('#'+px+'Qty').value||1,rate=+$('#'+px+'Rate').value||0;
+  if(!p&&isOwner()&&$('#'+px+'Mst').checked){const np={id:'p'+uid(),n:name,u:'',a:rate,on:true};saveProducts([...products(),np]);pid=np.id;p=np;toast('"'+name+'" master list me bhi jud gaya')}
+  const base=p?p.n:name;
+  return {n:base+(qty!==1?' ×'+L(qty):''),base,pid:pid||'',qty,rate,a:Math.round(qty*rate*100)/100}}
+function resetProdForm(px){['Name','Rate'].forEach(k=>{const e=$('#'+px+k);if(e){e.value='';e.dataset.auto=''}});$('#'+px+'Qty').value=1;$('#'+px+'Pid').value='';$('#'+px+'Ac').hidden=true;$('#'+px+'MW').hidden=true;$('#'+px+'Hint').textContent='Last rate apne aap aayega';pfAmt(px)}
+function saveProducts(list){return saveSettings({...settings(),products:list})}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-acp],[data-acnew]');if(!b)return;e.preventDefault();if(b.dataset.acp)acPick(b.dataset.px,b.dataset.acp);else acNew(b.dataset.px)});
+document.addEventListener('keydown',e=>{const el=e.target;if(!el.dataset)return;
+  if(el.dataset.pfq&&e.key==='Enter'){e.preventDefault();const btn=el.closest('.plmini').querySelector('.btn.p');if(btn)btn.click();return}
+  if(!el.dataset.ac)return;const box=$('#'+el.dataset.ac+'Ac');if(!box||box.hidden)return;const bs=[...box.querySelectorAll('button')];let i=bs.findIndex(b=>b.classList.contains('on'));
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();i=e.key==='ArrowDown'?Math.min(bs.length-1,i+1):Math.max(0,i-1);bs.forEach((b,j)=>b.classList.toggle('on',j===i));if(bs[i])bs[i].scrollIntoView({block:'nearest'})}
+  else if(e.key==='Enter'){e.preventDefault();const b=bs[i]||bs[0];if(b){if(b.dataset.acp)acPick(el.dataset.ac,b.dataset.acp);else acNew(el.dataset.ac)}}
+  else if(e.key==='Escape'){e.stopPropagation();box.hidden=true}},true);
+
+/* --- Product master --- */
+function prDupCheck(el){const w=$('#prDup');if(!w)return;const v=el.value.trim();const ex=findProd(v);const sim=!ex&&v.length>2?acMatches(v).slice(0,3):[];
+  w.hidden=!ex&&!sim.length;w.textContent=ex?'Ye product pehle se hai: '+ex.n:sim.length?'Milte-julte: '+sim.map(p=>p.n).join(', '):''}
+function vProducts(){const q=S.prq.trim().toLowerCase();const list=products().filter(p=>!q||p.n.toLowerCase().includes(q));
+  const used={};for(const d in S.days){const rows=S.days[d].rows||{};for(const id in rows)(rows[id].x||[]).forEach(e=>{const k=e.pid||('n:'+norm(e.base||e.n));used[k]=(used[k]||0)+1})}
+  const html=`<div class="stack">
+    ${Array.isArray(settings().products)?'':'<div class="banner">Ye list abhi purani "Extra items" settings se aa rahi hai. Kuch bhi save karte hi Product master ban jayega.</div>'}
+    <div class="card"><h3>Naya product</h3><div class="grid g3" style="margin-top:8px">
+      <div class="field"><label class="f">Naam *</label><input class="input" id="prN" placeholder="e.g. Paneer 200g" autocomplete="off" oninput="prDupCheck(this)"><div class="dupw" id="prDup" hidden></div></div>
+      <div class="field"><label class="f">Unit</label><input class="input" id="prU" placeholder="pc / kg / pack"></div>
+      <div class="field"><label class="f">Default rate ₹</label><input class="input" id="prA" type="number" inputmode="decimal"></div></div>
+      <button class="btn p" style="margin-top:10px" data-act="prAdd">+ Product jodo</button></div>
+    <div class="search">${ICONS.search}<input class="input" placeholder="Product dhoondo" value="${esc(S.prq)}" data-act="prq"></div>
+    <div class="card" style="padding:0"><div class="scroll"><table class="tbl"><thead><tr><th>Naam</th><th>Unit</th><th>Rate ₹</th><th>Active</th><th class="n">Kitni baar</th><th></th></tr></thead><tbody>
+    ${list.map(p=>`<tr data-prow="${esc(p.id)}"><td><input class="input" data-f="n" value="${esc(p.n)}" style="min-width:160px"></td><td><input class="input" data-f="u" value="${esc(p.u||'')}" style="width:80px"></td><td><input class="input" data-f="a" type="number" inputmode="decimal" value="${p.a||''}" style="width:90px"></td><td><input type="checkbox" data-f="on" ${p.on!==false?'checked':''}></td><td class="n">${(used[p.id]||0)+(used['n:'+norm(p.n)]||0)}</td><td style="white-space:nowrap"><button class="btn xs p" data-act="prSave" data-id="${esc(p.id)}">Save</button> <button class="btn xs o" data-act="prDel" data-id="${esc(p.id)}">Delete</button></td></tr>`).join('')||'<tr><td colspan="6"><div class="empty">Koi product nahi</div></td></tr>'}
+    </tbody></table></div></div>
+    <div class="small muted">"Other product" likhte waqt yahi list suggestion me aati hai. Rate customer ke pichle bill se aata hai; pehli baar ho to yahan ka default rate. Inactive product suggestion me nahi aata.</div></div>`;
+  return {html}}
+
+/* --- Demand forecast --- */
+function vForecast(){const N=+S.fcr||7;const dates=Array.from({length:N},(_,i)=>addDays(todayISO(),i));
+  const agg={},milk={};PRODUCTS.forEach(p=>milk[p.k]=0);let bb=0,bs=0,val=0;
+  dates.forEach((d,di)=>{for(const c of Object.values(S.customers)){const it=itemsFor(c,d);if(!it)continue;val+=it.a;PRODUCTS.forEach(p=>milk[p.k]+=+(it.q&&it.q[p.k])||0);const o=bottlesOf(it.q);bb+=o.b;bs+=o.s;
+    (it.x||[]).forEach(e=>{const key=e.k?'k:'+e.k:(e.pid||'n:'+norm(e.base||e.n));const nm=e.k?(e.k==='ghee'?'Ghee':'Paneer'):(e.base||e.n);const unit=e.k?'kg':((products().find(p=>p.id===e.pid)||{}).u||'');const q=e.k?(+e.u||0):(+e.qty||1);
+      const g=agg[key]||(agg[key]={n:nm,u:unit,qty:0,a:0,cs:new Set(),per:Array(N).fill(0)});g.qty+=q;g.a+=+e.a||0;g.cs.add(c.id);g.per[di]+=q})}});
+  const rows=Object.values(agg).sort((a,b)=>b.a-a.a||a.n.localeCompare(b.n));const showDays=N<=15;
+  const fq2=(v,u)=>u==='kg'?fq(v,'kg'):L(v)+(u?' '+u:'');
+  const html=`<div class="stack">
+    ${chips([{v:'1',l:'Aaj'},{v:'7',l:'Agle 7 din'},{v:'15',l:'Agle 15 din'},{v:'30',l:'Pura mahina (30 din)'}],S.fcr,'fcR')}
+    <div class="small muted">${fmtDate(dates[0])} se ${fmtDate(dates[N-1])} tak</div>
+    <div class="plstrip">${PRODUCTS.map(p=>`<div class="plt1 ${milk[p.k]?'':'z'}"><div class="k">${p.sh}</div><div class="v">${milk[p.k]?L(milk[p.k])+'L':'–'}</div></div>`).join('')}
+      <div class="plt1 ${bb?'':'z'}"><div class="k">Bade bottle</div><div class="v">${bb||'–'}</div></div><div class="plt1 ${bs?'':'z'}"><div class="k">Chhote bottle</div><div class="v">${bs||'–'}</div></div>
+      <div class="plt1 wide"><div class="k">Anumaanit sale</div><div class="v">${inr(val)}</div></div></div>
+    <div class="card" style="padding:0"><div class="scroll"><table class="tbl compact"><thead><tr><th>Other product</th><th class="n">Kul chahiye</th><th class="n">Customers</th><th class="n">Value</th>${showDays?dates.map(d=>`<th class="n">${fmtShort(d)}</th>`).join(''):''}</tr></thead><tbody>
+    ${rows.map(g=>`<tr><td><b>${esc(g.n)}</b></td><td class="n"><b>${fq2(g.qty,g.u)}</b></td><td class="n">${g.cs.size}</td><td class="n">${inr(g.a)}</td>${showDays?g.per.map(v=>`<td class="n">${v?fq2(v,g.u):'<span class="muted">–</span>'}</td>`).join(''):''}</tr>`).join('')||`<tr><td colspan="${4+(showDays?N:0)}"><div class="empty"><b>Koi other product due nahi</b>Customer profile me "Roz ke other products" bharo, ya Kal ki delivery me product jodo.</div></td></tr>`}
+    </tbody></table></div></div>
+    <div class="small muted">Hisaab kahan se: Kal ki delivery me confirm/plan hua maal + customer ka standing order (profile me "Roz ke other products") + alternate/custom schedule. Paused customers shamil nahi. Aage ke dino ka hisaab anumaan hai.</div></div>`;
+  return {html}}
+
+/* --- Purchase --- */
+function vPurchase(){const d=S.purd;const P=Object.values(S.purchases);const list=P.filter(p=>p.date===d).sort((a,b)=>(a.t||0)-(b.t||0));const tot=sum(list,p=>p.amt);
+  const [mf,mt]=periodRange(d.slice(0,7),'full');const mtot=sum(P.filter(p=>p.date>=mf&&p.date<=mt),p=>p.amt);
+  const items=[...new Set(P.map(p=>p.item).filter(Boolean))].sort();
+  const week=Array.from({length:7},(_,i)=>addDays(d,-i)).map(x=>({d:x,a:sum(P.filter(p=>p.date===x),p=>p.amt),n:P.filter(p=>p.date===x).length}));
+  const html=`<div class="stack">
+    <div class="row sp wrap"><div class="row"><button class="btn sm o" data-act="purShift" data-n="-1">‹</button><button class="btn sm"><b>${d===todayISO()?'Aaj · ':''}${fmtDate(d)}</b></button><button class="btn sm o" data-act="purShift" data-n="1" ${d>=todayISO()?'disabled':''}>›</button></div>
+      <input type="date" class="input" style="width:auto;padding:6px 10px" value="${d}" max="${todayISO()}" data-act="purD"></div>
+    <div class="grid g2"><div class="card stat"><div class="l">Is din ki purchase</div><div class="v">${inr(tot)}</div><div class="s">${list.length} entries</div></div><div class="card stat"><div class="l">${fmtMonth(d.slice(0,7))} total</div><div class="v">${inr(mtot)}</div></div></div>
+    <div class="card"><h3>Nayi entry</h3><div class="grid g3" style="margin-top:8px">
+      <div class="field"><label class="f">Kya khareeda *</label><input class="input" id="purI" list="purItems" placeholder="e.g. Doodh (dairy se), diesel, packing"><datalist id="purItems">${items.map(i=>`<option value="${esc(i)}">`).join('')}</datalist></div>
+      <div class="field"><label class="f">Amount ₹ *</label><input class="input" id="purA" type="number" inputmode="decimal" placeholder="0"></div>
+      <div class="field"><label class="f">Note</label><input class="input" id="purN" placeholder="optional"></div></div>
+      <button class="btn p" style="margin-top:10px" data-act="purAdd">+ Add karo</button></div>
+    <div class="list">${list.map(p=>`<div class="item"><div class="grow"><div class="t">${esc(p.item)}</div><div class="s">${p.note?esc(p.note)+' · ':''}${esc(p.by||'')}</div></div><div class="r"><b>${inr(p.amt)}</b><div><button class="btn xs" data-act="purDel" data-id="${p.id}">Delete</button></div></div></div>`).join('')||emptyBox('Is din koi purchase nahi')}</div>
+    <div class="card"><h3>Pichle 7 din</h3><table class="tbl compact" style="margin-top:6px"><tbody>${week.map(w=>`<tr class="click" data-act="purGo" data-d="${w.d}"><td>${fmtDate(w.d)}</td><td class="n muted">${w.n||''}</td><td class="n"><b>${w.a?inr(w.a):'–'}</b></td></tr>`).join('')}</tbody></table></div></div>`;
+  return {html}}
+
+/* --- Meter / KM (camera only) --- */
+function stopCam(){if(S.cam){try{S.cam.getTracks().forEach(t=>t.stop())}catch(_){}S.cam=null}}
+function openCamera(title,onShot){S.camCb=onShot;
+  if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){openSheet(title,'<div class="empty"><b>Camera nahi khul raha</b>Is browser me live camera support nahi hai. Chrome me panel kholo.</div>');return}
+  openSheet(title,`<div class="cam"><video id="camV" autoplay playsinline muted></video><canvas id="camC" hidden></canvas><img id="camI" hidden alt="Meter photo"></div>
+    <div class="small muted" style="margin:8px 0">Sirf live camera se photo (gallery nahi). Meter ki reading saaf dikhni chahiye.</div>
+    <div class="row" id="camBtns"><button class="btn p grow" data-act="camShot">${ICONS.cam} Photo lo</button></div>`);
+  navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:960}},audio:false})
+    .then(st=>{if($('#sheet').hidden||!$('#camV')){st.getTracks().forEach(t=>t.stop());return}S.cam=st;$('#camV').srcObject=st})
+    .catch(err=>{console.error(err);$('#shBody').innerHTML='<div class="empty"><b>Camera permission nahi mili</b>Browser me is site ko camera allow karo, phir dobara try karo.</div>'})}
+function purgeOld(){if(S.purged||!S.db||!isOwner())return;S.purged=true;const cut=addDays(todayISO(),-30);
+  S.db.collection('odo').where('date','<',cut).get().then(async s=>{if(!s.size)return;for(let i=0;i<s.docs.length;i+=200){const b=S.db.batch();s.docs.slice(i,i+200).forEach(d=>b.delete(d.ref));await b.commit()}console.log('odo purge',s.size)}).catch(e=>console.error(e))}
+function loadOdo(date,force){if(!S.db)return;if(S.odo[date]&&!force)return;S.odo[date]={loading:true,list:[]};
+  S.db.collection('odo').where('date','==',date).get().then(s=>{S.odo[date]={list:s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.t||0)-(b.t||0))};rerender()})
+    .catch(e=>{console.error(e);S.odo[date]={list:[],err:1};rerender()})}
+const kmKey=(date,boy)=>date+'_'+(norm(boy)||'x');
+const odoLabel=x=>`Gaadi ${x.veh} ${x.kind==='start'?'START':'END'} · ${new Date(x.t).toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'})}`;
+const thumbsHtml=list=>list.length?`<div class="thumbs">${list.map(x=>`<div class="thumb"><img src="${x.img}" data-big="${esc((x.boy||'')+' · '+odoLabel(x))}" alt="${esc(odoLabel(x))}"><span>${esc(odoLabel(x))}</span></div>`).join('')}</div>`:'<div class="small muted">Abhi koi photo nahi</div>';
+function vOdo(){return isOwner()?vOdoOwner():vOdoBoy()}
+function vOdoBoy(){const date=todayISO();loadOdo(date);const o=S.odo[date]||{};const mine=(o.list||[]).filter(x=>x.boy===S.me);
+  const last=mine[mine.length-1];const veh=last?(last.kind==='end'?last.veh+1:last.veh):1;const next=!last||last.kind==='end'?'start':'end';
+  const km=S.kms[kmKey(date,S.me)];const m=date.slice(0,7);const mk=Object.values(S.kms).filter(k=>k.boy===S.me&&k.date.slice(0,7)===m);
+  const html=`<div class="stack">
+    <div class="card"><h3>${fmtDate(date)}</h3><div class="small muted" style="margin:4px 0 12px">Duty shuru karte waqt aur khatam karte waqt gaadi ke meter ki photo lo. Gaadi badli to us gaadi ka END, phir nayi gaadi ka START.</div>
+      ${o.loading?'<div class="small muted">Load ho raha hai…</div>':`<button class="btn p block" style="padding:14px" data-act="odoShot" data-k="${next}" data-v="${veh}">${ICONS.cam} ${next==='start'?(veh===1?'Duty START: meter photo':'Gaadi '+veh+' START: meter photo'):'Gaadi '+veh+' END: meter photo'}</button>
+      ${last&&last.kind==='end'?'<div class="small muted" style="margin-top:6px">Duty khatam ho gayi to kuch aur nahi karna. Dusri gaadi li ho tabhi upar wala button dabao.</div>':''}`}</div>
+    <div class="card"><h3>Aaj ki photos</h3><div style="margin-top:8px">${thumbsHtml(mine)}</div></div>
+    <div class="card"><h3>KM & incentive</h3><div class="kv" style="margin-top:8px"><span class="muted">Aaj</span><span>${km?`<b>${L(km.km)} km</b> · ${inr(km.inc)}`:'Office verify karega'}</span><span class="muted">${fmtMonth(m)}</span><span><b>${L(sum(mk,k=>k.km))} km</b> · ${inr(sum(mk,k=>k.inc))}</span></div></div></div>`;
+  return {html,title:'Meter photo'}}
+function vOdoOwner(){const date=S.odod;loadOdo(date);purgeOld();const o=S.odo[date]||{};const rate=+(settings().kmRate??2);
+  const bl=[...new Set([...boys(),...(o.list||[]).map(x=>x.boy)])];
+  const mk=Object.values(S.kms).filter(k=>k.date.slice(0,7)===S.odom);
+  const html=`<div class="stack">
+    <div class="row sp wrap"><div class="row"><button class="btn sm o" data-act="odoShift" data-n="-1">‹</button><button class="btn sm"><b>${date===todayISO()?'Aaj · ':''}${fmtDate(date)}</b></button><button class="btn sm o" data-act="odoShift" data-n="1" ${date>=todayISO()?'disabled':''}>›</button></div>
+      <div class="row"><input type="date" class="input" style="width:auto;padding:6px 10px" value="${date}" max="${todayISO()}" data-act="odoD"><button class="btn sm o" data-act="odoReload">Refresh</button></div></div>
+    <div class="small muted">Photos 30 din baad apne aap hat jaati hain. KM aur incentive hamesha save rehte hain. Rate: ₹${L(rate)}/km (Settings me badlo).</div>
+    ${o.loading?'<div class="empty">Photos load ho rahi hain…</div>':bl.map(b=>{const ph=(o.list||[]).filter(x=>x.boy===b);const k=S.kms[kmKey(date,b)];return `<div class="card"><div class="row sp wrap"><h2>${esc(b)}</h2>${k?`<span class="badge g">${L(k.km)} km · ${inr(k.inc)}</span>`:ph.length?'<span class="badge y">Verify baaki</span>':'<span class="badge n">Photo nahi</span>'}</div>
+      <div style="margin-top:10px">${thumbsHtml(ph)}</div>
+      <div class="row wrap" style="margin-top:12px"><div class="field"><label class="f">Total KM (photos dekh ke)</label><input class="input" id="km_${norm(b)||'x'}" type="number" inputmode="decimal" style="width:140px" value="${k?L(k.km):''}"></div><button class="btn p" style="align-self:flex-end" data-act="kmSave" data-b="${esc(b)}">Save · incentive</button></div></div>`}).join('')}
+    <div class="card"><div class="row sp wrap"><h3>Mahine ka incentive</h3><input type="month" class="input" style="width:auto" value="${S.odom}" data-act="odoM"></div>
+      <table class="tbl compact" style="margin-top:8px"><thead><tr><th>Boy</th><th class="n">Din</th><th class="n">KM</th><th class="n">Incentive</th></tr></thead><tbody>
+      ${[...new Set(mk.map(k=>k.boy))].sort().map(b=>{const r=mk.filter(k=>k.boy===b);return `<tr><td><b>${esc(b)}</b></td><td class="n">${r.length}</td><td class="n">${L(sum(r,k=>k.km))}</td><td class="n"><b>${inr(sum(r,k=>k.inc))}</b></td></tr>`}).join('')||'<tr><td colspan="4" class="muted">Is mahine koi KM record nahi</td></tr>'}</tbody></table></div></div>`;
+  return {html}}
+
+/* --- Route order (delivery boy) --- */
+/* --- Customer order (route) — sab ke liye ek shared order, boy-wise --- */
+function rtDefaultBoy(pref){if(!isOwner())return S.me;const bl=boys();if(pref&&pref!=='all'&&bl.includes(pref))return pref;return bl[0]||''}
+function sheetRoute(boy){boy=rtDefaultBoy(boy);S.rtBoy=boy;S.rtq='';S.rtWarn=false;
+  S.rt=Object.values(S.customers).filter(c=>c.boy===boy).sort((a,b)=>((a.seq??9999)-(b.seq??9999))||a.name.localeCompare(b.name)).map(c=>c.id);
+  S.rt0=S.rt.slice();drawRoute()}
+function rtDirty(){return S.rt.filter((id,i)=>S.rt0[i]!==id).length}
+function drawRoute(flashId){const body=$('#shBody');const sc=body&&!body.closest('.sheet').hidden?body.scrollTop:0;const q=(S.rtq||'').trim().toLowerCase();const dirty=rtDirty();
+  openSheet('Customer order'+(S.rtBoy?' · '+S.rtBoy:''),`
+  ${isOwner()?`<div style="margin-bottom:10px">${chips(boys().map(b=>({v:b,l:b})),S.rtBoy,'rtBoy')}</div>`:''}
+  <div class="small muted" style="margin-bottom:8px">Jo ghar pehle aata hai use upar rakho. <b>⠿</b> pakad ke khiskao, ↑ ↓ dabao, ya number pe tap karke nayi position likho. Ye order sabko dikhega: Aaj, Kal, Customers aur Excel me.</div>
+  <div class="search" style="margin-bottom:8px">${ICONS.search}<input class="input" id="rtq" placeholder="Customer dhoondo…" value="${esc(S.rtq||'')}" data-act="rtq"></div>
+  <div class="list" id="rtList">${S.rt.map((id,i)=>{const c=S.customers[id];if(!c)return '';const hide=q&&!(c.name+' '+(c.phone||'')+' '+(c.area||'')+' '+(c.address||'')).toLowerCase().includes(q);
+    return `<div class="item rtitem ${S.rt0[i]!==id?'moved':''} ${flashId===id?'flash':''}" data-rt="${i}" data-cid="${id}" ${hide?'hidden':''}>
+      <span class="rth" aria-label="Pakad ke khiskao">⠿</span>
+      <input class="rtpos" type="number" inputmode="numeric" min="1" max="${S.rt.length}" value="${i+1}" data-act="rtPos" data-i="${i}" aria-label="Position">
+      <div class="grow" style="min-width:0"><div class="t">${esc(c.name)} ${c.status!=='active'?'<span class="badge y">Paused</span>':''}</div><div class="s">${esc([c.house,c.address,c.area].filter(Boolean).join(', ')||'—')}</div></div>
+      <button class="btn xs o" data-act="rtMv" data-i="${i}" data-n="-1" ${i?'':'disabled'} aria-label="Upar">↑</button><button class="btn xs o" data-act="rtMv" data-i="${i}" data-n="1" ${i<S.rt.length-1?'':'disabled'} aria-label="Neeche">↓</button></div>`}).join('')||emptyBox('Is boy ke koi customer nahi')}</div>
+  <div class="rtbar"><div class="grow small ${dirty?'':'muted'}">${dirty?`<b>${dirty}</b> customer ki jagah badli, save baaki`:'Koi badlav nahi'}</div>
+   ${dirty?'<button class="btn o" data-act="rtReset">Reset</button>':''}<button class="btn p" data-act="rtSave" ${dirty?'':'disabled'}>Save karo</button></div>`);
+  const nb=$('#shBody');nb.scrollTop=sc;
+  if(flashId){const el=nb.querySelector(`[data-cid="${flashId}"]`);if(el){const r=el.getBoundingClientRect(),br=nb.getBoundingClientRect();if(r.top<br.top||r.bottom>br.bottom-60)el.scrollIntoView({block:'center'});setTimeout(()=>el.classList.remove('flash'),700)}}}
+function rtMove(from,to){to=Math.max(0,Math.min(S.rt.length-1,to));if(from===to)return;const [m]=S.rt.splice(from,1);S.rt.splice(to,0,m);drawRoute(m)}
+/* drag: mouse + touch dono (pointer events) */
+let RD=null;
+document.addEventListener('pointerdown',e=>{const h=e.target.closest&&e.target.closest('.rth');if(!h)return;const it=h.closest('[data-rt]');if(!it)return;e.preventDefault();
+  RD={from:+it.dataset.rt,el:it,y:e.clientY,ins:null,raf:0};it.classList.add('rtdrag');try{h.setPointerCapture(e.pointerId)}catch(_){}
+  const loop=()=>{if(!RD)return;const body=$('#shBody'),br=body.getBoundingClientRect();if(RD.y<br.top+70)body.scrollTop-=10;else if(RD.y>br.bottom-90)body.scrollTop+=10;rdMark();RD.raf=requestAnimationFrame(loop)};RD.raf=requestAnimationFrame(loop)});
+document.addEventListener('pointermove',e=>{if(RD){RD.y=e.clientY;e.preventDefault()}},{passive:false});
+function rdMark(){const items=[...document.querySelectorAll('#rtList [data-rt]')].filter(x=>!x.hidden);items.forEach(x=>x.classList.remove('rtbefore','rtafter'));if(!items.length)return;
+  let ins=null,mark=null,cls='rtbefore';for(const x of items){const r=x.getBoundingClientRect();if(RD.y<r.top+r.height/2){ins=+x.dataset.rt;mark=x;break}}
+  if(ins===null){const last=items[items.length-1];ins=+last.dataset.rt+1;mark=last;cls='rtafter'}RD.ins=ins;
+  if(ins!==RD.from&&ins!==RD.from+1)mark.classList.add(cls)}
+function rdEnd(){if(!RD)return;cancelAnimationFrame(RD.raf);const {from,ins}=RD;RD=null;if(ins===null||ins===from||ins===from+1){drawRoute();return}rtMove(from,ins>from?ins-1:ins)}
+document.addEventListener('pointerup',rdEnd);document.addEventListener('pointercancel',rdEnd);
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset&&e.target.dataset.act==='rtPos'){e.preventDefault();e.target.blur()}});
+document.addEventListener('change',e=>{const el=e.target;if(!el.dataset||el.dataset.act!=='rtPos')return;const v=Math.round(+el.value);if(!v){el.value=+el.dataset.i+1;return}rtMove(+el.dataset.i,v-1)});
+document.addEventListener('input',e=>{const el=e.target;if(el.id!=='rtq')return;S.rtq=el.value;const q=el.value.trim().toLowerCase();
+  document.querySelectorAll('#rtList [data-rt]').forEach(x=>{const c=S.customers[x.dataset.cid];x.hidden=!!q&&!(c.name+' '+(c.phone||'')+' '+(c.area||'')+' '+(c.address||'')).toLowerCase().includes(q)})});
+
+/* --- Delivery boy: customer detail screen --- */
+function sheetDetail(cid){const c=S.customers[cid];if(!c)return;const r=rowOf(S.date,cid);const st=r?r.s:'p';const {q,x}=rowItems(c,r);
+  const m=mapOf(c);const due=balanceUpto(c,null);const vs=varsOf(c);
+  openSheet(c.name,`
+    <div class="row wrap" style="margin-bottom:6px">${st==='d'?'<span class="badge g">Delivered</span>':st==='k'?'<span class="badge y">Skip</span>':'<span class="badge n">Pending</span>'}<span class="badge b">${esc(schedText(c).split(' (')[0].split(':')[0])}</span></div>
+    <div><h3>Address</h3>
+      ${c.house?`<div style="font-size:17px;font-weight:800;margin-top:4px">${esc(c.house)}</div>`:''}
+      <div>${esc([c.address,c.area].filter(Boolean).join(', ')||'Address nahi hai')}</div>
+      ${c.landmark?`<div style="margin-top:2px"><b>Landmark:</b> ${esc(c.landmark)}</div>`:''}
+      <div class="row" style="margin-top:10px">${m?`<a class="btn p grow" href="${esc(m.url)}" target="_blank" rel="noopener">${ICONS.pin} Google Maps</a>`:'<span class="small grow" style="color:var(--warn)">Map link nahi hai</span>'}${c.phone?`<a class="btn o" href="tel:${cleanPhone(c.phone)}">${ICONS.phone} Call</a>`:''}</div></div>
+    <div class="sec"><h3>Instructions</h3>${c.notes?`<div class="instr">📌 ${esc(c.notes)}</div>`:''}${vs.map(v=>`<div class="vcm">💬 ${esc(v.t)}<small>${v.by?esc(v.by)+' · ':''}${fmtShort(v.till)} tak</small></div>`).join('')}${!c.notes&&!vs.length?'<div class="small muted">Koi instruction nahi</div>':''}</div>
+    <div class="sec"><h3>Aaj dena hai</h3><div style="font-size:18px;font-weight:800">${st==='k'?'Skip':qtyText(q)}</div>${st!=='k'?`<div style="margin-top:4px">${btHtml(bottlesOf(q))}</div>${x.length?`<div style="margin-top:6px">${x.map(e=>`<div>+ ${esc(e.n)}</div>`).join('')}</div>`:''}`:''}
+      <div class="small muted" style="margin-top:6px">Customer ne kam ya zyada liya? Quantity yahan se nahi badlegi. Neeche comment me likho, office update karega.</div></div>
+    <div class="sec"><h3>Bottles</h3><div class="row sp"><span>Customer ke paas khali bottles</span><b style="font-size:20px">${bottleBal(c)}</b></div>${balHtml(c)}
+      <div style="margin-top:10px"><div class="small" style="font-weight:700;margin-bottom:6px">Aaj kitni wapas li?</div>${brSteppers('dBr',r)}</div></div>
+    <div class="row wrap" style="margin-top:14px"><button class="btn p grow" data-act="dSave" data-id="${cid}" data-s="d">✓ Delivered</button><button class="btn w" data-act="dSave" data-id="${cid}" data-s="k">Skip</button>${st!=='p'?`<button class="btn o" data-act="dSave" data-id="${cid}" data-s="p">Undo</button>`:''}</div>
+    <div class="sec"><h3>Payment</h3><div class="row sp"><span>Kul baki</span><b style="color:${due>0.5?'var(--danger)':'var(--accent)'}">${inr(due)}</b></div><button class="btn block" style="margin-top:8px" data-act="addPayment" data-id="${cid}">Receive payment</button></div>
+    <div class="sec"><h3>Customer feedback / comment</h3><textarea class="input" id="dCm" placeholder="e.g. Aaj 2L ki jagah 1.5L hi liya / kal se 7 baje se pehle chahiye"></textarea><button class="btn block o" style="margin-top:8px" data-act="dCmSave" data-id="${cid}">Comment bhejo</button></div>`)}
+
+/* --- Excel backup (multi-sheet) --- */
+function loadXLSX(){return window.XLSX?Promise.resolve(window.XLSX):new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=()=>res(window.XLSX);s.onerror=()=>rej(new Error('Excel library load nahi hui. Internet check karo.'));document.head.appendChild(s)})}
+async function exportXlsx(date){let XL;try{XL=await loadXLSX()}catch(e){toast(e.message);return false}
+  const oldP=S.pld,oldDr=S.pldr;S.pld=date;S.pldr=date===oldP?oldDr:{};
+  const byBoy={},tot={},boyTot={};PLN.forEach(p=>tot[p.k]=0);let tb=0,ts=0,tv=0,tn=0;
+  try{
+    Object.values(S.customers).filter(c=>c.status==='active').sort((a,b)=>(a.boy||'').localeCompare(b.boy||'')||((a.seq??9999)-(b.seq??9999))||a.name.localeCompare(b.name)).forEach(c=>{
+      const d=plDraft(c);if(!(PLN.some(p=>+d.qty[p.k]>0)||d.x.length))return;const o=bottlesOf(d.qty),v=plValue(c),b=c.boy||'—';
+      const arr=byBoy[b]||(byBoy[b]=[]);const bt=boyTot[b]||(boyTot[b]={n:0,b:0,s:0,v:0});
+      arr.push({'Seq':arr.length+1,'Customer':c.name,'Phone':c.phone||'','Makan':c.house||'','Address':[c.address,c.area].filter(Boolean).join(', '),'Landmark':c.landmark||'',
+        ...Object.fromEntries(PLN.map(p=>[p.sh+' ('+p.u+')',+d.qty[p.k]||0])),'Bade bottle (1L)':o.b,'Chhote bottle (½L)':o.s,
+        'Other products':d.x.map(e=>e.n).join(', '),'Order value ₹':v,'Fix comment':c.notes||'','Variable comment':varsOf(c).map(x=>x.t).join(' | '),'Status':plConf(c)&&!d.dirty?'Confirmed':'Auto-fill'});
+      PLN.forEach(p=>tot[p.k]+=+d.qty[p.k]||0);tb+=o.b;ts+=o.s;tv+=v;tn++;bt.n++;bt.b+=o.b;bt.s+=o.s;bt.v+=v});
+  }finally{S.pld=oldP;S.pldr=oldDr}
+  const wb=XL.utils.book_new();const P=Object.values(S.purchases).sort((a,b)=>a.date.localeCompare(b.date)||(a.t||0)-(b.t||0));
+  const purToday=sum(P.filter(p=>p.date===todayISO()),p=>p.amt);
+  const master=[[ (settings().company||'Oritic')+' · Delivery backup'],['Delivery date',fmtDate(date)+' '+date.slice(0,4)],['Export time',new Date().toLocaleString('en-IN')],[],
+    ['Customers',tn],...PLN.map(p=>[p.sh+' ('+p.u+')',Math.round(tot[p.k]*1000)/1000]),['Bade bottle (1L)',tb],['Chhote bottle (½L)',ts],['Total bottles',tb+ts],['Order value (sale) ₹',Math.round(tv)],['Aaj ki purchase ₹ ('+todayISO()+')',purToday],[],
+    ['Delivery partner','Customers','Bade','Chhote','Order value ₹'],...Object.entries(boyTot).sort().map(([b,t])=>[b,t.n,t.b,t.s,Math.round(t.v)]),['Total',tn,tb,ts,Math.round(tv)]];
+  const wsM=XL.utils.aoa_to_sheet(master);wsM['!cols']=[{wch:30},{wch:22},{wch:10},{wch:10},{wch:14}];XL.utils.book_append_sheet(wb,wsM,'Master');
+  const used=new Set(['Master','Purchases']);
+  Object.keys(byBoy).sort().forEach(b=>{let nm=String(b).replace(/[\[\]:*?\/\\]/g,'').slice(0,28)||'Boy';while(used.has(nm))nm=nm.slice(0,26)+'_'+used.size;used.add(nm);
+    const ws=XL.utils.json_to_sheet(byBoy[b]);ws['!cols']=Object.keys(byBoy[b][0]).map(k=>({wch:/Address|Other|comment/.test(k)?34:k==='Customer'?22:12}));XL.utils.book_append_sheet(wb,ws,nm)});
+  const daily={};P.forEach(p=>daily[p.date]=(daily[p.date]||0)+(+p.amt||0));
+  const pa=[['Date','Item','Amount ₹','Note','By'],...P.map(p=>[p.date,p.item,+p.amt||0,p.note||'',p.by||'']),[],['Date','Din ka total ₹'],...Object.entries(daily).sort().map(([d,a])=>[d,a])];
+  const wsP=XL.utils.aoa_to_sheet(pa);wsP['!cols']=[{wch:12},{wch:28},{wch:12},{wch:28},{wch:12}];XL.utils.book_append_sheet(wb,wsP,'Purchases');
+  const out=XL.write(wb,{bookType:'xlsx',type:'array'});saveFile(`oritic-delivery-${date}.xlsx`,new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));return true}
+function autoExportTick(){if(!isOwner()||!S.ready||!S.db)return;purgeOld();if(settings().autoExport===false)return;if(new Date().getHours()<23)return;
+  let last='';try{last=localStorage.getItem('oritic.exp')||''}catch(_){}if(last===todayISO())return;try{localStorage.setItem('oritic.exp',todayISO())}catch(_){}
+  exportXlsx(addDays(todayISO(),1)).then(ok=>{if(ok)toast('Raat ka Excel backup download ho gaya')})}
+function compressImg(file,max,qual){return new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const sc=Math.min(1,max/Math.max(im.width,im.height));const cv=document.createElement('canvas');cv.width=Math.round(im.width*sc);cv.height=Math.round(im.height*sc);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);res(cv.toDataURL('image/jpeg',qual))};im.onerror=rej;im.src=fr.result};fr.onerror=rej;fr.readAsDataURL(file)})}
+document.addEventListener('change',async e=>{if(e.target.id!=='payImg')return;const f=e.target.files[0];if(!f)return;
+  try{const url=await compressImg(f,1100,0.6);const pv=$('#payPrev');pv.dataset.img=url;pv.innerHTML=`<img src="${url}" alt="Screenshot" style="max-height:260px">`}catch(err){toast('Image nahi khuli')}});
+
+/* --- actions for new modules --- */
+Object.assign(A,{
+  fcR(d){S.fcr=d.v;render()},
+  prAdd(){const n=$('#prN').value.trim();if(!n)return toast('Product ka naam likho');if(findProd(n))return toast('Ye product pehle se hai: '+findProd(n).n);
+    saveProducts([...products(),{id:'p'+uid(),n,u:$('#prU').value.trim(),a:+$('#prA').value||0,on:true}]).then(()=>toast('Product jud gaya'))},
+  prSave(d){const row=[...document.querySelectorAll('[data-prow]')].find(r=>r.dataset.prow===d.id);if(!row)return;const g=f=>row.querySelector('[data-f="'+f+'"]');
+    const n=g('n').value.trim();if(!n)return toast('Naam khaali nahi ho sakta');const ex=findProd(n);if(ex&&ex.id!==d.id)return toast('Is naam ka product pehle se hai');
+    saveProducts(products().map(p=>p.id===d.id?{...p,n,u:g('u').value.trim(),a:+g('a').value||0,on:g('on').checked}:p)).then(()=>toast('Saved'))},
+  prDel(d,el){if(el.dataset.c!=='1'){el.dataset.c='1';el.textContent='Pakka?';el.classList.add('d');setTimeout(()=>{if(el.isConnected){el.dataset.c='';el.textContent='Delete';el.classList.remove('d')}},3000);return}
+    saveProducts(products().filter(p=>p.id!==d.id)).then(()=>toast('Product hata diya (purane bills pe asar nahi)'))},
+  purShift(d){const n=addDays(S.purd,+d.n);if(n<=todayISO())S.purd=n;render()},
+  purGo(d){S.purd=d.d;render()},
+  purAdd(){if(!canWrite())return toast('Aapko write permission nahi hai');const item=$('#purI').value.trim(),amt=+$('#purA').value;if(!item)return toast('Kya khareeda, ye likho');if(!(amt>0))return toast('Amount likho');
+    const id=uid();const doc={date:S.purd,item,amt,note:$('#purN').value.trim(),by:S.me||'',t:Date.now()};S.purchases[id]={id,...doc};render();
+    queue('pur:'+id,()=>S.db.doc('purchases/'+id).set(doc)).then(()=>toast('Purchase save'));setTimeout(()=>{const i=$('#purI');if(i)i.focus()},50)},
+  purDel(d,el){if(el.dataset.c!=='1'){el.dataset.c='1';el.textContent='Pakka?';el.classList.add('d');setTimeout(()=>{if(el.isConnected){el.dataset.c='';el.textContent='Delete';el.classList.remove('d')}},3000);return}
+    delete S.purchases[d.id];render();queue('pur:'+d.id,()=>S.db.doc('purchases/'+d.id).delete())},
+  odoShift(d){const n=addDays(S.odod,+d.n);if(n<=todayISO())S.odod=n;render()},
+  odoReload(){loadOdo(S.odod,true);render()},
+  odoShot(d){const kind=d.k,veh=+d.v;openCamera(`Gaadi ${veh} ${kind==='start'?'START':'END'} meter`,url=>{if(!canWrite())return toast('Aapko write permission nahi hai');
+    const date=todayISO();const id=date+'_'+(norm(S.me)||'x')+'_'+Date.now().toString(36);const doc={date,boy:S.me,veh,kind,img:url,t:Date.now()};
+    const o=S.odo[date]&&S.odo[date].list?S.odo[date]:(S.odo[date]={list:[]});o.list.push({id,...doc});render();
+    queue('odo:'+id,()=>S.db.doc('odo/'+id).set(doc)).then(()=>toast('Meter photo save'))})},
+  camShot(){const v=$('#camV');if(!v||!v.videoWidth)return toast('Camera abhi ready nahi');const sc=Math.min(1,960/Math.max(v.videoWidth,v.videoHeight));const w=Math.round(v.videoWidth*sc),h=Math.round(v.videoHeight*sc);
+    const cv=$('#camC');cv.width=w;cv.height=h;const g=cv.getContext('2d');g.drawImage(v,0,0,w,h);
+    g.fillStyle='rgba(0,0,0,.55)';g.fillRect(0,h-34,w,34);g.fillStyle='#fff';g.font='bold 18px sans-serif';g.fillText((S.me||'')+' · '+new Date().toLocaleString('en-IN'),10,h-11);
+    S.camUrl=cv.toDataURL('image/jpeg',0.6);stopCam();v.hidden=true;const im=$('#camI');im.src=S.camUrl;im.hidden=false;
+    $('#camBtns').innerHTML='<button class="btn o" data-act="camRetake">Dobara lo</button><button class="btn p grow" data-act="camOk">✓ Save karo</button>'},
+  camRetake(){openCamera($('#shTitle').textContent,S.camCb)},
+  camOk(){const cb=S.camCb,u=S.camUrl;S.camUrl='';closeSheet();if(cb&&u)cb(u)},
+  kmSave(d){const b=d.b;const inp=$('#km_'+(norm(b)||'x'));const km=+inp.value;if(inp.value===''||!(km>=0))return toast('KM likho');const rate=+(settings().kmRate??2);const id=kmKey(S.odod,b);
+    const doc={date:S.odod,boy:b,km,rate,inc:Math.round(km*rate*100)/100,by:S.me||'',t:Date.now()};S.kms[id]={id,...doc};render();
+    queue('km:'+id,()=>S.db.doc('kms/'+id).set(doc)).then(()=>toast(b+': '+L(km)+' km · incentive '+inr(doc.inc)))},
+  routeOrder(d){sheetRoute(d.b)},
+  rtMv(d){rtMove(+d.i,+d.i+(+d.n))},
+  rtReset(){S.rt=S.rt0.slice();drawRoute()},
+  rtBoy(d){if(d.v===S.rtBoy)return;if(rtDirty()&&!S.rtWarn){S.rtWarn=true;return toast('Badlav save nahi hue. Bina save kiye jaana hai to dobara tap karo')}sheetRoute(d.v)},
+  rtSave(){if(!canWrite())return toast('Aapko write permission nahi hai');if(!isOwner()&&S.rtBoy!==S.me)return toast('Sirf apna order badal sakte ho');
+    const b=S.db.batch();let n=0;S.rt.forEach((id,i)=>{const seq=(i+1)*10;if(S.customers[id].seq===seq)return;S.customers[id]={...S.customers[id],seq};b.set(S.db.doc('customers/'+id),{seq},{merge:true});n++});
+    if(n)b.commit().then(()=>toast('Order save ho gaya, sabko dikhega')).catch(e=>toast('Save nahi hua: '+(e&&e.message||e)));else toast('Order save');closeSheet();render()},
+  dSave(d){const c=S.customers[d.id];if(!c)return;const r=rowOf(S.date,d.id);const {q,x}=rowItems(c,r);
+    const row=makeRow(c,d.s,q,d.s==='k'?[]:x,r&&r.n,S.me);if(d.s==='p'&&r&&r.pl)row.pl=1;const br=readBr('dBr');if(br)Object.assign(row,br);
+    writeRows(S.date,{[d.id]:row});closeSheet();toast(d.s==='d'?c.name+': delivered':d.s==='k'?c.name+': skip':'Wapas pending')},
+  dCmSave(d){const t=$('#dCm').value.trim();if(!t)return toast('Comment likho');addVar(d.id,{t,till:addDays(todayISO(),1),src:'field'});const bs=$('#dBrS').value,bb=$('#dBrB').value;toast('Comment office tak pahunch gaya');sheetDetail(d.id);$('#dBrS').value=bs;$('#dBrB').value=bb},
+  xlsx(d){toast('Excel ban raha hai…');exportXlsx(d.d||addDays(todayISO(),1))}
+});
+
+/* ---------- login ---------- */
+const LG={role:null,name:'',pin:''};
+function renderLogin(){
+  const el=$('#login');
+  if(S.role){el.hidden=true;return}
+  el.hidden=false;
+  if(!S.ready){el.innerHTML=`<div class="box"><div class="brand"><div class="mark">O</div><div><b>${esc((settings().company||'Oritic').toUpperCase())}</b><span>Delivery panel</span></div></div><div class="empty">Connect ho raha hai…</div></div>`;return}
+  const bl=boys();
+  el.innerHTML=`<div class="box">
+    <div class="brand"><div class="mark">O</div><div><b>${esc((settings().company||'Oritic').toUpperCase())}</b><span>Delivery panel</span></div></div>
+    <h3 style="margin-bottom:8px">Kaun ho?</h3>
+    <div class="roles">
+      <button class="${LG.role==='owner'?'on':''}" data-act="loginRole" data-r="owner">Owner / Office</button>
+      ${bl.map(b=>`<button class="${LG.role==='boy'&&LG.name===b?'on':''}" data-act="loginRole" data-r="boy" data-n="${esc(b)}">${esc(b)}</button>`).join('')}
+    </div>
+    ${LG.role?`<h3 style="margin-top:20px;text-align:center">PIN daalo</h3>
+    <div class="pin">${[0,1,2,3].map(i=>`<i class="${LG.pin.length>i?'f':''}"></i>`).join('')}</div>
+    <div class="pad">${['1','2','3','4','5','6','7','8','9'].map(k=>`<button data-act="key" data-k="${k}">${k}</button>`).join('')}<button class="ghost" data-act="key" data-k="del">⌫</button><button data-act="key" data-k="0">0</button><button class="ghost" data-act="loginGo">OK</button></div>`:''}
+    <div class="small muted" style="text-align:center;margin-top:18px">${S.online?'':'Offline — '}Phone me app jaise rakhne ke liye: Chrome menu → "Add to Home screen"</div>
+  </div>`}
+function tryLogin(){
+  const pins=settings().pins||{};
+  const expected=LG.role==='owner'?(pins.owner||'1234'):((pins.boys||{})[LG.name]||'0000');
+  if(LG.pin===expected){S.role=LG.role;S.me=LG.role==='owner'?'Owner':LG.name;try{localStorage.setItem('oritic.login',JSON.stringify({role:S.role,me:S.me}))}catch(_){}
+    S.route=isOwner()?'home':'today';LG.pin='';render();toast('Namaste, '+S.me)}
+  else if(LG.pin.length>=expected.length){LG.pin='';renderLogin();toast('PIN galat hai')}}
+A.loginGo=()=>{if(LG.pin.length<4)return toast('4 digit PIN daalo');tryLogin()};
+function setupHtml(){return `<div class="setup"><div class="brand"><div class="mark">O</div><div><b>ORITIC</b><span>Delivery panel</span></div></div>
+  <div class="card"><h2>Setup baaki hai</h2><p class="muted">Ye app abhi kisi database se juda nahi hai. <code>firebase-config.js</code> file me apne Firebase project ka config paste karo, phir ye page dobara kholo.</p>
+  <ol><li>console.firebase.google.com → project banao</li><li>Build → Firestore Database → Create (asia-south1)</li><li>Build → Authentication → Sign-in method → Anonymous → Enable</li><li>Project settings → "Add app" → Web → config copy karo</li><li>Config ko <code>firebase-config.js</code> me paste karo</li></ol></div></div>`}
+
+/* ---------- boot ---------- */
+(async()=>{
+  try{const b=localStorage.getItem('oritic.boy');if(b)S.boy=b}catch(_){}
+  try{const l=JSON.parse(localStorage.getItem('oritic.login')||'null');if(l&&l.role){S.role=l.role;S.me=l.me}}catch(_){}
+  const hash=(location.hash||'').slice(1);if(ROUTES.some(r=>r.id===hash))S.route=hash;
+  window.addEventListener('online',()=>{S.online=true;render()});window.addEventListener('offline',()=>{S.online=false;render()});S.online=navigator.onLine!==false;
+  if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+  const cfg=window.FIREBASE_CONFIG;
+  if(!cfg||!cfg.apiKey||/PASTE|XXXX/.test(cfg.apiKey)||!window.firebase){S.setup=true;render();return}
+  render();
+  let db;
+  try{firebase.initializeApp(cfg);db=firebase.firestore();try{await db.enablePersistence({synchronizeTabs:true})}catch(_){}
+    await firebase.auth().signInAnonymously()}catch(e){console.error(e);S.ready=true;S.offline=true;render();return}
+  S.db=db;
+  let first=0;const ok=()=>{if(++first>=2&&!S.ready){S.ready=true;render()}else rerender()};
+  const onErr=e=>{console.error(e);toast('Data error: '+(e&&e.code||''));if(!S.ready){S.ready=true;S.offline=true;render()}};
+  db.collection('customers').onSnapshot(s=>{const m={};s.docs.forEach(d=>{m[d.id]={id:d.id,...JSON.parse(JSON.stringify(d.data()))}});S.customers=m;ok()},onErr);
+  db.collection('days').onSnapshot(s=>{const m={};s.docs.forEach(d=>{m[d.id]=JSON.parse(JSON.stringify(d.data()));m[d.id].rows=m[d.id].rows||{}});S.days=m;ok()},onErr);
+  db.collection('payments').onSnapshot(s=>{const m={};s.docs.forEach(d=>{m[d.id]={id:d.id,...d.data()}});S.payments=m;rerender()},onErr);
+  db.doc('settings/main').onSnapshot(s=>{S.settings=s.exists?JSON.parse(JSON.stringify(s.data())):null;rerender()},onErr);
+  db.collection('purchases').onSnapshot(s=>{const m={};s.docs.forEach(d=>{m[d.id]={id:d.id,...d.data()}});S.purchases=m;rerender()},e=>console.error(e));
+  db.collection('kms').onSnapshot(s=>{const m={};s.docs.forEach(d=>{m[d.id]={id:d.id,...d.data()}});S.kms=m;rerender()},e=>console.error(e));
+  setInterval(autoExportTick,60000);
+  setTimeout(()=>{if(!S.ready){S.ready=true;render()}},10000);
+})();
+</script>
+</body></html>
