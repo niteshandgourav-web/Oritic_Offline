@@ -1,0 +1,6 @@
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+# real Firebase keys stay out of git: keep your own copy as firebase-config.local.js if needed
+firebase-config.local.js

@@ -312,10 +312,10 @@ label.f{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-b
 <div id="toast"></div>
 <div id="login" class="login" hidden></div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script>/* Firebase sirf 'firebase' mode me load hota hai. 'local' mode me js/local-store.js browser ka database deta hai */
+if(window.ORITIC_MODE!=='local'){['app','auth','firestore'].forEach(function(m){document.write('<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-'+m+'-compat.js"><\/script>')})}</script>
+<script src="js/local-store.js"></script>
 <script>
 'use strict';
 /* ---------- constants ---------- */
@@ -365,7 +365,7 @@ const ROUTES=[
 /* ---------- state ---------- */
 const todayISO=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const S={db:null,user:null,canWrite:null,ready:false,offline:false,customers:{},days:{},payments:{},settings:null,
-  route:'home',date:todayISO(),boy:'all',month:todayISO().slice(0,7),period:'full',bq:'',bboy:'all',
+  route:'sheet',date:todayISO(),boy:'all',month:todayISO().slice(0,7),period:'full',bq:'',bboy:'all',
   cq:'',cboy:'all',cstatus:'active',csort:(()=>{try{return localStorage.getItem('oritic.csort')||'route'}catch(_){return 'route'}})(),pmonth:todayISO().slice(0,7),bottleQ:'',downloads:true,role:null,me:'',online:true,setup:false};
 let pendingRender=false;
 
@@ -386,6 +386,8 @@ const boys=()=>{const b=settings().boys;if(Array.isArray(b)&&b.length)return b;c
 const extrasPresets=()=>Array.isArray(settings().extras)?settings().extras:[];
 const defRates=()=>({...DEF_RATES,...(settings().rates||{})});
 const ratesOf=c=>({...defRates(),...(c.rates||{})});
+/* fix R-2: Paneer / Ghee ka rate ₹/kg: customer → Settings → Product master ("Paneer" / "Ghee"). Pehle ₹0 jata tha */
+const kgRate=(c,k)=>{const cr=+(c&&c.rates&&c.rates[k]);if(cr)return cr;const sr=+((settings().rates||{})[k]);if(sr)return sr;const p=findProd(k==='ghee'?'Ghee':'Paneer');return p?(+p.a||0):0};
 const orderOf=c=>{const o={cow:0,buffalo:0,desi:0,chaach:0};PRODUCTS.forEach(p=>o[p.k]=+(c.order&&c.order[p.k])||0);return o};
 const qtyText=q=>PRODUCTS.filter(p=>+q[p.k]>0).map(p=>L(q[p.k])+'L '+p.sh).join(' + ')||'—';
 const extrasText=x=>(x||[]).map(e=>e.n+(e.a?' '+inr(e.a):'')).join(', ');
@@ -396,10 +398,11 @@ function btAdd(T,q){PRODUCTS.forEach(p=>{const o=bottlesOf({[p.k]:+(q&&q[p.k])||
 function btNew(){const T={};PRODUCTS.forEach(p=>T[p.k]={b:0,s:0});return T}
 function btBreak(T,title){const tb=PRODUCTS.reduce((a,p)=>a+T[p.k].b,0),ts=PRODUCTS.reduce((a,p)=>a+T[p.k].s,0);
   const rows=PRODUCTS.filter(p=>T[p.k].b||T[p.k].s);const z=v=>v?`<td>${v}</td>`:'<td class="z">–</td>';
-  return `<div class="btbox"><div class="bth"><b>${title||'Bottles kitni lagengi'}</b><div class="bts"><span class="bchip">${ts} × ½L</span><span class="bchip">${tb} × 1L</span></div></div>
+  /* CR-10: bottle table by default band, click karke khule */
+  return `<details class="btbox"${window.BT_OPEN?' open':''}><summary class="bth"><b>${title||'Bottles kitni lagengi'}</b><div class="bts"><span class="bchip">${ts} × ½L</span><span class="bchip">${tb} × 1L</span><span class="btmore">table</span></div></summary>
    ${rows.length?`<table class="bttbl"><thead><tr><th>Doodh</th><th>½L bottle</th><th>1L bottle</th><th>Total</th></tr></thead><tbody>
    ${rows.map(p=>`<tr><td>${BTN[p.k]||p.sh}</td>${z(T[p.k].s)}${z(T[p.k].b)}${z(T[p.k].s+T[p.k].b)}</tr>`).join('')}
-   <tr class="tot"><td>Total</td><td>${ts}</td><td>${tb}</td><td>${ts+tb}</td></tr></tbody></table>`:'<div class="small muted" style="padding:10px 12px">Abhi koi bottle nahi</div>'}</div>`}
+   <tr class="tot"><td>Total</td><td>${ts}</td><td>${tb}</td><td>${ts+tb}</td></tr></tbody></table>`:'<div class="small muted" style="padding:10px 12px">Abhi koi bottle nahi</div>'}</details>`}
 const btText=o=>(o.b||o.s)?[o.b?o.b+'×1L':'',o.s?o.s+'×½L':''].filter(Boolean).join(' + '):'—';
 const btHtml=o=>(o.b||o.s)?`<span class="bchip" title="Bade (1L): ${o.b} · Chhote (½L): ${o.s}">${btText(o)}</span>`:'<span class="muted">–</span>';
 /* wapas aayi bottles: brS = ½L, brB = 1L, br = total (purani entries me sirf br hota hai, size nahi) */
@@ -422,9 +425,9 @@ const custSince=c=>{if(c.since)return c.since;if(c.createdAt)return c.createdAt;
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const cleanPhone=p=>{const d=String(p||'').replace(/\D/g,'');return d.length>10?d.slice(-10):d};
 const canWrite=()=>!!(S.db&&S.role);
-const MOBILE_NAV=()=>S.role==='owner'?['home','today','plan','customers']:['today','customers','payments','bottles'];
+const MOBILE_NAV=()=>S.role==='owner'?['sheet','customers','payments','bills']:['today','customers','payments','bottles'];
 const isOwner=()=>S.role==='owner';
-const visibleRoutes=()=>isOwner()?ROUTES:ROUTES.filter(r=>['today','customers','payments','bottles','odo'].includes(r.id));
+const visibleRoutes=()=>isOwner()?ROUTES.filter(r=>!r.hide):ROUTES.filter(r=>['today','customers','payments','bottles','odo'].includes(r.id));
 function toast(m){const t=document.createElement('div');t.textContent=m;$('#toast').appendChild(t);setTimeout(()=>t.remove(),2600)}
 function copyText(txt,el){const done=()=>toast('Copy ho gaya');
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done).catch(()=>fallback())}else fallback();
@@ -492,9 +495,13 @@ async function writeRows(date,rows){ // rows: {cid: row}
   const d=S.days[date]||(S.days[date]={date,rows:{}});
   for(const cid in rows){const prev=d.rows[cid];if(prev&&prev.br!=null&&rows[cid].br==null){rows[cid].br=prev.br;if(prev.brS!=null)rows[cid].brS=prev.brS;if(prev.brB!=null)rows[cid].brB=prev.brB}}
   Object.assign(d.rows,rows);render();
-  queue('day:'+date,async()=>{const ref=S.db.doc('days/'+date);
-    await ref.set({date,rows},{merge:true})})}
+  const FP=firebase.firestore.FieldPath;
+  /* fix R-1: mergeFields se har customer ki row poori replace hoti hai. Pehle merge:true purane pl/qty fields chhod deta tha, isliye tick hatane pe tick wapas aa jata tha */
+  return queue('day:'+date,async()=>{const ref=S.db.doc('days/'+date);
+    await ref.set({date,rows},{mergeFields:['date',...Object.keys(rows).map(cid=>new FP('rows',cid))]});return true})}
 function makeRow(c,s,q,x,note,by){const rates=ratesOf(c);q=q||orderOf(c);x=x||[];const bt=bottlesOf(q);return {s,q,x,a:s==='d'?calcAmount(q,x,rates):0,r:rates,bo:s==='d'?bt.b+bt.s:0,by:by||c.boy||'',n:note||'',t:Date.now()}}
+/* fix R-5: office ne jo plan confirm kiya (pl), wo delivered / undo ke baad bhi rahe */
+const keepPl=(row,r)=>{if(r&&r.pl)row.pl=1;return row};
 async function saveCustomer(c){
   if(!canWrite()){toast('Aapko write permission nahi hai');return}
   const id=c.id||('c'+(cleanPhone(c.phone)||uid()));const body={...c};delete body.id;
@@ -520,18 +527,22 @@ function render(){
   if(S.setup){top.innerHTML='';view.innerHTML=setupHtml();$('#login').hidden=true;return}
   renderLogin();
   if(!S.role){top.innerHTML='';view.innerHTML='';return}
-  if(!visibleRoutes().some(x=>x.id===S.route))S.route=isOwner()?'home':'today';
+  if(!visibleRoutes().some(x=>x.id===S.route)&&!(isOwner()&&ROUTES.some(x=>x.id===S.route)))S.route=isOwner()?'sheet':'today';
   nav();
   const r=ROUTES.find(x=>x.id===S.route)||ROUTES[0];
   if(!S.ready){top.innerHTML=`<h1>${r.t}</h1>`;view.innerHTML=`<div class="empty">Load ho raha hai…</div>`;return}
-  const wide=['plan','forecast'].includes(S.route);view.classList.toggle('wide',wide);top.classList.toggle('wide',wide);
-  const V={home:vHome,today:vToday,plan:vPlan,customers:vCustomers,bills:vBills,payments:vPayments,bottles:vBottles,products:vProducts,forecast:vForecast,purchase:vPurchase,odo:vOdo,settings:vSettings}[S.route];
+  const wide=['plan','forecast','sheet'].includes(S.route)||(S.route==='customers'&&isOwner()&&S.cview==='grid');view.classList.toggle('wide',wide);top.classList.toggle('wide',wide);
+  const V={home:vHome,today:vToday,plan:vPlan,customers:vCustomers,bills:vBills,payments:vPayments,bottles:vBottles,products:vProducts,forecast:vForecast,purchase:vPurchase,odo:vOdo,settings:vSettings,...(window.EXTRA_VIEWS||{})}[S.route]||vToday;
   const out=V();
   top.innerHTML=`<div><div class="eyebrow">${esc(settings().company||'Oritic')} · ${esc(S.me||'')}</div><h1>${esc(out.title||r.t)}</h1></div><div class="row">${S.online?'':'<span class="pill off">Offline</span>'}${out.action||''}${isOwner()?'':'<button class="btn sm o" data-act="logout">Logout</button>'}</div>`;
   let banner='';
   if(S.offline)banner=`<div class="banner" style="margin-bottom:12px">Database se connect nahi ho paya. Internet check karo, ya firebase-config.js sahi hai ya nahi dekho.</div>`;
   else if(isOwner()&&(!settings().pins||!settings().pins.owner))banner=`<div class="banner" style="margin-bottom:12px">Owner PIN abhi default (1234) hai — Settings me jaake badal do.</div>`;
-  view.innerHTML=banner+out.html;
+  /* badi tables ka scroll (left/right aur up/down) re-render ke baad wahi rahe */
+  const ks={};view.querySelectorAll('[data-ks]').forEach(e=>ks[e.dataset.ks]=[e.scrollLeft,e.scrollTop]);
+  view.innerHTML=(window.modeBanner?modeBanner():'')+banner+out.html;
+  view.querySelectorAll('[data-ks]').forEach(e=>{const v=ks[e.dataset.ks];if(v){e.scrollLeft=v[0];e.scrollTop=v[1]}});
+  if(window.afterRender)afterRender();
   pendingRender=false}
 function rerender(){if(!S.role){render();return}const a=document.activeElement;if(a&&a.closest&&a.closest('#view')&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA'||a.tagName==='SELECT')){pendingRender=true;return}render()}
 const chips=(items,cur,act,key)=>`<div class="chips">${items.map(i=>`<button class="chip ${cur===i.v?'on':''}" data-act="${act}" data-${key||'v'}="${esc(i.v)}">${esc(i.l)}</button>`).join('')}</div>`;
@@ -549,11 +560,12 @@ function vHome(){
     if(q)PRODUCTS.forEach(p=>{load[p.k]+=+q[p.k]||0;o.q[p.k]+=+q[p.k]||0})});
   // tomorrow's expected procurement
   const tom=addDays(date,1);const tload={};PRODUCTS.forEach(p=>tload[p.k]=0);let tn=0;
-  for(const c of Object.values(S.customers)){if(c.status!=='active')continue;
-    if(c.schedule==='alternate'){const r=rowOf(date,c.id);const dueT=dueOn(c,date);
-      // alternate: kal tabhi jab aaj nahi gaya (aaj due nahi tha, ya aaj skip hua)
-      if(dueT&&!(r&&r.s==='k'))continue}
-    tn++;const o=orderOf(c);PRODUCTS.forEach(p=>tload[p.k]+=o[p.k])}
+  /* fix: Kal panel me confirm hua order pehle (isliye 80.5L vs 88L ka farak tha), phir schedule. Custom din bhi dekhe jaate hain */
+  for(const c of Object.values(S.customers)){const r=rowOf(tom,c.id);let q=null;
+    if(r&&(r.s!=='p'||r.pl)){if(r.s!=='k')q=r.q}
+    /* baaki: wahi niyam jo Delivery sheet / Kal panel use karta hai (dueOn), taaki dono jagah same number aaye */
+    else if(c.status==='active'&&dueOn(c,tom))q=orderOf(c);
+    if(!q)continue;tn++;PRODUCTS.forEach(p=>tload[p.k]+=+q[p.k]||0)}
   const month=date.slice(0,7);const [mf,mt]=periodRange(month,'full');
   let sales=0,coll=0,out=0,bottles=0,active=0,paused=0;const dues=[];
   for(const c of Object.values(S.customers)){
@@ -914,7 +926,7 @@ function sheetPayment(cid){
         ${c?`<div class="row sp"><b id="payCust" data-id="${c.id}">${esc(c.name)} <span class="muted small">· baki ${inr(balanceUpto(c,null))}</span></b><button class="btn xs" data-act="payPick">Badlo</button></div>`:`<div class="search">${ICONS.search}<input class="input" id="payQ" placeholder="Naam ya phone type karo" autocomplete="off"></div><div class="list" id="payRes" style="margin-top:6px;max-height:200px;overflow:auto"></div><b id="payCust" data-id=""></b>`}
       </div>
       <div class="grid g2">
-        <div class="field"><label class="f">Amount (₹) *</label><input class="input" id="payAmt" type="number" inputmode="decimal" placeholder="0" value="${c&&balanceUpto(c,null)>0?Math.round(balanceUpto(c,null)):''}"></div>
+        <div class="field"><label class="f">Amount (₹) *</label><input class="input" id="payAmt" type="number" inputmode="decimal" placeholder="${c&&balanceUpto(c,null)>0?'Baki '+inr(balanceUpto(c,null)):'0'}" value=""><div id="payFullW">${c&&balanceUpto(c,null)>0?`<button type="button" class="btn xs o" style="margin-top:6px" data-act="payFull" data-v="${Math.round(balanceUpto(c,null))}">Pura baki bharo (${inr(balanceUpto(c,null))})</button>`:''}</div></div>
         <div class="field"><label class="f">Date</label><input class="input" id="payDate" type="date" value="${todayISO()}" max="${todayISO()}"></div>
       </div>
       <div class="field"><label class="f">Mode</label><div class="seg" id="payMode"><button class="on" data-mode="cash">Cash</button><button data-mode="online">Online / UPI</button></div></div>
@@ -931,7 +943,8 @@ function bindPicker(qSel,resSel,outSel,onPick){
     res.innerHTML=list.map(c=>`<button class="item click" data-pick="${c.id}" style="padding:8px 12px"><div class="grow"><div class="t">${esc(c.name)}</div><div class="s">${esc(c.area||'')} · ${esc(c.phone||'')}</div></div>${c.status!=='active'?'<span class="badge y">Paused</span>':''}</button>`).join('')||'<div class="empty small">Nahi mila</div>'};
   inp.addEventListener('input',draw);draw();
   res.addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if(!b)return;const c=S.customers[b.dataset.pick];if(onPick){onPick(c);return}
-    const out=$(outSel);out.dataset.id=c.id;out.innerHTML=esc(c.name)+` <span class="muted small">· baki ${inr(balanceUpto(c,null))}</span>`;res.innerHTML='';inp.value=c.name;const amt=$('#payAmt');if(amt&&!amt.value&&balanceUpto(c,null)>0)amt.value=Math.round(balanceUpto(c,null))});
+    const out=$(outSel);out.dataset.id=c.id;out.innerHTML=esc(c.name)+` <span class="muted small">· baki ${inr(balanceUpto(c,null))}</span>`;res.innerHTML='';inp.value=c.name;/* fix CR-04: amount apne aap nahi bharta, sirf "Pura baki bharo" button */
+    const amt=$('#payAmt');const bl=balanceUpto(c,null);if(amt){amt.placeholder=bl>0?'Baki '+inr(bl):'0';const w=$('#payFullW');if(w)w.innerHTML=bl>0?`<button type="button" class="btn xs o" style="margin-top:6px" data-act="payFull" data-v="${Math.round(bl)}">Pura baki bharo (${inr(bl)})</button>`:'';amt.focus()}});
   setTimeout(()=>inp.focus(),50)}
 function sheetAddToday(){
   openSheet('Aaj ke liye customer add',`<div class="search">${ICONS.search}<input class="input" id="atQ" placeholder="Naam ya phone" autocomplete="off"></div><div class="list" id="atRes" style="margin-top:8px"></div>`);
@@ -970,7 +983,7 @@ const A={
     const dr=plDraft(S.customers[d.id]);dr.x.push(e);dr.dirty=true;S.plxf='';render()},
   plXc(){S.plxf='';render()},
   plXd(d){const dr=plDraft(S.customers[d.id]);dr.x.splice(+d.i,1);dr.dirty=true;render()},
-  go(d){S.route=d.r;closeSheet();render();window.scrollTo(0,0)},
+  go(d){S.route=d.r;try{history.replaceState(null,'','#'+d.r)}catch(_){}closeSheet();render();window.scrollTo(0,0)},
   goBoy(d){S.route='today';S.boy=d.b;S.date=todayISO();render()},
   more(){sheetMore()},
   help(){sheetHelp()},
@@ -979,12 +992,12 @@ const A={
   dateToday(){S.date=todayISO();render()},
   setBoy(d){S.boy=d.v;try{localStorage.setItem('oritic.boy',d.v)}catch(_){}render()},setCBoy(d){S.cboy=d.v;render()},setBBoy(d){S.bboy=d.v;render()},setCStatus(d){S.cstatus=d.v;render()},setCSort(d){S.csort=d.v;try{localStorage.setItem('oritic.csort',d.v)}catch(_){}render()},
   setPeriod(d){S.period=d.v;render();if(d.bill)sheetBill(d.bill)},
-  toggleDone(d){const c=S.customers[d.id];const r=rowOf(S.date,d.id);if(r&&r.s==='d')writeRows(S.date,{[d.id]:makeRow(c,'p')});else{const it=rowItems(c,r);writeRows(S.date,{[d.id]:makeRow(c,'d',it.q,it.x,r&&r.n,isOwner()?null:S.me)})}},
+  toggleDone(d){const c=S.customers[d.id];const r=rowOf(S.date,d.id);if(r&&r.s==='d'){const row=makeRow(c,'p',r.q,r.x,r.n,r.by);if(r.pl)row.pl=1;writeRows(S.date,{[d.id]:row})}else{const it=rowItems(c,r);writeRows(S.date,{[d.id]:keepPl(makeRow(c,'d',it.q,it.x,r&&r.n,isOwner()?null:S.me),r)})}},
   skipRow(d){const c=S.customers[d.id];const r=rowOf(S.date,d.id);writeRows(S.date,{[d.id]:makeRow(c,r&&r.s==='k'?'p':'k',null,[],r&&r.n)})},
   editRow(d){if(isOwner())sheetRow(d.id);else sheetDetail(d.id)},
-  rowSave(d){const c=S.customers[d.id];const {q,x,n}=readRowSheet();const row=makeRow(c,d.s,q,x,n);const br=readBr('rBr');if(br)Object.assign(row,br);writeRows(S.date,{[d.id]:row});closeSheet()},
+  rowSave(d){const c=S.customers[d.id];const {q,x,n}=readRowSheet();const row=keepPl(makeRow(c,d.s,q,x,n),rowOf(S.date,d.id));const br=readBr('rBr');if(br)Object.assign(row,br);writeRows(S.date,{[d.id]:row});closeSheet()},
   allDone(d,el){if(el.dataset.c!=='1'){el.dataset.c='1';el.textContent='Pakka? Sab pending ko delivered mark karo';el.classList.add('w');setTimeout(()=>{if(el.isConnected){el.dataset.c='';el.classList.remove('w');el.textContent='Baaki sab done karo'}},4000);return}
-    const rows={};todaysList(S.date,S.boy).forEach(({c,r})=>{if(!r||r.s==='p'){const it=rowItems(c,r);rows[c.id]=makeRow(c,'d',it.q,it.x,r&&r.n)}});writeRows(S.date,rows);toast(Object.keys(rows).length+' deliveries done')},
+    const rows={};todaysList(S.date,S.boy).forEach(({c,r})=>{if(!r||r.s==='p'){const it=rowItems(c,r);rows[c.id]=keepPl(makeRow(c,'d',it.q,it.x,r&&r.n),r)}});writeRows(S.date,rows);toast(Object.keys(rows).length+' deliveries done')},
   addToday(){sheetAddToday()},
   step(d){const i=$('#'+d.t);i.value=Math.max(0,(+i.value||0)+(+d.n));liveTotal()},
   xAdd(d){const x=JSON.parse($('#shBody').dataset.extras||'[]');x.push({n:d.n,base:d.n,pid:d.pid||'',qty:1,rate:+d.a||0,a:+d.a||0});$('#shBody').dataset.extras=JSON.stringify(x);renderExtras()},
@@ -994,7 +1007,7 @@ const A={
   editCustomer(d){if(!isOwner())return toast('Sirf owner kar sakta hai');sheetEditCustomer(d.id||null)},
   custSave(d){if(!isOwner())return toast('Sirf owner kar sakta hai');
     const name=$('#fName').value.trim();if(!name)return toast('Naam zaroori hai');
-    const old=d.id&&S.customers[d.id]||{};const order={},rates={};
+    const old=d.id&&S.customers[d.id]||{};const order={},rates={...(old.rates||{})};
     PRODUCTS.forEach(p=>{order[p.k]=Math.max(0,+$('#fQ_'+p.k).value||0);rates[p.k]=+$('#fR_'+p.k).value||0});
     const wdays=[...document.querySelectorAll('[data-wd]:checked')].map(i=>+i.dataset.wd);
     if($('#fSched').value==='custom'&&!wdays.length)return toast('Custom schedule ke liye kam se kam ek din chuno');
@@ -1012,9 +1025,11 @@ const A={
   copy(d){copyText(d.t)},
   addPayment(d){sheetPayment(d.id||null)},
   payPick(){const id=$('#payCust').dataset.id;sheetPayment(null);},
-  paySave(){const cid=$('#payCust').dataset.id;const amt=+$('#payAmt').value;if(!cid)return toast('Customer chuno');if(!(amt>0))return toast('Amount likho');
+  paySave(d,el){const cid=$('#payCust').dataset.id;const amt=+$('#payAmt').value;if(!cid)return toast('Customer chuno');if(!(amt>0))return toast('Amount likho');
     const mode=$('#payMode .on').dataset.mode;const proof=mode!=='cash'?($('#payPrev').dataset.img||''):'';
     if(mode!=='cash'&&!proof&&!isOwner())return toast('Online payment ka screenshot lagao');
+    /* fix CR-04: pehli baar dabane pe confirm, doosri baar save */
+    if(el&&el.dataset.c!=='1'){el.dataset.c='1';el.textContent=inr(amt)+' '+(mode==='cash'?'cash':'online')+' jama karein? Haan';el.classList.add('w');setTimeout(()=>{if(el.isConnected){el.dataset.c='';el.classList.remove('w');el.textContent='Save payment'}},4000);return}
     const id=uid();
     savePayment({id,cid,amt,mode,date:$('#payDate').value||todayISO(),note:$('#payNote').value.trim(),by:S.me||'',t:Date.now(),proof:!!proof}).then(()=>toast('Payment save'));
     if(proof)queue('proof:'+id,()=>S.db.doc('proofs/'+id).set({img:proof,cid,date:todayISO(),by:S.me||'',t:Date.now()}));
@@ -1022,7 +1037,7 @@ const A={
   viewProof(d){openSheet('Payment screenshot','<div class="empty">Load ho raha hai…</div>');S.db.doc('proofs/'+d.id).get().then(s=>{if($('#sheet').hidden)return;$('#shBody').innerHTML=s.exists?`<div class="proof"><img src="${s.data().img}" alt="Screenshot"></div>`:'<div class="empty">Screenshot nahi mila</div>'}).catch(()=>{$('#shBody').innerHTML='<div class="empty">Load nahi hua</div>'})},
   delPayment(d,el){if(!isOwner())return toast('Sirf owner kar sakta hai');if(el.dataset.c!=='1'){el.dataset.c='1';el.textContent='Pakka delete?';el.classList.add('d');setTimeout(()=>{el.dataset.c='';el.textContent='Delete';el.classList.remove('d')},3000);return}deletePayment(d.id)},
   bottle(d){const c=S.customers[d.id];if(!c)return;if(bottleBal(c)+(+d.n)<0)return toast('Balance 0 se kam nahi ho sakta');saveCustField(d.id,{bottles:(+c.bottles||0)+(+d.n)});render();const n=bottleBal(S.customers[d.id]);const b=$('[data-act=bottle][data-id="'+d.id+'"]');if($('#sheet').hidden===false&&b&&b.textContent.includes('Bottle wapas'))b.textContent='Bottle wapas (−1) · '+n},
-  saveSettings(){if(!isOwner())return toast('Sirf owner kar sakta hai');const boysL=$('#stBoys').value.split(',').map(s=>s.trim()).filter(Boolean);const rates={};PRODUCTS.forEach(p=>rates[p.k]=+$('#stRate_'+p.k).value||DEF_RATES[p.k]);
+  saveSettings(){if(!isOwner())return toast('Sirf owner kar sakta hai');const boysL=$('#stBoys').value.split(',').map(s=>s.trim()).filter(Boolean);const rates={...(settings().rates||{})};PRODUCTS.forEach(p=>rates[p.k]=+$('#stRate_'+p.k).value||DEF_RATES[p.k]);
     const extras=extrasPresets();
     const pins={owner:($('#stPinOwner').value.trim()||'1234'),boys:{}};document.querySelectorAll('[data-pin]').forEach(i=>pins.boys[i.dataset.pin]=i.value.trim()||'0000');
     if(!/^\d{4,6}$/.test(pins.owner))return toast('Owner PIN 4-6 digit ka ho');
@@ -1083,7 +1098,10 @@ function softRender(){ // re-render list while keeping focus in the search box
 
 /* ---------- Kal ki delivery (plan) ---------- */
 const PLN=[...PRODUCTS.map(p=>({k:p.k,sh:p.k==='desi'?'Gir Cow':p.sh,u:'L',s:.5})),{k:'paneer',sh:'Paneer',u:'kg',s:.25},{k:'ghee',sh:'Ghee',u:'kg',s:.25}];
-Object.assign(S,{pld:addDays(todayISO(),1),plst:'active',plboy:'all',plq:'',plhe:todayISO(),pldr:{},plvf:'',plxf:''});
+/* "Kaam ki date": cutoff (default subah 9 baje) se pehle = aaj, uske baad = kal. Settings me badal sakte ho */
+const cutoffHour=()=>{const h=S.settings&&S.settings.dayCutoff;return h==null||h===''?9:+h};
+const planDayISO=()=>new Date().getHours()<cutoffHour()?todayISO():addDays(todayISO(),1);
+Object.assign(S,{pld:planDayISO(),plst:'active',plboy:'all',plq:'',plhe:todayISO(),pldr:{},plvf:'',plxf:''});
 const fq=(v,u)=>u==='kg'&&v<1?Math.round(v*1000)+'g':L(v)+u;
 const dd=(a,b)=>Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/864e5);
 /* variable comments: kabhi delete nahi hote. Date nikalne pe ya × dabane pe sirf panel se hat-te hain, history me rehte hain */
@@ -1101,12 +1119,12 @@ function plDraft(c){
   return S.pldr[key]={qty,x,why,dirty:false}}
 function plBuild(c){const d=plDraft(c),rates=ratesOf(c),q={};PRODUCTS.forEach(p=>q[p.k]=+d.qty[p.k]||0);
   const x=d.x.map(e=>({...e,a:+e.a||0}));
-  ['paneer','ghee'].forEach(k=>{const v=+d.qty[k]||0;if(v>0)x.push({n:(k==='ghee'?'Ghee ':'Paneer ')+fq(v,'kg'),a:Math.round(v*(+rates[k]||0)*100)/100,k,u:v})});
+  ['paneer','ghee'].forEach(k=>{const v=+d.qty[k]||0;if(v>0){const rt=kgRate(c,k);x.push({n:(k==='ghee'?'Ghee ':'Paneer ')+fq(v,'kg'),a:Math.round(v*rt*100)/100,rate:rt,k,u:v})}});
   return (PRODUCTS.some(p=>q[p.k]>0)||x.length)?{...makeRow(c,'p',q,x,''),pl:1}:makeRow(c,'k',null,[],'Kal nahi')}
 function plList(){const qq=S.plq.trim().toLowerCase();
   return Object.values(S.customers).filter(c=>(S.plst==='all'||(S.plst==='active')===(c.status==='active'))&&(S.plboy==='all'||c.boy===S.plboy)&&(!qq||(c.name+' '+c.phone).toLowerCase().includes(qq)))
    .sort((a,b)=>(a.boy||'').localeCompare(b.boy||'')||((a.seq??9999)-(b.seq??9999))||a.name.localeCompare(b.name))}
-function plValue(c){const d=plDraft(c),r=ratesOf(c);let a=0;PLN.forEach(p=>a+=(+d.qty[p.k]||0)*(+r[p.k]||0));d.x.forEach(e=>a+=+e.a||0);return Math.round(a*100)/100}
+function plValue(c){const d=plDraft(c),r=ratesOf(c);let a=0;PLN.forEach(p=>a+=(+d.qty[p.k]||0)*(p.u==='kg'?kgRate(c,p.k):(+r[p.k]||0)));d.x.forEach(e=>a+=+e.a||0);return Math.round(a*100)/100}
 function plStrip(){const v=plList().filter(c=>c.status==='active');const t={},BT=btNew();let xc=0,done=0,bb=0,bs=0,val=0;
   v.forEach(c=>{const d=plDraft(c);PLN.forEach(p=>t[p.k]=(t[p.k]||0)+(+d.qty[p.k]||0));xc+=d.x.length;if(plConf(c)&&!d.dirty)done++;const o=bottlesOf(d.qty);bb+=o.b;bs+=o.s;btAdd(BT,d.qty);val+=plValue(c)});
   const pct=v.length?Math.round(done/v.length*100):0;
@@ -1148,7 +1166,7 @@ function vPlan(){
    <div class="row wrap">${chips([{v:'active',l:'Active'},{v:'paused',l:'Inactive'},{v:'all',l:'Sab'}],S.plst,'plSt')}${boyChips(S.plboy,'plBoy')}</div>
    <div class="row sp wrap"><input class="input" style="max-width:260px" placeholder="Naam ya mobile" value="${esc(S.plq)}" data-act="plq">
     <div class="row small muted">History <button class="btn sm o" data-act="plHist" data-n="-1">‹</button><span>${fmtShort(days[6])} – ${fmtShort(days[0])}</span><button class="btn sm o" data-act="plHist" data-n="1" ${S.plhe>=todayISO()?'disabled':''}>›</button><input type="date" class="input" style="width:auto;padding:6px 8px" value="${S.plhe}" max="${todayISO()}" data-act="plHd"></div></div>
-   <div class="plw"><table class="plt" style="min-width:${W.reduce((a,b)=>a+b,0)}px;width:100%"><colgroup>${W.map(w=>`<col style="width:${w}px">`).join('')}</colgroup><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>
+   <div class="plw" data-ks="plw-plan"><table class="plt" style="min-width:${W.reduce((a,b)=>a+b,0)}px;width:100%"><colgroup>${W.map(w=>`<col style="width:${w}px">`).join('')}</colgroup><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>
    <div class="small muted">Number likho, phir Enter ya ↓ se agle customer pe. Tick = confirm (kal ki list mein jata hai). Quantity 0 + tick = kal delivery nahi. Customer ke naam pe double click = poori details.</div>
    <div class="card"><div class="row sp wrap"><h3>Dispatch notes · ${fmtDate(S.pld)}</h3><span class="small muted">${dn.by?'Last save: '+esc(dn.by)+(dn.t?' · '+new Date(dn.t).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):''):'Date-wise save hota hai'}</span></div>
     <textarea class="input dnote" style="margin-top:8px" data-act="dnote" data-d="${S.pld}" placeholder="Bottle count verify, warehouse instructions, packing notes, din ke dispatch updates…">${esc(dn.t0||'')}</textarea>
@@ -1476,7 +1494,7 @@ Object.assign(A,{
     const b=S.db.batch();let n=0;S.rt.forEach((id,i)=>{const seq=(i+1)*10;if(S.customers[id].seq===seq)return;S.customers[id]={...S.customers[id],seq};b.set(S.db.doc('customers/'+id),{seq},{merge:true});n++});
     if(n)b.commit().then(()=>toast('Order save ho gaya, sabko dikhega')).catch(e=>toast('Save nahi hua: '+(e&&e.message||e)));else toast('Order save');closeSheet();render()},
   dSave(d){const c=S.customers[d.id];if(!c)return;const r=rowOf(S.date,d.id);const {q,x}=rowItems(c,r);
-    const row=makeRow(c,d.s,q,d.s==='k'?[]:x,r&&r.n,S.me);if(d.s==='p'&&r&&r.pl)row.pl=1;const br=readBr('dBr');if(br)Object.assign(row,br);
+    const row=keepPl(makeRow(c,d.s,q,d.s==='k'?[]:x,r&&r.n,S.me),r);const br=readBr('dBr');if(br)Object.assign(row,br);
     writeRows(S.date,{[d.id]:row});closeSheet();toast(d.s==='d'?c.name+': delivered':d.s==='k'?c.name+': skip':'Wapas pending')},
   dCmSave(d){const t=$('#dCm').value.trim();if(!t)return toast('Comment likho');addVar(d.id,{t,till:addDays(todayISO(),1),src:'field'});const bs=$('#dBrS').value,bb=$('#dBrB').value;toast('Comment office tak pahunch gaya');sheetDetail(d.id);$('#dBrS').value=bs;$('#dBrB').value=bb},
   xlsx(d){toast('Excel ban raha hai…');exportXlsx(d.d||addDays(todayISO(),1))}
@@ -1506,7 +1524,7 @@ function tryLogin(){
   const pins=settings().pins||{};
   const expected=LG.role==='owner'?(pins.owner||'1234'):((pins.boys||{})[LG.name]||'0000');
   if(LG.pin===expected){S.role=LG.role;S.me=LG.role==='owner'?'Owner':LG.name;try{localStorage.setItem('oritic.login',JSON.stringify({role:S.role,me:S.me}))}catch(_){}
-    S.route=isOwner()?'home':'today';LG.pin='';render();toast('Namaste, '+S.me)}
+    S.route=isOwner()?'sheet':'today';LG.pin='';render();toast('Namaste, '+S.me)}
   else if(LG.pin.length>=expected.length){LG.pin='';renderLogin();toast('PIN galat hai')}}
 A.loginGo=()=>{if(LG.pin.length<4)return toast('4 digit PIN daalo');tryLogin()};
 function setupHtml(){return `<div class="setup"><div class="brand"><div class="mark">O</div><div><b>ORITIC</b><span>Delivery panel</span></div></div>
@@ -1514,7 +1532,8 @@ function setupHtml(){return `<div class="setup"><div class="brand"><div class="m
   <ol><li>console.firebase.google.com → project banao</li><li>Build → Firestore Database → Create (asia-south1)</li><li>Build → Authentication → Sign-in method → Anonymous → Enable</li><li>Project settings → "Add app" → Web → config copy karo</li><li>Config ko <code>firebase-config.js</code> me paste karo</li></ol></div></div>`}
 
 /* ---------- boot ---------- */
-(async()=>{
+/* boot DOMContentLoaded pe, taaki js/bulk.js ke naye pages (aur #hash) pehle se registered hon */
+window.addEventListener('DOMContentLoaded',async()=>{
   try{const b=localStorage.getItem('oritic.boy');if(b)S.boy=b}catch(_){}
   try{const l=JSON.parse(localStorage.getItem('oritic.login')||'null');if(l&&l.role){S.role=l.role;S.me=l.me}}catch(_){}
   const hash=(location.hash||'').slice(1);if(ROUTES.some(r=>r.id===hash))S.route=hash;
@@ -1537,6 +1556,7 @@ function setupHtml(){return `<div class="setup"><div class="brand"><div class="m
   db.collection('kms').onSnapshot(s=>{const m={};s.docs.forEach(d=>{m[d.id]={id:d.id,...d.data()}});S.kms=m;rerender()},e=>console.error(e));
   setInterval(autoExportTick,60000);
   setTimeout(()=>{if(!S.ready){S.ready=true;render()}},10000);
-})();
+});
 </script>
+<script src="js/bulk.js"></script>
 </body></html>
