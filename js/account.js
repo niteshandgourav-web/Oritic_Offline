@@ -125,7 +125,7 @@ function acHead(c){const i=S.ac.list.indexOf(c.id);const bal=balanceUpto(c,null)
      <div class="ac-stat"><div class="l">Last payment</div><div class="v">${lp?inr(lp.amt):'—'}</div><div class="s">${lp?fmtShort(lp.date)+' · '+modeL(lp)+(viaOf(lp)?' · '+esc(rcvLabel(viaOf(lp))):''):'Abhi tak koi nahi'}</div></div>
      <div class="ac-stat"><div class="l">Bottles bahar</div><div class="v">${bt.t}</div><div class="s">½L ${bt.s} · 1L ${bt.b}${bt.u?' · '+bt.u+' bina size':''}</div></div>
      <div class="ac-stat"><div class="l">Rate ₹/L · roz ka order</div><div class="v" style="font-size:14.5px">${rl}</div><div class="s">${qtyText(o)}</div></div></div>
-   <div class="ac-acts ac-noprint"><button class="btn sm p" data-act="addPayment" data-id="${c.id}">+ Payment lo</button><button class="btn sm" data-act="acRateForm">Rate badlo / Discount</button><button class="btn sm" data-act="acAdjForm">Adjustment</button>
+   <div class="ac-acts ac-noprint"><button class="btn sm p" data-act="addPayment" data-id="${c.id}">+ Payment lo</button><button class="btn sm" data-act="acOrder" title="Delivery sheet me is customer ki row kholo">Order lo</button><button class="btn sm" data-act="acRateForm">Rate badlo / Discount</button><button class="btn sm" data-act="acAdjForm">Adjustment</button>
      ${c.phone?`<a class="btn sm" href="https://wa.me/91${cleanPhone(c.phone)}?text=${encodeURIComponent(billText(bp))}" target="_blank" rel="noopener">${ICONS.wa} Bill bhejo</a>`:''}
      <button class="btn sm o" data-act="acXlsx">Statement Excel</button><button class="btn sm o" data-act="acPrint">Print</button><button class="btn sm o" data-act="editCustomer" data-id="${c.id}">Edit</button><button class="btn sm o" data-act="acPause">${c.status==='active'?'Pause':'Resume'}</button></div>`}
 function perBar(){const a=S.ac;return `<div class="ac-bar ac-noprint"><input type="month" class="input" style="width:auto;padding:6px 10px" value="${a.m}" data-acm>
@@ -194,6 +194,7 @@ function tabCal(c){const m=S.ac.calM,n=dim(m),first=new Date(m+'-01T12:00:00').g
   for(let k=1;k<=n;k++){const d=m+'-'+String(k).padStart(2,'0');const r=rowOf(d,c.id);let cls='',txt='';const qt=q=>PRODUCTS.filter(p=>+(q&&q[p.k])>0).map(p=>`${L(q[p.k])}L ${p.k==='desi'?'Gir':p.sh}`).join('<br>');
     if(r&&r.s==='d'){cls='del';del++;amt+=+r.a||0;txt=qt(r.q)+(r.x&&r.x.length?'<br>+'+r.x.length+' other':'')+`<br><b>${inr(r.a)}</b>`}
     else if(r&&r.s==='k'){cls='skip';skp++;txt='skip'}
+    else if(onHold(c,d)){cls='skip';txt='chhutti'}
     else if(d<today){if(dueOn(c,d)&&(!since||since<=d)){cls='pend';pen++;txt='pending'}}
     else{const it=itemsFor(c,d);if(it){cls=it.src==='pl'?'plan':'plan proj';txt=qt(it.q)+(it.x&&it.x.length?'<br>+'+it.x.length+' other':'')}}
     cells.push(`<div class="d ${cls} ${d===today?'today':''}"><div class="dn">${k}</div>${txt}</div>`)}
@@ -201,6 +202,10 @@ function tabCal(c){const m=S.ac.calM,n=dim(m),first=new Date(m+'-01T12:00:00').g
     <span class="small muted">${del} din gaya · ${skp} skip${pen?` · <b style="color:var(--warn)">${pen} pending</b>`:''} · ${inr(amt)}</span></div>
    <div class="ac-card"><div class="cal">${DOW.map(w=>`<div class="h">${w}</div>`).join('')}${cells.join('')}</div>
     <div class="acleg"><span><i style="background:var(--accent-soft)"></i>Delivered</span><span><i style="background:var(--surface2)"></i>Skip</span><span><i style="background:var(--warn-soft)"></i>Pending (✓ nahi hua)</span><span><i style="background:var(--info-soft)"></i>Plan / aane wala</span></div></div>
+   <div class="ac-card"><h3>Chhutti (kuch din doodh band)</h3><div class="small muted" style="margin-bottom:8px">Customer bahar ja raha ho to yahan tareekh daalo. In dino me wo Delivery sheet aur Demand me apne aap nahi aayega, aur baad me apne aap wapas shuru ho jayega.</div>
+    <div class="grid g3 ac-noprint"><div class="field"><label class="f">Kab se</label><input class="input" type="date" id="acHF" value="${addDays(today,1)}"></div><div class="field"><label class="f">Kab tak (ye din bhi band)</label><input class="input" type="date" id="acHT" value="${addDays(today,3)}"></div><div class="field"><label class="f">Note</label><input class="input" id="acHN" placeholder="e.g. gaon ja rahe hain"></div></div>
+    <button class="btn p ac-noprint" style="margin-top:8px" data-act="acHoldSave">Chhutti lagao</button>
+    <div style="margin-top:8px">${(c.holds||[]).slice().sort((a,b)=>a.from<b.from?1:-1).map(h=>`<div class="row sp" style="padding:6px 0;border-bottom:1px solid var(--line2)"><span><b>${fmtShort(h.from)} – ${fmtShort(h.to)}</b>${h.note?' · '+esc(h.note):''}${h.to<today?' <span class="small muted">(khatam)</span>':h.from<=today?' <span class="badge y">chal rahi hai</span>':''}</span><button class="btn xs o ac-noprint" data-act="acHoldDel" data-id="${esc(h.id)}">Hatao</button></div>`).join('')}</div></div>
    <div class="ac-card"><h3>Roz ka order</h3><div class="kv"><span class="muted">Doodh</span><span><b>${qtyText(orderOf(c))}</b></span><span class="muted">Other products</span><span>${esc((c.xorder||[]).map(e=>e.n+' = '+L(e.qty)).join(', ')||'—')}</span>
     <span class="muted">Schedule</span><span>${esc(schedText(c))}</span><span class="muted">Status</span><span>${c.status==='active'?'Active':'Paused'} <button class="btn xs o ac-noprint" data-act="acPause">${c.status==='active'?'Pause karo':'Resume karo'}</button></span></div></div>`}
 function tabProfile(c){const m=mapOf(c);
@@ -237,6 +242,10 @@ Object.assign(A,{
   acPer(d){S.ac.per=d.v;acDraw(false)},
   acCal(d){S.ac.calM=mAdd(S.ac.calM,+d.n);acDraw(false)},
   acPrint(){window.print()},
+  acOrder(){const c=S.customers[S.ac.id];if(!c)return;const id=c.id;S.pld=planDayISO();S.plq=c.name;S.plst='all';S.plboy='all';S.shf='all';A.go({r:'sheet'});setTimeout(()=>{const i=document.querySelector(`tr[data-row="${id}"] td.plq input`);if(i){i.focus();i.select()}},80)},
+  acHoldSave(){const c=S.customers[S.ac.id];if(!c||!isOwner())return toast('Sirf owner kar sakta hai');const from=$('#acHF').value,to=$('#acHT').value;if(!from||!to)return toast('Dono tareekh chuno');if(to<from)return toast('"Kab tak", "Kab se" ke baad honi chahiye');
+    saveCustField(c.id,{holds:[...(c.holds||[]),{id:uid(),from,to,note:$('#acHN').value.trim(),by:S.me||'',t:Date.now()}]});for(const k in S.pldr)if(k.endsWith('|'+c.id))delete S.pldr[k];render();toast('Chhutti lag gayi: '+fmtShort(from)+' – '+fmtShort(to))},
+  acHoldDel(d){const c=S.customers[S.ac.id];if(!c)return;saveCustField(c.id,{holds:(c.holds||[]).filter(h=>h.id!==d.id)});for(const k in S.pldr)if(k.endsWith('|'+c.id))delete S.pldr[k];render();toast('Chhutti hata di')},
   acRateForm(){S.ac.tab='rates';acDraw(true);setTimeout(()=>{const card=$('#acRateCard');if(card)card.scrollIntoView({block:'start'});const i=$('#acR_cow');if(i){i.focus();i.select()}},40)},
   async acRateSave(){const c=S.customers[S.ac.id];if(!c||!isOwner())return toast('Sirf owner kar sakta hai');if(!canWrite())return toast('Aapko write permission nahi hai');
     const from=$('#acRF').value;if(!from)return toast('"Kab se" date chuno');const prev=rateOn(c,from);const nr={...prev};let ch=0;

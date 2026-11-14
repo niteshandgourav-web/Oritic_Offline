@@ -73,3 +73,23 @@ Settings → Office tools has the **Office staff** list (used in "Kisne liya"). 
 | Home | Kal ka anumaan 80.5L vs 88L | Uses confirmed Kal orders and the same schedule rule as the sheet |
 
 Not in this version (need a decision or backend work): R-3 per-person login / database rules, R-6 bottle limits, CR-03 boy quantity change with reason, CR-05 cash book, CR-09 fresh-start wipe of the live database.
+
+## v3 (branch `v3-business`): poora business ek panel me
+
+Step-by-step use: [USER-GUIDE.md](USER-GUIDE.md) (same text as Menu → Guide in the panel).
+
+| Area | What is new |
+|---|---|
+| Menu | Grouped: Roz ka kaam · Customers & paisa · Maal & kharcha · Team. Red count on Team when a cash handover is waiting |
+| Dashboard | "Dhyan dein" list (orders not confirmed, deliveries not ticked, handover pending, cash over limit, baki over limit, bottles not returned, supplier dues), month sale / collection / maal + kharcha / bachat (andaza), cash per person, bottles by milk type |
+| Delivery sheet | New look, boy group headers with counts and litres, ⚙ Columns (order + show/hide, per computer), product ke apne column (pin from Product master: shahad, dahi, gur…), Value ₹ and Baki ₹ columns, bottle split under every milk tile, Loading sheet (boy-wise bottles by milk type + items, copy / print), compact rows, red "baki" badge over the udhaar limit |
+| Vasooli (new) | Who owes how much, days since last payment (0–15 / 16–30 / 30+), filters, WhatsApp reminder with ready text, reminder queue, Excel |
+| Team & cash (new) | Cash in hand per person, handover (boy → office with "Mila ✓" confirmation, short amounts), bank deposit, sudhaar, limit. Person account: cash khata, collection, day-wise delivery, KM & incentive, salary / advance. Boy sees "Mere paas cash" on his phone |
+| Kharcha (was Purchase) | Maal (item, qty, rate, supplier, cash / UPI / bank / udhaar), Kharcha (categories, salary / advance to a person), Supplier payment, supplier khata with dena baki, month hisab (sale, maal, kharcha, bachat, by category), "Doodh ka hisab" (bought vs ordered vs delivered), Excel |
+| Demand | Order text for supplier / godown for any date (litres + bottles by type + other items), editable, Copy / WhatsApp |
+| Bottles | Outstanding by milk type × size (first-given-first-returned), 7+ din se nahi lautayi, last return date, per-customer history |
+| Meter | Duty start / end time, Start KM and End KM → Total KM auto, manual entry when no photo, day-wise KM per boy |
+| Customer account | "Order lo" (jumps to that customer's row in the Delivery sheet), Chhutti (hold from–to dates, auto resume) |
+| Guide (new) | Menu → Guide: 17 sections, searchable, "Ye page kholo" buttons |
+
+New Firestore collection in v3: `cashbook`.

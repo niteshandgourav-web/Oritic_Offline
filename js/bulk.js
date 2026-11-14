@@ -166,33 +166,92 @@ function pastPending(){const p=planDayISO(),out=[];for(let i=1;i<=7;i++){const d
   if(!day||!Object.values(day.rows||{}).some(r=>r.s==='d'))continue;
   const n=todaysList(d,'all').filter(({c,r})=>c.status==='active'&&(!r||r.s==='p')&&existedOn(c,d)).length;if(n)out.push({d,n})}return out}
 
-function shRow(c,n,type,days,showBr,showH){const d=plDraft(c),r=rowOf(S.pld,c.id),st=shState(c),sv=S.svst[S.pld+'|'+c.id];
-  const flag={alt:'Alt din: is din nahi',cus:'Custom: is din nahi',off:'Paused / inactive',skip:'Skip'}[d.why];
+/* ---- v3 look ---- */
+const stS=document.createElement('style');stS.textContent=`
+.bsp{font-size:11.5px;font-weight:700;color:var(--muted);margin-top:2px}
+.dt-past .plstrip .bsp,.dt-next .plstrip .bsp{color:rgba(255,255,255,.88)}
+.sht th{text-transform:uppercase;letter-spacing:.03em;font-size:10.5px;padding:9px 8px}
+.sht tr[data-row]:hover td{box-shadow:inset 0 1px 0 var(--line),inset 0 -1px 0 var(--line)}
+.sht tr.grp td{background:color-mix(in srgb,var(--accent-soft) 55%,var(--bg));border-top:2px solid var(--accent);border-bottom:1px solid var(--line);padding:7px 12px}
+.grpin{position:sticky;left:12px;display:inline-flex;gap:10px;align-items:baseline}.grpin b{font-size:14.5px;position:static!important}
+.grpinfo{font-size:12px;font-weight:600;color:var(--muted)}
+.shname{font-size:14px}.shsub{font-size:12px;color:var(--muted);margin-top:1px}
+.sht td.n{text-align:right;font-variant-numeric:tabular-nums}.shval{font-weight:700}
+.sht .plq.zero{box-shadow:inset 0 0 0 2px var(--danger)}
+.sht.dense td{padding:4px 8px}.sht.dense .shsub,.sht.dense .plph,.sht.dense .shby{display:none}.sht.dense .plq input{min-height:34px;font-size:14.5px}
+.sht.dense .plfix{min-height:30px}.sht.dense td.s2 .ck{width:26px;height:26px}.sht.dense td.s2 .small{display:none}.sht.dense .shbtns{margin-top:3px}
+.shtool{display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center;background:var(--surface);border:1px solid var(--line2);border-radius:var(--r);padding:8px 10px}
+.shtool .chips{flex-wrap:wrap}.shtool .vsep{width:1px;height:22px;background:var(--line)}
+.ldgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px}.ldcard{border:1px solid var(--line2);border-radius:var(--r);padding:12px;background:var(--surface)}.ldcard h3{margin:0 0 6px}.ldx{font-size:13px;margin-top:8px;line-height:1.6}
+label.chip{display:inline-flex;gap:6px;align-items:center;cursor:pointer}
+`;document.head.appendChild(stS);
+
+/* ---- columns: order + show/hide (is computer pe yaad rehta hai) ---- */
+const SHC_DEF=[['qty','Doodh / kg ki quantity'],['pin','Product ke apne column (shahad, dahi, gur…)'],['bot','Bottles (kitni lagengi)'],['st','Status · ✓ Diya · Skip'],['br','Bottles wapas'],['x','Other products'],['val','Order value ₹'],['bal','Customer ka baki ₹'],['fix','Fix comment'],['var','Variable comment'],['hist','Pichle 7 din']];
+const SHC_OFF=['bal'];
+function shCols(){let sv=[];try{sv=JSON.parse(ls.get('oritic.shCols','[]'))||[]}catch(_){}
+  const out=[];sv.forEach(s=>{if(s&&SHC_DEF.some(d=>d[0]===s.k)&&!out.some(o=>o.k===s.k))out.push({k:s.k,on:!!s.on})});
+  SHC_DEF.forEach(d=>{if(!out.some(o=>o.k===d[0]))out.push({k:d[0],on:!SHC_OFF.includes(d[0])})});return out}
+const shColsSave=a=>ls.set('oritic.shCols',JSON.stringify(a));
+const shHide=()=>{try{return JSON.parse(ls.get('oritic.shHide','[]'))||[]}catch(_){return []}};
+const shPLN=()=>{const h=shHide();return PLN.filter(p=>!h.includes(p.k))};
+const pinned=()=>products().filter(p=>p.on!==false&&p.col);
+S.shDense=ls.get('oritic.shDense','0')==='1';
+/* sab customers ka baki ek hi pass me (Delivery sheet, Vasooli, Dashboard) */
+function allBalances(){const B={};for(const c of Object.values(S.customers))B[c.id]=+c.openingDue||0;
+  for(const d in S.days){const rows=S.days[d].rows||{};for(const id in rows){const r=rows[id];if(r.s==='d'&&id in B)B[id]+=+r.a||0}}
+  for(const p of Object.values(S.payments))if(p.cid in B)B[p.cid]-=+p.amt||0;
+  for(const a of Object.values(S.adjust||{}))if(a.cid in B)B[a.cid]+=adjNet(a);return B}
+window.allBalances=allBalances;
+
+function shRow(c,n,X){const d=plDraft(c),r=rowOf(S.pld,c.id),st=shState(c),sv=S.svst[S.pld+'|'+c.id],type=X.type;
+  const flag={alt:'Alt din: is din nahi',cus:'Custom: is din nahi',off:'Paused / inactive',skip:'Skip',hold:'Chhutti pe hai'}[d.why];
   const ckOn=st==='conf'||st==='del'||st==='skip';
   const ck=`<button class="ck ${sv==='saving'?'saving':sv==='err'?'err':ckOn?'on':''} ${sv==='ok'?'okpop':''}" data-act="shOk" data-id="${c.id}" aria-label="Confirm" title="Confirm (Ctrl+Enter)">${sv==='err'?ICONS.skip:ICONS.check}</button>`;
   const lbl={todo:type==='past'?(hasItems(c)?'Pending':'—'):'Confirm baaki',conf:type==='next'?'Confirmed':'Delivery baaki',del:'Delivered',skip:'Skip',dirty:'Badla · save baaki'}[st];
   const stc=st==='todo'&&type==='past'&&!hasItems(c)?'none':st;
   const btns=type==='next'?'':`<div class="shbtns"><button class="btn xs ${st==='del'?'p':'o'}" data-act="shD" data-id="${c.id}">✓ Diya</button><button class="btn xs ${st==='skip'?'w':'o'}" data-act="shK" data-id="${c.id}">Skip</button>${r&&(r.s==='d'||r.s==='k')?`<button class="btn xs o" data-act="shP" data-id="${c.id}" title="Wapas pending (planned quantity rahegi)">↺</button>`:''}</div>`;
-  const by=r&&r.s==='d'&&r.by?`<div class="small muted" style="margin-top:4px">${esc(r.by)}${r.t?' · '+new Date(r.t).toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'}):''}</div>`:'';
+  const by=r&&r.s==='d'&&r.by?`<div class="small muted shby" style="margin-top:4px">${esc(r.by)}${r.t?' · '+new Date(r.t).toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'}):''}</div>`:'';
   const vv=varsOf(c).map(v=>{const left=dd(todayISO(),v.till);return `<div class="plvc ${left===0?'last':''}">${esc(v.t)}<small>${v.src==='field'?'🛵 '+esc(v.by||'')+' · ':''}${fmtShort(v.till)} tak · ${left===0?'aaj aakhri din':left+' din baaki'}</small><button class="plx" data-act="plVd" data-id="${c.id}" data-i="${v._i}" aria-label="Panel se hatao" title="Panel se hatao (history me rahega)">×</button></div>`}).join('')
    +(S.plvf===c.id?`<div class="plmini"><input class="input" id="pvt" placeholder="Jaise: 3 din 2L Cow"><div class="row"><input class="input" type="date" id="pvd" min="${todayISO()}" value="${addDays(todayISO(),3)}"><button class="btn sm p" data-act="plVs" data-id="${c.id}">Save</button></div></div>`:`<button class="pladd" data-act="plVf" data-id="${c.id}">+ Comment jodo</button>`);
-  const xx=d.x.map((e,i)=>`<div class="plxi"><span>${esc(e.n)}${e.a?' · '+inr(e.a):' · <b style="color:var(--danger)">₹0</b>'}</span><button class="plx" data-act="plXd" data-id="${c.id}" data-i="${i}" aria-label="Hatao">×</button></div>`).join('')
+  /* jin products ka apna column hai wo "Other products" me dobara nahi dikhte (index wahi rehta hai, × sahi entry hatata hai) */
+  const xx=d.x.map((e,i)=>X.pinOn&&e.pid&&X.pinIds.has(e.pid)?'':`<div class="plxi"><span>${esc(e.n)}${e.a?' · '+inr(e.a):' · <b style="color:var(--danger)">₹0</b>'}</span><button class="plx" data-act="plXd" data-id="${c.id}" data-i="${i}" aria-label="Hatao">×</button></div>`).join('')
    +(S.plxf===c.id?prodForm('px',c.id):`<button class="pladd" data-act="plXf" data-id="${c.id}">+ Product jodo</button>`);
   const kgWarn=['paneer','ghee'].some(k=>+d.qty[k]>0&&!kgRate(c,k))?`<div class="small" style="color:var(--danger);margin-top:4px">Paneer/Ghee ka rate ₹0 hai. Settings me rate daalo.</div>`:'';
   const br=r?brSplit(r):{s:0,b:0};
+  const cell={
+   qty:()=>X.pln.map(p=>{const v=+d.qty[p.k]||0;return `<td class="plq ${v>0?'has':''}"><input type="number" inputmode="decimal" min="0" step="${p.s}" value="${v>0?v:''}" placeholder="–" data-act="pqty" data-id="${c.id}" data-p="${p.k}" aria-label="${esc(c.name)} ${p.sh}"></td>`}).join(''),
+   pin:()=>X.pins.map(p=>{const e=d.x.find(x=>x.pid===p.id);const v=e?+e.qty||0:0;return `<td class="plq ${v>0?'has':''} ${e&&!+e.rate?'zero':''}"><input type="number" inputmode="decimal" min="0" step="any" value="${v>0?v:''}" placeholder="–" data-act="pxqty" data-id="${c.id}" data-pid="${esc(p.id)}" aria-label="${esc(c.name)} ${esc(p.n)}" title="${e?(+e.rate?'₹'+L(+e.rate)+' × '+L(v)+' = '+inr(e.a):'Rate ₹0 hai: Product master me rate daalo'):''}"></td>`}).join(''),
+   bot:()=>`<td class="plh" id="plb_${c.id}">${btHtml(bottlesOf(d.qty))}</td>`,
+   st:()=>`<td><span class="stp ${stc}">${lbl}</span>${btns}${by}${kgWarn}</td>`,
+   br:()=>X.showBr?`<td><div class="brin"><input type="number" min="0" step="1" inputmode="numeric" value="${br.s||''}" placeholder="½L" data-shbr="${c.id}" data-k="S" title="½L bottle wapas"><input type="number" min="0" step="1" inputmode="numeric" value="${br.b||''}" placeholder="1L" data-shbr="${c.id}" data-k="B" title="1L bottle wapas"></div><div class="small muted shsub" style="margin-top:4px">paas: ${bottleBal(c)}</div></td>`:'',
+   x:()=>`<td>${xx}</td>`,
+   val:()=>`<td class="n shval" id="plv_${c.id}">${inr(plValue(c))}</td>`,
+   bal:()=>{const b=X.bal[c.id]||0;return `<td class="n" style="font-weight:700;color:${b>0.5?'var(--danger)':'var(--muted)'}">${inr(b)}</td>`},
+   fix:()=>`<td><textarea class="plfix" data-act="pfix" data-id="${c.id}" placeholder="Note likho">${esc(c.notes||'')}</textarea></td>`,
+   var:()=>`<td>${vv}</td>`,
+   hist:()=>X.days.map(x=>`<td class="plh">${plHistCell(c,x)}</td>`).join('')};
+  const over=X.lim>0&&(X.bal[c.id]||0)>X.lim;
   return `<tr data-row="${c.id}" class="${st} ${c.status!=='active'?'inact':''} ${S.sel.has(c.id)?'sel':''} ${sv==='ok'?'flashok':''}">
    <td class="s1"><input type="checkbox" data-shsel="${c.id}" ${S.sel.has(c.id)?'checked':''} aria-label="Chuno"></td>
    <td class="s2 plc">${ck}<div class="small muted">${n}</div></td>
-   <td class="s3"><b class="plname" data-dbl="${c.id}" title="Double click: customer details">${esc(c.name)}</b>${c.schedule==='alternate'?' <span class="badge b">Alt</span>':''}${c.status!=='active'?' <span class="badge y">Inactive</span>':''}
-     <div class="small muted">${esc(c.area||'—')} · <b>${esc(c.boy||'—')}</b></div><div><button class="plph" data-act="plCopy" data-id="${c.id}">${esc(c.phone||'—')} ⧉</button></div>${flag?`<div class="plflag">${flag}</div>`:''}</td>
-   ${PLN.map(p=>{const v=+d.qty[p.k]||0;return `<td class="plq ${v>0?'has':''}"><input type="number" inputmode="decimal" min="0" step="${p.s}" value="${v>0?v:''}" placeholder="–" data-act="pqty" data-id="${c.id}" data-p="${p.k}" aria-label="${esc(c.name)} ${p.sh}"></td>`}).join('')}
-   <td class="plh" id="plb_${c.id}">${btHtml(bottlesOf(d.qty))}</td>
-   <td><span class="stp ${stc}">${lbl}</span>${btns}${by}${kgWarn}</td>
-   ${showBr?`<td><div class="brin"><input type="number" min="0" step="1" inputmode="numeric" value="${br.s||''}" placeholder="½L" data-shbr="${c.id}" data-k="S" title="½L bottle wapas"><input type="number" min="0" step="1" inputmode="numeric" value="${br.b||''}" placeholder="1L" data-shbr="${c.id}" data-k="B" title="1L bottle wapas"></div><div class="small muted" style="margin-top:4px">paas: ${bottleBal(c)}</div></td>`:''}
-   <td>${xx}</td>
-   <td><textarea class="plfix" data-act="pfix" data-id="${c.id}" placeholder="Note likho">${esc(c.notes||'')}</textarea></td>
-   <td>${vv}</td>
-   ${showH?days.map(x=>`<td class="plh">${plHistCell(c,x)}</td>`).join(''):''}</tr>`}
+   <td class="s3"><b class="plname shname" data-dbl="${c.id}" title="Double click: poora account">${esc(c.name)}</b>${c.schedule==='alternate'?' <span class="badge b">Alt</span>':''}${c.status!=='active'?' <span class="badge y">Inactive</span>':''}${over?` <span class="badge r" title="Udhaar limit ${inr(X.lim)} se zyada">baki ${inr(X.bal[c.id])}</span>`:''}
+     <div class="shsub">${esc(c.area||'—')} · <b>${esc(c.boy||'—')}</b></div><div><button class="plph" data-act="plCopy" data-id="${c.id}">${esc(c.phone||'—')} ⧉</button></div>${flag?`<div class="plflag">${flag}</div>`:''}</td>
+   ${X.cols.map(k=>cell[k]()).join('')}</tr>`}
+function shLayout(X,allOn){const W=[36,46,X.dense?184:214],H=[`<input type="checkbox" data-shall ${allOn?'checked':''} aria-label="Sab chuno">`,'✓','Customer'];
+  X.cols.forEach(k=>{
+    if(k==='qty')X.pln.forEach(p=>{W.push(64);H.push(p.sh+' ('+p.u+')')});
+    else if(k==='pin')X.pins.forEach(p=>{W.push(74);H.push(`<span title="${esc(p.n)}">${esc(p.n)}</span>`)});
+    else if(k==='bot'){W.push(72);H.push('Bottles')}
+    else if(k==='st'){W.push(176);H.push('Status')}
+    else if(k==='br'){if(X.showBr){W.push(118);H.push('Wapas ½L · 1L')}}
+    else if(k==='x'){W.push(220);H.push('Other products')}
+    else if(k==='val'){W.push(86);H.push('Value ₹')}
+    else if(k==='bal'){W.push(92);H.push('Baki ₹')}
+    else if(k==='fix'){W.push(180);H.push('Fix comment')}
+    else if(k==='var'){W.push(230);H.push('Variable comment')}
+    else if(k==='hist')X.days.forEach(d=>{W.push(100);H.push(fmtShort(d)+' '+DOW[new Date(d+'T12:00:00').getDay()])})});
+  return {W,H}}
 
 function vSheet(){
   if(!isOwner())return vToday();
@@ -203,12 +262,14 @@ function vSheet(){
   if(!fl.some(x=>x[0]===S.shf))S.shf='all';
   const list=all.filter(c=>shMatch(c,S.shf));S.shList=list.map(c=>c.id);
   for(const id of [...S.sel])if(!S.customers[id])S.sel.delete(id);
-  const showBr=type!=='next',showH=S.shHist;const days=Array.from({length:7},(_,i)=>addDays(S.plhe,-i));
-  const W=[36,46,210,...PLN.map(()=>64),70,178,...(showBr?[118]:[]),220,180,230,...(showH?days.map(()=>100):[])];const NC=W.length;
-  const allOn=list.length&&list.every(c=>S.sel.has(c.id));
-  const head=[`<input type="checkbox" data-shall ${allOn?'checked':''} aria-label="Sab chuno">`,'✓','Customer',...PLN.map(p=>p.sh+' ('+p.u+')'),'Bottles','Status',...(showBr?['Wapas ½L · 1L']:[]),'Other products','Fix comment','Variable comment',...(showH?days.map(d=>fmtShort(d)+' '+DOW[new Date(d+'T12:00:00').getDay()]):[])];
+  const cols=shCols().filter(c=>c.on).map(c=>c.k);const lim=+settings().dueLimit||0;const histOn=cols.includes('hist');
+  const X={type,days:Array.from({length:7},(_,i)=>addDays(S.plhe,-i)),cols,pln:shPLN(),pins:pinned(),showBr:type!=='next',dense:S.shDense,lim,bal:(cols.includes('bal')||lim>0)?allBalances():{}};
+  X.pinOn=cols.includes('pin')&&X.pins.length>0;X.pinIds=new Set(X.pins.map(p=>p.id));
+  const days=X.days;const allOn=list.length&&list.every(c=>S.sel.has(c.id));
+  const {W,H}=shLayout(X,allOn);const NC=W.length;
+  const G={};list.forEach(c=>{const g=G[c.boy||'—']||(G[c.boy||'—']={n:0,ok:0,q:{}});g.n++;const s=shState(c);if(s==='conf'||s==='del'||s==='skip')g.ok++;const d=plDraft(c);PRODUCTS.forEach(p=>g.q[p.k]=(g.q[p.k]||0)+(+d.qty[p.k]||0))});
   let body='',lastBoy=null,n=0;
-  list.forEach(c=>{if(c.boy!==lastBoy){lastBoy=c.boy;body+=`<tr class="grp"><td colspan="${NC}"><b>${esc(c.boy||'—')}</b></td></tr>`}body+=shRow(c,++n,type,days,showBr,showH)});
+  list.forEach(c=>{if(c.boy!==lastBoy){lastBoy=c.boy;const g=G[c.boy||'—'];body+=`<tr class="grp"><td colspan="${NC}"><span class="grpin"><b>${esc(c.boy||'—')}</b><span class="grpinfo">${g.n} ghar · ${g.ok}/${g.n} confirm${PRODUCTS.filter(p=>g.q[p.k]>0).map(p=>' · '+(p.k==='desi'?'Gir':p.sh)+' '+L(g.q[p.k])+'L').join('')}</span></span></td></tr>`}body+=shRow(c,++n,X)});
   if(!list.length)body=`<tr><td colspan="${NC}"><div class="empty">Is filter me koi customer nahi.</div></td></tr>`;
   const todoN=cnt.todo+cnt.dirty;const pend=type==='past'?[]:pastPending();const dn=(S.days[date]||{}).dnote||{};
   const selN=[...S.sel].filter(id=>S.customers[id]).length;
@@ -222,19 +283,19 @@ function vSheet(){
     <div class="dtbar"><button class="btn sm o" data-act="shShift" data-n="-1" title="Pichla din  [">‹</button><span class="dtpill ${type}">${DT_L[type]} · ${fmtDate(date)}</span><button class="btn sm o" data-act="shShift" data-n="1" title="Agla din  ]">›</button>
      <input type="date" class="input" style="width:auto;padding:6px 10px" value="${date}" data-shdate>
      <div class="seg">${[[-1,'Pichli'],[0,'Aaj ki'],[1,'Agli']].map(([k,l])=>`<button class="${date===addDays(pd,k)?'on':''}" data-act="shJump" data-n="${k}">${l}</button>`).join('')}</div></div>
-    <div class="row wrap"><button class="btn sm o" data-act="routeOrder" data-b="${esc(S.plboy)}">⇅ Order</button><button class="btn sm o" data-act="xlsx" data-d="${date}">Excel backup</button><button class="btn sm o" data-act="plAuto">Auto-fill dobara</button>
-     ${type!=='next'?`<button class="btn sm o" data-act="shAllD">Baaki sab ✓ Diya</button>`:''}<button class="btn sm p" data-act="plAll">Sab confirm karo</button></div></div>
+    <div class="row wrap"><button class="btn sm p" data-act="plAll">Sab confirm karo</button>${type!=='next'?`<button class="btn sm" data-act="shAllD">Baaki sab ✓ Diya</button>`:''}
+     <button class="btn sm o" data-act="shLoad" title="Boy-wise: kaunsi kitni bottle aur saamaan load karna hai">Loading sheet</button><button class="btn sm o" data-act="xlsx" data-d="${date}">Excel</button>
+     <button class="btn sm o" data-act="shColsOpen" title="Kaunsa column pehle, kaunsa baad me, kaunsa chhupana hai">⚙ Columns</button><button class="btn sm o" data-act="shMore" aria-label="Aur options">⋯</button></div></div>
    ${pend.length?`<div class="pendbar">Pichli dates pe delivery ✓ nahi hui (bill me nahi judegi): ${pend.map(p=>`<button class="btn xs o" data-act="shGo" data-d="${p.d}">${fmtShort(p.d)} · ${p.n}</button>`).join('')}</div>`:''}
    <div class="dt-${type}"><div id="plstrip">${plStrip()}</div></div>
    <div class="stboxes">${boxes.join('')}</div>
-   <div class="row sp wrap"><div class="row wrap">${chips(fl.map(([v,l])=>({v,l})),S.shf,'shF')}</div>
-    <div class="row wrap">${chips([{v:'active',l:'Active'},{v:'paused',l:'Inactive'},{v:'all',l:'Sab'}],S.plst,'plSt')}</div></div>
-   <div class="row sp wrap">${boyChips(S.plboy,'plBoy')}<div class="row wrap"><input class="input" style="max-width:240px" placeholder="Naam ya mobile  ( / )" value="${esc(S.plq)}" data-act="plq">
-    <button class="btn sm o" data-act="shHistT">${showH?'History chhupao':'History dikhao'}</button>
-    ${showH?`<span class="row small muted">History <button class="btn xs o" data-act="plHist" data-n="-1">‹</button>${fmtShort(days[6])} – ${fmtShort(days[0])}<button class="btn xs o" data-act="plHist" data-n="1" ${S.plhe>=todayISO()?'disabled':''}>›</button></span>`:''}</div></div>
-   <div class="shw" data-ks="shw"><table class="sht" style="min-width:${W.reduce((a,b)=>a+b,0)}px;width:100%"><colgroup>${W.map(w=>`<col style="width:${w}px">`).join('')}</colgroup>
-    <thead><tr>${head.map((h,i)=>`<th class="${i===0?'s1':i===1?'s2':i===2?'s3':''}">${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>
-   <div class="small muted">Number likho → <span class="kbd">Enter</span>/<span class="kbd">↓</span> agla customer, <span class="kbd">Tab</span> agla product, <span class="kbd">Ctrl</span>+<span class="kbd">Enter</span> row confirm. Quantity 0 + ✓ = us din delivery nahi. Checkbox se kai rows chuno (<span class="kbd">Shift</span>+click = range), neeche wali bar se ek saath badlo. <span class="kbd">[</span> <span class="kbd">]</span> = date badlo. Naam pe double click = details.</div>
+   <div class="shtool"><input class="input" style="max-width:220px;padding:7px 10px" placeholder="Naam ya mobile  ( / )" value="${esc(S.plq)}" data-act="plq">
+    ${chips(fl.map(([v,l])=>({v,l})),S.shf,'shF')}<span class="vsep"></span>${boyChips(S.plboy,'plBoy')}<span class="vsep"></span>
+    <div class="seg">${[['active','Active'],['paused','Inactive'],['all','Sab']].map(([v,l])=>`<button class="${S.plst===v?'on':''}" data-act="plSt" data-v="${v}">${l}</button>`).join('')}</div>
+    ${histOn?`<span class="row small muted">History <button class="btn xs o" data-act="plHist" data-n="-1">‹</button>${fmtShort(days[6])} – ${fmtShort(days[0])}<button class="btn xs o" data-act="plHist" data-n="1" ${S.plhe>=todayISO()?'disabled':''}>›</button></span>`:''}</div>
+   <div class="shw" data-ks="shw"><table class="sht ${S.shDense?'dense':''}" style="min-width:${W.reduce((a,b)=>a+b,0)}px;width:100%"><colgroup>${W.map(w=>`<col style="width:${w}px">`).join('')}</colgroup>
+    <thead><tr>${H.map((h,i)=>`<th class="${i===0?'s1':i===1?'s2':i===2?'s3':''}">${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>
+   <div class="small muted">Number likho → <span class="kbd">Enter</span>/<span class="kbd">↓</span> agla customer, <span class="kbd">Tab</span> agla product, <span class="kbd">Ctrl</span>+<span class="kbd">Enter</span> row confirm. Quantity 0 + ✓ = us din delivery nahi. Checkbox se kai rows chuno (<span class="kbd">Shift</span>+click = range). <span class="kbd">[</span> <span class="kbd">]</span> = date badlo. Naam pe double click = poora account. Column aage-peeche karne ke liye <b>⚙ Columns</b>.</div>
    ${selN?shBulkBar(selN,type):''}
    <div class="card"><div class="row sp wrap"><h3>Dispatch notes · ${fmtDate(date)}</h3><span class="small muted">${dn.by?'Last save: '+esc(dn.by)+(dn.t?' · '+new Date(dn.t).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):''):'Date-wise save hota hai'}</span></div>
     <textarea class="input dnote" style="margin-top:8px" data-act="dnote" data-d="${date}" placeholder="Bottle count verify, warehouse instructions, packing notes…">${esc(dn.t0||'')}</textarea>
@@ -248,6 +309,50 @@ function shBulkBar(n,type){const pr=products().filter(p=>p.on!==false);
    <span class="sep"></span><input id="sbC" placeholder="Comment" style="width:140px"><input id="sbCd" type="date" min="${todayISO()}" value="${addDays(todayISO(),3)}"><button class="btn sm" data-act="shBulk" data-op="cm">Comment</button>
    <button class="btn sm" data-act="shSelClear">✕</button></div>`}
 
+/* ---- columns manager ---- */
+function drawCols(){const cols=shCols(),hide=shHide();const pr=products().filter(p=>p.on!==false);const b=$('#shBody');const sc=b&&!$('#sheet').hidden?b.scrollTop:0;
+  openSheet('Columns set karo',`<div class="stack"><div class="small muted">Jo column pehle chahiye use ↑ se upar le jao. Jo nahi chahiye uska tick hatao. Customer ka naam hamesha sabse pehle rehta hai. Ye setting isi computer pe yaad rehti hai.</div>
+   <div class="list">${cols.map((c,i)=>{const d=SHC_DEF.find(x=>x[0]===c.k);return `<div class="item"><label class="grow" style="display:flex;gap:10px;align-items:center;cursor:pointer"><input type="checkbox" data-shcol="${c.k}" ${c.on?'checked':''}><span class="t">${i+1}. ${d[1]}</span></label><button class="btn xs o" data-act="shColMv" data-k="${c.k}" data-n="-1" ${i?'':'disabled'} aria-label="Upar">↑</button><button class="btn xs o" data-act="shColMv" data-k="${c.k}" data-n="1" ${i<cols.length-1?'':'disabled'} aria-label="Neeche">↓</button></div>`}).join('')}</div>
+   <div><h3>Doodh / kg ke kaunse column dikhen</h3><div class="row wrap" style="margin-top:6px">${PLN.map(p=>`<label class="chip"><input type="checkbox" data-shpln="${p.k}" ${hide.includes(p.k)?'':'checked'}> ${p.sh}</label>`).join('')}</div></div>
+   <div><h3>Product ka apna column</h3><div class="small muted" style="margin:4px 0 6px">Shahad, dahi, gur jaise product jo aksar jaate hain unhe tick karo. Sheet me unka column ban jayega, bas quantity likhni hogi. Rate customer ke pichle bill se aata hai, pehli baar ho to Product master se.</div>
+    <div class="row wrap">${pr.map(p=>`<label class="chip"><input type="checkbox" data-shpin="${esc(p.id)}" ${p.col?'checked':''}> ${esc(p.n)}</label>`).join('')||'<span class="small muted">Product master me abhi koi product nahi. Menu → Products me jodo.</span>'}</div></div>
+   <div class="row"><button class="btn o" data-act="shColReset">Pehle jaisa kar do</button><button class="btn p grow" data-act="closeSheet">Ho gaya</button></div></div>`);
+  $('#shBody').scrollTop=sc}
+document.addEventListener('change',e=>{const el=e.target;if(!el.dataset)return;
+  if(el.dataset.shcol){const cols=shCols();const c=cols.find(x=>x.k===el.dataset.shcol);if(c)c.on=el.checked;shColsSave(cols);render();return}
+  if(el.dataset.shpln){let h=shHide().filter(k=>k!==el.dataset.shpln);if(!el.checked)h.push(el.dataset.shpln);ls.set('oritic.shHide',JSON.stringify(h));render();return}
+  if(el.dataset.shpin){if(!isOwner())return;const on=el.checked;saveProducts(products().map(p=>p.id===el.dataset.shpin?{...p,col:on}:p)).then(()=>toast(on?'Column ban gaya':'Column hata diya'))}});
+
+/* ---- product ke apne column me quantity ---- */
+function pinSet(c,p,v){const d=plDraft(c);const i=d.x.findIndex(e=>e.pid===p.id);
+  if(v>0){const old=i>=0?d.x[i]:null;const lr=lastRate(c.id,p.id,p.n);const rate=old&&old.rate!=null?+old.rate:(lr!=null?lr:+p.a||0);
+    const ent={n:p.n+(v!==1?' ×'+L(v):''),base:p.n,pid:p.id,qty:v,rate,a:Math.round(v*rate*100)/100};if(i>=0)d.x[i]=ent;else d.x.push(ent);d.dirty=true;return ent}
+  if(i>=0){d.x.splice(i,1);d.dirty=true}return null}
+function rowDirty(tr){if(!tr)return;tr.classList.add('dirty');const sp=tr.querySelector('.stp');if(sp){sp.className='stp dirty';sp.textContent='Badla · save baaki'}const b=tr.querySelector('.ck');if(b)b.classList.remove('on')}
+document.addEventListener('input',e=>{const el=e.target;if(!el.dataset||el.dataset.act!=='pxqty')return;const c=S.customers[el.dataset.id];const p=products().find(x=>x.id===el.dataset.pid);if(!c||!p)return;
+  const ent=pinSet(c,p,Math.max(0,+el.value||0));const td=el.parentElement;td.classList.toggle('has',!!ent);td.classList.toggle('zero',!!ent&&!ent.rate);el.title=ent?(ent.rate?'₹'+L(ent.rate)+' × '+L(ent.qty)+' = '+inr(ent.a):'Rate ₹0 hai: Product master me rate daalo'):'';
+  rowDirty(el.closest('tr'));const s=$('#plstrip');if(s)s.innerHTML=plStrip();const v=$('#plv_'+c.id);if(v)v.textContent=inr(plValue(c))});
+document.addEventListener('keydown',e=>{const t=e.target;if(!t.dataset||t.dataset.act!=='pxqty'||!['Enter','ArrowDown','ArrowUp'].includes(e.key)||e.ctrlKey||e.metaKey||e.shiftKey)return;e.preventDefault();
+  const all=[...document.querySelectorAll('input[data-act="pxqty"]')].filter(x=>x.dataset.pid===t.dataset.pid),i=all.indexOf(t),nx=all[i+(e.key==='ArrowUp'?-1:1)];if(nx){nx.focus();nx.select()}});
+
+/* ---- loading sheet: boy-wise kya load karna hai ---- */
+function loadData(){const by={};
+  Object.values(S.customers).forEach(c=>{const d=plDraft(c);if(d.why==='skip')return;if(!(PLN.some(p=>+d.qty[p.k]>0)||d.x.length))return;
+    const g=by[c.boy||'—']||(by[c.boy||'—']={n:0,BT:btNew(),L:{},kg:{},x:{}});g.n++;btAdd(g.BT,d.qty);PRODUCTS.forEach(p=>g.L[p.k]=(g.L[p.k]||0)+(+d.qty[p.k]||0));
+    ['paneer','ghee'].forEach(k=>{if(+d.qty[k]>0)g.kg[k]=(g.kg[k]||0)+(+d.qty[k])});
+    d.x.forEach(e=>{const nm=e.base||e.n;const u=(products().find(p=>p.id===e.pid)||{}).u||'';const o=g.x[nm]||(g.x[nm]={q:0,u});o.q+=+e.qty||1})});
+  const tot={n:0,BT:btNew(),L:{},kg:{},x:{}};
+  Object.values(by).forEach(g=>{tot.n+=g.n;PRODUCTS.forEach(p=>{tot.BT[p.k].b+=g.BT[p.k].b;tot.BT[p.k].s+=g.BT[p.k].s;tot.L[p.k]=(tot.L[p.k]||0)+(g.L[p.k]||0)});Object.keys(g.kg).forEach(k=>tot.kg[k]=(tot.kg[k]||0)+g.kg[k]);Object.keys(g.x).forEach(k=>{const o=tot.x[k]||(tot.x[k]={q:0,u:g.x[k].u});o.q+=g.x[k].q})});
+  return {by,tot}}
+const loadExtra=g=>[...Object.entries(g.kg).map(([k,v])=>(k==='ghee'?'Ghee ':'Paneer ')+fq(v,'kg')),...Object.entries(g.x).map(([k,o])=>k+' × '+L(o.q)+(o.u?' '+o.u:''))];
+function loadHtml(D){const card=(title,g)=>`<div class="ldcard"><h3>${esc(title)} <span class="small muted">· ${g.n} ghar</span></h3><table class="tbl compact"><thead><tr><th>Doodh</th><th class="n">½L bottle</th><th class="n">1L bottle</th><th class="n">Litre</th></tr></thead><tbody>
+    ${PRODUCTS.filter(p=>g.L[p.k]>0).map(p=>`<tr><td><b>${BTN[p.k]||p.sh}</b></td><td class="n">${g.BT[p.k].s||'–'}</td><td class="n">${g.BT[p.k].b||'–'}</td><td class="n">${L(g.L[p.k])}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">Doodh nahi</td></tr>'}
+    <tr style="font-weight:800"><td>Total</td><td class="n">${sum(PRODUCTS,p=>g.BT[p.k].s)}</td><td class="n">${sum(PRODUCTS,p=>g.BT[p.k].b)}</td><td class="n">${L(sum(PRODUCTS,p=>g.L[p.k]||0))}</td></tr></tbody></table>
+    ${loadExtra(g).length?`<div class="ldx"><b>Saath me:</b> ${loadExtra(g).map(esc).join(' · ')}</div>`:''}</div>`;
+  return `<div class="ldgrid">${card('Sab milake',D.tot)}${Object.keys(D.by).sort().map(b=>card(b,D.by[b])).join('')}</div>`}
+function loadText(D){const one=(title,g)=>{let t=`*${title}* (${g.n} ghar)\n`;PRODUCTS.filter(p=>g.L[p.k]>0).forEach(p=>t+=`${BTN[p.k]||p.sh}: ${L(g.L[p.k])}L = ${btText(g.BT[p.k])}\n`);const x=loadExtra(g);if(x.length)t+='Saath me: '+x.join(', ')+'\n';return t};
+  return `${settings().company||'Oritic'} · Loading · ${fmtDate(S.pld)}\n\n`+one('Sab milake',D.tot)+'\n'+Object.keys(D.by).sort().map(b=>one(b,D.by[b])).join('\n')}
+
 let shLast=null;
 document.addEventListener('click',e=>{
   const all=e.target.closest&&e.target.closest('[data-shall]');
@@ -257,23 +362,35 @@ document.addEventListener('click',e=>{
     if(e.shiftKey&&shLast&&S.shList.includes(shLast)){const a=S.shList.indexOf(shLast),b=S.shList.indexOf(id);S.shList.slice(Math.min(a,b),Math.max(a,b)+1).forEach(x=>on?S.sel.add(x):S.sel.delete(x))}
     else on?S.sel.add(id):S.sel.delete(id);
     shLast=id;render()}});
-document.addEventListener('input',e=>{const el=e.target;if(el.dataset&&el.dataset.act==='pqty'&&S.route==='sheet'){const tr=el.closest('tr');if(tr){tr.classList.add('dirty');const sp=tr.querySelector('.stp');if(sp){sp.className='stp dirty';sp.textContent='Badla · save baaki'}}}});
+document.addEventListener('input',e=>{const el=e.target;if(el.dataset&&el.dataset.act==='pqty'&&S.route==='sheet'){rowDirty(el.closest('tr'));const c=S.customers[el.dataset.id];const v=c&&$('#plv_'+c.id);if(v)v.textContent=inr(plValue(c))}});
 document.addEventListener('change',e=>{const el=e.target;if(!el.dataset)return;
   if('shdate' in el.dataset&&el.value){S.pld=el.value;S.sel.clear();render();return}
   if(el.dataset.shbr){const id=el.dataset.shbr,c=S.customers[id];if(!c)return;const tr=el.closest('tr');const g=k=>Math.max(0,Math.round(+(tr.querySelector(`[data-shbr="${id}"][data-k="${k}"]`)||{}).value||0));
     const r=rowOf(S.pld,id);const base=r?JSON.parse(JSON.stringify(r)):makeRow(c,'p');const s=g('S'),b=g('B');
     if(s+b>Math.max(0,bottleBal(c)+(+(r&&r.br)||0)))toast(c.name+': customer ke paas itni bottles nahi dikh rahi, phir bhi save kar rahe hain');
     commitRows({[id]:{...base,brS:s,brB:b,br:s+b,t:Date.now()}})}});
-document.addEventListener('keydown',e=>{const t=e.target;if(!t.dataset||t.dataset.act!=='pqty'||S.route!=='sheet')return;
-  if(e.key==='Enter'&&(e.ctrlKey||e.metaKey||e.shiftKey)){e.preventDefault();e.stopPropagation();const id=t.dataset.id,p=t.dataset.p;
-    A.shOk({id}).then(()=>{const i=S.shList.indexOf(id),nx=S.shList[i+1];if(nx){const inp=document.querySelector(`input[data-act="pqty"][data-id="${nx}"][data-p="${p}"]`);if(inp){inp.focus();inp.select()}}})}},true);
+document.addEventListener('keydown',e=>{const t=e.target;if(!t.dataset||!['pqty','pxqty'].includes(t.dataset.act)||S.route!=='sheet')return;
+  if(e.key==='Enter'&&(e.ctrlKey||e.metaKey||e.shiftKey)){e.preventDefault();e.stopPropagation();const id=t.dataset.id,act=t.dataset.act,p=t.dataset.p,pid=t.dataset.pid;
+    A.shOk({id}).then(()=>{const i=S.shList.indexOf(id),nx=S.shList[i+1];if(nx){const inp=[...document.querySelectorAll(`input[data-act="${act}"][data-id="${nx}"]`)].find(x=>act==='pqty'?x.dataset.p===p:x.dataset.pid===pid);if(inp){inp.focus();inp.select()}}})}},true);
 
 Object.assign(A,{
   shShift(d){S.pld=addDays(S.pld,+d.n);S.sel.clear();render()},
   shJump(d){S.pld=addDays(planDayISO(),+d.n);S.sel.clear();render()},
   shGo(d){S.pld=d.d;S.shf='pend';S.sel.clear();render()},
   shF(d){S.shf=d.v;render()},
-  shHistT(){S.shHist=!S.shHist;ls.set('oritic.shHist',S.shHist?'1':'0');render()},
+  shHistT(){const cols=shCols();const c=cols.find(x=>x.k==='hist');c.on=!c.on;shColsSave(cols);render()},
+  shColsOpen(){drawCols()},
+  shColMv(d){const cols=shCols();const i=cols.findIndex(x=>x.k===d.k),j=i+(+d.n);if(i<0||j<0||j>=cols.length)return;[cols[i],cols[j]]=[cols[j],cols[i]];shColsSave(cols);render();drawCols()},
+  shColReset(){ls.set('oritic.shCols','[]');ls.set('oritic.shHide','[]');render();drawCols();toast('Columns pehle jaise')},
+  shDense(){S.shDense=!S.shDense;ls.set('oritic.shDense',S.shDense?'1':'0');closeSheet();render()},
+  shMore(){const it=(a,t,s,extra)=>`<button class="item click" data-act="shMoreDo" data-a="${a}" ${extra||''} style="border:1px solid var(--line2);border-radius:12px"><div class="grow"><div class="t">${t}</div><div class="s" style="white-space:normal">${s}</div></div></button>`;
+    openSheet('Aur options',`<div class="stack">${it('routeOrder','⇅ Customer ka order (route) badlo','Kaun sa ghar pehle aata hai, wo kram','data-b="'+esc(S.plboy)+'"')}${it('plAuto','Auto-fill dobara','Jo rows confirm nahi hui unme roz ka order dobara bhar do')}${it('shDense',S.shDense?'Bade rows (normal)':'Chhote rows (compact)','Ek screen pe zyada customer dikhen')}${it('shColsOpen','⚙ Columns set karo','Kaunsa column pehle, kaunsa baad me, kaunsa chhupana hai')}${it('keys','⌨ Keyboard shortcuts','')}</div>`)},
+  shMoreDo(d){const fn=A[d.a];if(!['shColsOpen','keys','routeOrder'].includes(d.a))closeSheet();if(fn)fn(d)},
+  shLoad(){const D=loadData();openSheet('Loading sheet · '+fmtDate(S.pld),`<div class="stack"><div class="small muted">${fmtDate(S.pld)} ko har delivery boy ko kya load karna hai: doodh ke hisaab se ½L aur 1L bottle, aur saath ka saamaan. Sheet me jo quantity abhi likhi hai (confirm ho ya na ho) usi se bana hai.</div>${Object.keys(D.by).length?loadHtml(D):'<div class="empty">Is din koi order nahi</div>'}
+    <div class="row wrap"><button class="btn p" data-act="shLoadCopy">Text copy karo (WhatsApp ke liye)</button><button class="btn o" data-act="shLoadPrint">Print</button></div></div>`);$('#sheet .panel').classList.add('wide')},
+  shLoadCopy(){copyText(loadText(loadData()))},
+  shLoadPrint(){const w=window.open('','_blank');if(!w)return toast('Popup band hai. Browser me is site ke popup allow karo');
+    w.document.write('<!doctype html><meta charset="utf-8"><title>Loading '+esc(S.pld)+'</title><style>body{font-family:system-ui,sans-serif;padding:16px}h2{margin:0 0 12px}.ldgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ldcard{border:1px solid #bbb;border-radius:8px;padding:10px;break-inside:avoid}h3{margin:0 0 6px}table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px solid #ddd;padding:5px 6px;text-align:left}.n{text-align:right}.muted{color:#666;font-weight:400}.ldx{margin-top:8px;font-size:13px}</style><h2>'+esc(settings().company||'Oritic')+' · Loading sheet · '+esc(fmtDate(S.pld))+'</h2>'+loadHtml(loadData()));w.document.close();setTimeout(()=>w.print(),300)},
   shSelClear(){S.sel.clear();render()},
   async shOk(d){const c=S.customers[d.id];if(!c)return;const r=rowOf(S.pld,c.id),dr=plDraft(c);let row;
     if(r&&r.s==='d'){if(!dr.dirty){toast('Delivered hai. Badalna hai to quantity badlo, ya ↺ dabao');return}row=shBuild(c);if(!row){toast('Quantity 0 hai. Skip dabao');return}}
@@ -617,6 +734,8 @@ vSettings=function(){const o=_vSet();if(!isOwner())return o;const rt=settings().
      <div class="field"><label class="f">"Aaj ki date" kab badle</label><select class="input" id="st2Cut">${Array.from({length:13},(_,h)=>`<option value="${h}" ${h===ch?'selected':''}>${h===0?'Raat 12 baje (normal)':'Subah '+h+' baje ke baad'}</option>`).join('')}</select><div class="small muted" style="margin-top:4px">Is time ke baad Delivery sheet agli date pe khulti hai.</div></div>
      <div class="field"><label class="f">Paneer rate (₹ / kg)</label><input class="input" id="st2Pn" type="number" inputmode="decimal" value="${esc(rt.paneer??'')}" placeholder="e.g. 420"></div>
      <div class="field"><label class="f">Ghee rate (₹ / kg)</label><input class="input" id="st2Gh" type="number" inputmode="decimal" value="${esc(rt.ghee??'')}" placeholder="e.g. 680"></div></div>
+     <div class="grid g2" style="margin-top:8px"><div class="field"><label class="f">Udhaar limit ₹ (isse zyada baki pe laal nishaan; 0 = band)</label><input class="input" id="st2Lim" type="number" inputmode="decimal" min="0" value="${esc(settings().dueLimit??'')}" placeholder="e.g. 3000"></div>
+      <div class="field"><label class="f">Kharcha ki categories (comma se alag)</label><input class="input" id="st2Cats" value="${esc((settings().expCats||[]).join(', '))}" placeholder="khaali = Petrol, Salary, Advance, Packing…"></div></div>
      <div class="field" style="margin-top:8px"><label class="f">Office staff (payment kisne liya, comma se alag)</label><input class="input" id="st2Staff" value="${esc((settings().staff||[]).join(', '))}" placeholder="e.g. Neeraj, Manager"></div>
      <button class="btn p" style="margin-top:10px" data-act="st2Save">Save</button></div>
    <div class="card"><h3>Database</h3><div class="small" style="margin:6px 0 10px">${window.ORITIC_MODE==='local'?`<b>Local mode</b>: data sirf is browser me hai (${lc?Object.entries(lc).map(([k,v])=>v+' '+k).join(' · ')||'khaali':''}). Doosre phone/PC ko nahi dikhega.`:`<b>Firebase mode</b>: project <code>${esc((window.FIREBASE_CONFIG||{}).projectId||'')}</code>. Sab phones ko live dikhta hai.`}</div>
@@ -634,7 +753,8 @@ document.addEventListener('change',async e=>{const el=e.target;if(!el.dataset||!
 Object.assign(A,{
   st2Save(){if(!isOwner())return;const cut=+$('#st2Cut').value;const pn=$('#st2Pn').value,gh=$('#st2Gh').value;
     const staffL=($('#st2Staff')||{value:''}).value.split(',').map(s=>s.trim()).filter(Boolean);
-    saveSettings({...settings(),staff:staffL,dayCutoff:cut,rates:{...(settings().rates||{}),paneer:+pn||0,ghee:+gh||0}}).then(()=>toast('Saved'))},
+    const catsL=($('#st2Cats')||{value:''}).value.split(',').map(s=>s.trim()).filter(Boolean);
+    saveSettings({...settings(),staff:staffL,dueLimit:+(($('#st2Lim')||{}).value)||0,expCats:catsL,dayCutoff:cut,rates:{...(settings().rates||{}),paneer:+pn||0,ghee:+gh||0}}).then(()=>toast('Saved'))},
   async backupAll(){const data={exportedAt:new Date().toISOString(),mode:window.ORITIC_MODE,customers:S.customers,days:S.days,payments:S.payments,settings:S.settings,purchases:S.purchases,kms:S.kms,adjust:S.adjust||{},audit:await collAll('audit').catch(()=>({}))};
     saveFile(`oritic-full-backup-${todayISO()}.json`,new Blob([JSON.stringify(data)],{type:'application/json'}))},
   async auditView(){openSheet('Pichli date ke badlav','<div class="empty">Load ho raha hai…</div>');let m;try{m=await collAll('audit')}catch(e){$('#shBody').innerHTML='<div class="empty">Load nahi hua</div>';return}
@@ -664,6 +784,8 @@ async function demoLoad(){let seed=42;const rnd=()=>(seed=(seed*16807)%214748364
   Object.keys(custs).forEach((id,i)=>{if(i%3)return;const amt=Math.round(200+rnd()*600);pays['pdemo'+i]={cid:id,amt,mode:i%2?'cash':'online',date:addDays(todayISO(),-(1+i%5)),note:'',by:'Owner',t:Date.now()-i*1000,proof:false}});
   const W=[['settings/main',st],...Object.entries(custs).map(([id,c])=>['customers/'+id,c]),...Object.entries(days).map(([id,d])=>['days/'+id,d]),...Object.entries(pays).map(([id,p])=>['payments/'+id,p])];
   const b=S.db.batch();W.forEach(([p,v])=>b.set(S.db.doc(p),v));await b.commit()}
+
+window.OB={ls,pastPending,dayType,existedOn,shState,hasItems,custMatches,loadData,pinned};
 
 /* ================= Ctrl+K search + keyboard shortcuts ================= */
 const KP_ACTIONS=()=>[

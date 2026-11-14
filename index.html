@@ -437,8 +437,11 @@ function copyText(txt,el){const done=()=>toast('Copy ho gaya');
 /* ---------- computations ---------- */
 function calcAmount(q,x,rates){let a=0;PRODUCTS.forEach(p=>a+=(+q[p.k]||0)*(+rates[p.k]||0));(x||[]).forEach(e=>a+=+e.a||0);return Math.round(a*100)/100}
 function rowOf(date,cid){const d=S.days[date];return d&&d.rows?d.rows[cid]:null}
+/* chhutti: customer ne kuch din ke liye band karaya (c.holds = [{from,to,note}]) */
+const onHold=(c,date)=>(c.holds||[]).some(h=>h.from<=date&&date<=h.to);
 function dueOn(c,date){
   if(c.status!=='active')return false;
+  if(onHold(c,date))return false;
   if(c.schedule==='custom')return (c.wdays||[]).map(Number).includes(new Date(date+'T12:00:00').getDay());
   if(c.schedule==='alternate'){const y=rowOf(addDays(date,-1),c.id);if(y&&y.s==='d')return false}
   return true}
@@ -539,7 +542,7 @@ function render(){
   nav();
   const r=ROUTES.find(x=>x.id===S.route)||ROUTES[0];
   if(!S.ready){top.innerHTML=`<h1>${r.t}</h1>`;view.innerHTML=`<div class="empty">Load ho raha hai…</div>`;return}
-  const wide=['plan','forecast','sheet'].includes(S.route)||(S.route==='customers'&&isOwner()&&S.cview==='grid');view.classList.toggle('wide',wide);top.classList.toggle('wide',wide);
+  const wide=['plan','forecast','sheet'].includes(S.route)||(S.route==='customers'&&isOwner()&&S.cview==='grid')||(isOwner()&&(window.WIDE_ROUTES||[]).includes(S.route));view.classList.toggle('wide',wide);top.classList.toggle('wide',wide);
   const V={home:vHome,today:vToday,plan:vPlan,customers:vCustomers,bills:vBills,payments:vPayments,bottles:vBottles,products:vProducts,forecast:vForecast,purchase:vPurchase,odo:vOdo,settings:vSettings,...(window.EXTRA_VIEWS||{})}[S.route]||vToday;
   const out=V();
   top.innerHTML=`<div><div class="eyebrow">${esc(settings().company||'Oritic')} · ${esc(S.me||'')}</div><h1>${esc(out.title||r.t)}</h1></div><div class="row">${S.online?'':'<span class="pill off">Offline</span>'}${out.action||''}${isOwner()?'':'<button class="btn sm o" data-act="logout">Logout</button>'}</div>`;
@@ -598,7 +601,7 @@ function vHome(){
         <button class="btn hero-btn" data-act="go" data-r="today">Delivery list →</button>
       </div>
       <div class="row sp hero-sub"><span><b>${done}</b> done · <b>${list.length-done-skip}</b> pending${skip?` · ${skip} skip`:''}</span><span>${list.length} customers</span></div>
-      ${(()=>{const v=dayValue(date);const pur=sum(Object.values(S.purchases).filter(p=>p.date===date),p=>p.amt);return `<div class="row sp wrap hero-sub" style="margin-top:6px"><span>Aaj ki sale (order value) <b style="font-size:18px">${inr(v.total)}</b> · delivered ${inr(v.done)}</span><span>Aaj ki purchase <b>${inr(pur)}</b></span></div>`})()}
+      ${(()=>{const v=dayValue(date);const pur=sum(Object.values(S.purchases).filter(p=>p.date===date&&p.kind!=='kharcha'),p=>p.amt);return `<div class="row sp wrap hero-sub" style="margin-top:6px"><span>Aaj ki sale (order value) <b style="font-size:18px">${inr(v.total)}</b> · delivered ${inr(v.done)}</span><span>Aaj ki purchase <b>${inr(pur)}</b></span></div>`})()}
       <div class="pbar hero-bar"><i style="width:${list.length?Math.round(done/list.length*100):0}%"></i></div>
     </div>
     <div class="grid g2 tight">
@@ -1123,6 +1126,7 @@ function plDraft(c){
   const r=rowOf(S.pld,c.id);const qty={cow:0,buffalo:0,desi:0,chaach:0,paneer:0,ghee:0};const x=[];let why='';
   if(r&&(r.s!=='p'||r.pl)){if(r.s==='k')why='skip';else{PRODUCTS.forEach(p=>qty[p.k]=+(r.q&&r.q[p.k])||0);(r.x||[]).forEach(e=>{if(e.k&&e.k in qty)qty[e.k]=+e.u||0;else x.push({...e,a:+e.a||0})})}}
   else if(c.status!=='active')why='off';
+  else if(onHold(c,S.pld))why='hold';
   else if(!dueOn(c,S.pld))why=c.schedule==='custom'?'cus':'alt';
   else{Object.assign(qty,orderOf(c));x.push(...standingX(c))}
   return S.pldr[key]={qty,x,why,dirty:false}}
@@ -1137,7 +1141,7 @@ function plValue(c){const d=plDraft(c),r=ratesOf(c);let a=0;PLN.forEach(p=>a+=(+
 function plStrip(){const v=plList().filter(c=>c.status==='active');const t={},BT=btNew();let xc=0,done=0,bb=0,bs=0,val=0;
   v.forEach(c=>{const d=plDraft(c);PLN.forEach(p=>t[p.k]=(t[p.k]||0)+(+d.qty[p.k]||0));xc+=d.x.length;if(plConf(c)&&!d.dirty)done++;const o=bottlesOf(d.qty);bb+=o.b;bs+=o.s;btAdd(BT,d.qty);val+=plValue(c)});
   const pct=v.length?Math.round(done/v.length*100):0;
-  return `<div class="plstrip">${PLN.map(p=>`<div class="plt1 ${t[p.k]?'':'z'}"><div class="k">${p.sh}</div><div class="v">${t[p.k]?fq(t[p.k],p.u):'–'}</div></div>`).join('')}
+  return `<div class="plstrip">${PLN.map(p=>`<div class="plt1 ${t[p.k]?'':'z'}"><div class="k">${p.sh}</div><div class="v">${t[p.k]?fq(t[p.k],p.u):'–'}</div>${BT[p.k]&&(BT[p.k].b||BT[p.k].s)?`<div class="bsp">${btText(BT[p.k])}</div>`:''}</div>`).join('')}
    <div class="plt1 ${xc?'':'z'}"><div class="k">Other</div><div class="v">${xc||'–'}</div></div>
    <div class="plt1 ${bb?'':'z'}"><div class="k">Bade bottle (1L)</div><div class="v">${bb||'–'}</div></div>
    <div class="plt1 ${bs?'':'z'}"><div class="k">Chhote bottle (½L)</div><div class="v">${bs||'–'}</div></div>
@@ -1149,7 +1153,7 @@ function plHistCell(c,day){const r=rowOf(day,c.id);if(!r)return '<span class="mu
   const q=PRODUCTS.filter(p=>+(r.q&&r.q[p.k])>0).map(p=>`<div><b>${L(r.q[p.k])}L</b> ${p.k==='desi'?'Gir Cow':p.sh}</div>`).join('');
   return q+(r.x||[]).map(e=>`<div>${esc(e.n)}</div>`).join('')||'<span class="muted">–</span>'}
 function plRowHtml(c,n){const d=plDraft(c),ok=plConf(c)&&!d.dirty,days=Array.from({length:7},(_,i)=>addDays(S.plhe,-i));
-  const flag={alt:'Alt din, kal nahi jayega',cus:'Custom schedule: is din nahi',off:'Paused / inactive',skip:'Kal nahi (skip)'}[d.why];
+  const flag={alt:'Alt din, kal nahi jayega',cus:'Custom schedule: is din nahi',off:'Paused / inactive',skip:'Kal nahi (skip)',hold:'Chhutti pe hai'}[d.why];
   const vv=varsOf(c).map(v=>{const left=dd(todayISO(),v.till);return `<div class="plvc ${left===0?'last':''}">${esc(v.t)}<small>${v.src==='field'?'🛵 '+esc(v.by||'')+' · ':''}${fmtShort(v.till)} tak · ${left===0?'aaj aakhri din':left+' din baaki'}</small><button class="plx" data-act="plVd" data-id="${c.id}" data-i="${v._i}" aria-label="Panel se hatao" title="Panel se hatao (history me rahega)">×</button></div>`}).join('')
    +(S.plvf===c.id?`<div class="plmini"><input class="input" id="pvt" placeholder="Jaise: 3 din 2L Cow"><div class="row"><input class="input" type="date" id="pvd" min="${todayISO()}" value="${addDays(todayISO(),3)}"><button class="btn sm p" data-act="plVs" data-id="${c.id}">Save</button></div></div>`:`<button class="pladd" data-act="plVf" data-id="${c.id}">+ Comment jodo</button>`);
   const xx=d.x.map((e,i)=>`<div class="plxi"><span>${esc(e.n)}${e.a?' · '+inr(e.a):''}</span><button class="plx" data-act="plXd" data-id="${c.id}" data-i="${i}" aria-label="Hatao">×</button></div>`).join('')
@@ -1196,7 +1200,7 @@ function addVar(cid,v){const c=S.customers[cid];if(!c)return;saveCustField(cid,{
 function standingX(c){return (c.xorder||[]).filter(e=>+e.qty>0).map(e=>{const p=(e.pid&&products().find(x=>x.id===e.pid))||findProd(e.n);const lr=lastRate(c.id,p?p.id:'',e.n);const rate=lr!=null?lr:(p?+p.a||0:0);const base=p?p.n:e.n;const qty=+e.qty;
   return {n:base+(qty!==1?' ×'+L(qty):''),base,pid:p?p.id:'',qty,rate,a:Math.round(qty*rate*100)/100,so:1}})}
 function rowItems(c,r){if(r&&(r.s!=='p'||r.pl))return {q:r.q||orderOf(c),x:r.x||[]};return {q:orderOf(c),x:r&&r.x&&r.x.length?r.x:standingX(c)}}
-function projDue(c,date){if(c.status!=='active')return false;if(date<=addDays(todayISO(),1)||c.schedule!=='alternate')return dueOn(c,date);
+function projDue(c,date){if(c.status!=='active')return false;if(onHold(c,date))return false;if(date<=addDays(todayISO(),1)||c.schedule!=='alternate')return dueOn(c,date);
   for(let i=1;i<=14;i++){const r=rowOf(addDays(date,-i),c.id);if(r&&(r.s==='d'||r.pl))return i%2===0}
   const t=addDays(todayISO(),1);return dueOn(c,t)===(dd(t,date)%2===0)}
 function itemsFor(c,date){const r=rowOf(date,c.id);
@@ -1281,8 +1285,8 @@ function vProducts(){const q=S.prq.trim().toLowerCase();const list=products().fi
       <div class="field"><label class="f">Default rate ₹</label><input class="input" id="prA" type="number" inputmode="decimal"></div></div>
       <button class="btn p" style="margin-top:10px" data-act="prAdd">+ Product jodo</button></div>
     <div class="search">${ICONS.search}<input class="input" placeholder="Product dhoondo" value="${esc(S.prq)}" data-act="prq"></div>
-    <div class="card" style="padding:0"><div class="scroll"><table class="tbl"><thead><tr><th>Naam</th><th>Unit</th><th>Rate ₹</th><th>Active</th><th class="n">Kitni baar</th><th></th></tr></thead><tbody>
-    ${list.map(p=>`<tr data-prow="${esc(p.id)}"><td><input class="input" data-f="n" value="${esc(p.n)}" style="min-width:160px"></td><td><input class="input" data-f="u" value="${esc(p.u||'')}" style="width:80px"></td><td><input class="input" data-f="a" type="number" inputmode="decimal" value="${p.a||''}" style="width:90px"></td><td><input type="checkbox" data-f="on" ${p.on!==false?'checked':''}></td><td class="n">${(used[p.id]||0)+(used['n:'+norm(p.n)]||0)}</td><td style="white-space:nowrap"><button class="btn xs p" data-act="prSave" data-id="${esc(p.id)}">Save</button> <button class="btn xs o" data-act="prDel" data-id="${esc(p.id)}">Delete</button></td></tr>`).join('')||'<tr><td colspan="6"><div class="empty">Koi product nahi</div></td></tr>'}
+    <div class="card" style="padding:0"><div class="scroll"><table class="tbl"><thead><tr><th>Naam</th><th>Unit</th><th>Rate ₹</th><th>Active</th><th title="Delivery sheet me is product ka apna column">Sheet column</th><th class="n">Kitni baar</th><th></th></tr></thead><tbody>
+    ${list.map(p=>`<tr data-prow="${esc(p.id)}"><td><input class="input" data-f="n" value="${esc(p.n)}" style="min-width:160px"></td><td><input class="input" data-f="u" value="${esc(p.u||'')}" style="width:80px"></td><td><input class="input" data-f="a" type="number" inputmode="decimal" value="${p.a||''}" style="width:90px"></td><td><input type="checkbox" data-f="on" ${p.on!==false?'checked':''}></td><td><input type="checkbox" data-f="col" ${p.col?'checked':''} title="Delivery sheet me column"></td><td class="n">${(used[p.id]||0)+(used['n:'+norm(p.n)]||0)}</td><td style="white-space:nowrap"><button class="btn xs p" data-act="prSave" data-id="${esc(p.id)}">Save</button> <button class="btn xs o" data-act="prDel" data-id="${esc(p.id)}">Delete</button></td></tr>`).join('')||'<tr><td colspan="7"><div class="empty">Koi product nahi</div></td></tr>'}
     </tbody></table></div></div>
     <div class="small muted">"Other product" likhte waqt yahi list suggestion me aati hai. Rate customer ke pichle bill se aata hai; pehli baar ho to yahan ka default rate. Inactive product suggestion me nahi aata.</div></div>`;
   return {html}}
@@ -1469,7 +1473,7 @@ Object.assign(A,{
     saveProducts([...products(),{id:'p'+uid(),n,u:$('#prU').value.trim(),a:+$('#prA').value||0,on:true}]).then(()=>toast('Product jud gaya'))},
   prSave(d){const row=[...document.querySelectorAll('[data-prow]')].find(r=>r.dataset.prow===d.id);if(!row)return;const g=f=>row.querySelector('[data-f="'+f+'"]');
     const n=g('n').value.trim();if(!n)return toast('Naam khaali nahi ho sakta');const ex=findProd(n);if(ex&&ex.id!==d.id)return toast('Is naam ka product pehle se hai');
-    saveProducts(products().map(p=>p.id===d.id?{...p,n,u:g('u').value.trim(),a:+g('a').value||0,on:g('on').checked}:p)).then(()=>toast('Saved'))},
+    saveProducts(products().map(p=>p.id===d.id?{...p,n,u:g('u').value.trim(),a:+g('a').value||0,on:g('on').checked,col:g('col').checked}:p)).then(()=>toast('Saved'))},
   prDel(d,el){if(el.dataset.c!=='1'){el.dataset.c='1';el.textContent='Pakka?';el.classList.add('d');setTimeout(()=>{if(el.isConnected){el.dataset.c='';el.textContent='Delete';el.classList.remove('d')}},3000);return}
     saveProducts(products().filter(p=>p.id!==d.id)).then(()=>toast('Product hata diya (purane bills pe asar nahi)'))},
   purShift(d){const n=addDays(S.purd,+d.n);if(n<=todayISO())S.purd=n;render()},
@@ -1564,10 +1568,13 @@ window.addEventListener('DOMContentLoaded',async()=>{
   db.collection('purchases').onSnapshot(s=>{const m={};s.docs.forEach(d=>{m[d.id]={id:d.id,...d.data()}});S.purchases=m;rerender()},e=>console.error(e));
   db.collection('kms').onSnapshot(s=>{const m={};s.docs.forEach(d=>{m[d.id]={id:d.id,...d.data()}});S.kms=m;rerender()},e=>console.error(e));
   db.collection('adjust').onSnapshot(s=>{const m={};s.docs.forEach(d=>{m[d.id]={id:d.id,...d.data()}});S.adjust=m;rerender()},e=>console.error(e));
+  db.collection('cashbook').onSnapshot(s=>{const m={};s.docs.forEach(d=>{m[d.id]={id:d.id,...d.data()}});S.cash=m;rerender()},e=>console.error(e));
   setInterval(autoExportTick,60000);
   setTimeout(()=>{if(!S.ready){S.ready=true;render()}},10000);
 });
 </script>
 <script src="js/bulk.js"></script>
 <script src="js/account.js"></script>
+<script src="js/business.js"></script>
+<script src="js/guide.js"></script>
 </body></html>

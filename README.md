@@ -11,7 +11,9 @@ Full list of what is kept and what is new: [docs/FEATURES.md](docs/FEATURES.md)
 |---|---|
 | `index.html` | The reference panel (all pages, boy screens, login) with bug fixes |
 | `js/bulk.js` | New office tools: Delivery sheet, Customers grid, Excel import, bulk payments, WhatsApp queue, Ctrl+K, shortcuts |
-| `js/account.js` | Customer account window: khata ledger, products, rates + history, payments by receiver, adjustments, bottles, calendar |
+| `js/account.js` | Customer account window: khata ledger, products, rates + history, payments by receiver, adjustments, bottles, calendar, chhutti |
+| `js/business.js` | Team & cash, person accounts, Kharcha + suppliers, Vasooli, bottles by type, Meter, Demand forward, Dashboard cards |
+| `js/guide.js` | In-app Guide page (also builds `docs/USER-GUIDE.md` via `node tools/make-guide.js`) |
 | `js/local-store.js` | Browser database for local / offline mode (works like Firestore) |
 | `firebase-config.js` | Choose `local` or `firebase` mode and paste the Firebase config |
 | `sw.js`, `manifest.webmanifest`, `icon-*.png` | Phone app (Add to Home screen) and offline cache |
@@ -35,7 +37,7 @@ Demo boys: Sunil `1111`, Anil `2222`, Nitu `3333`.
 4. In `firebase-config.js`: paste the config and set `window.ORITIC_MODE = 'firebase'`
 5. Test everything. Only then use the live project's config.
 
-New collections used by v2: `audit` (record of past-date changes) and `adjust` (discount / charge / write-off). If your Firestore rules list collections one by one, allow both.
+New collections used by v2: `audit` (record of past-date changes) and `adjust` (discount / charge / write-off). If your Firestore rules list collections one by one, allow both. v3 also uses `cashbook`.
 
 Same data structure as the live panel (`customers`, `days`, `payments`, `settings/main`, `purchases`, `kms`, `odo`, `proofs`), so v2 can open the live data directly when you are ready.
 
