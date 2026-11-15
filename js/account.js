@@ -78,13 +78,14 @@ const defFull=()=>({...defRates(),paneer:kgRate(null,'paneer'),ghee:kgRate(null,
 /* ---------- generic ledger (customer, aage boy / staff bhi) ---------- */
 function ledger(opening,entries){let bal=opening;return entries.map(e=>{if(e.dr||e.cr)bal+=(e.dr||0)-(e.cr||0);return {...e,bal}})}
 window.ledger=ledger;
-const ADJ_L={discount:'Discount',charge:'Extra charge',writeoff:'Write-off (baki band)'};
+const ADJ_L={discount:'Discount',charge:'Extra charge',writeoff:'Write-off (baki band)',refund:'Paisa wapas diya'};
+const adjPlus=t=>t==='charge'||t==='refund';
 function rowPart(r){const P=PRODUCTS.filter(p=>+(r.q&&r.q[p.k])>0).map(p=>`${L(r.q[p.k])}L ${p.k==='desi'?'Gir Cow':p.sh} @₹${L(+(r.r&&r.r[p.k])||0)}`);
   (r.x||[]).forEach(e=>P.push(e.n+(e.a?' ₹'+L(e.a):'')));const b=brText(r);return P.join(' + ')+(b?' · wapas '+b:'')+(r.n?' · '+r.n:'')}
 function khataEntries(c,from,to){const E=[];
   for(const d in S.days){if(d<from||d>to)continue;const r=S.days[d].rows&&S.days[d].rows[c.id];if(!r)continue;
     if(r.s==='d')E.push({date:d,o:1,part:rowPart(r),dr:+r.a||0,cls:''});else if(r.s==='k')E.push({date:d,o:1,part:'Skip'+(r.n?' · '+r.n:''),cls:'skip'})}
-  adjOf(c.id,from,to).forEach(a=>E.push({date:a.date,o:a.type==='charge'?2:4,part:ADJ_L[a.type]+(a.note?' · '+a.note:'')+(a.by?' · '+a.by:''),dr:a.type==='charge'?+a.amt||0:0,cr:a.type!=='charge'?+a.amt||0:0,cls:a.type==='charge'?'':'cr'}));
+  adjOf(c.id,from,to).forEach(a=>E.push({date:a.date,o:adjPlus(a.type)?2:4,part:ADJ_L[a.type]+(a.type==='refund'?' · '+(a.mode==='cash'?'Cash':'UPI')+(a.via?' · '+rcvLabel(a.via)+' ne diya':''):'')+(a.note?' · '+a.note:'')+(a.by?' · '+a.by:''),dr:adjPlus(a.type)?+a.amt||0:0,cr:!adjPlus(a.type)?+a.amt||0:0,cls:adjPlus(a.type)?'':'cr'}));
   paymentsOf(c.id,from,to).forEach(p=>E.push({date:p.date,o:3,part:`Payment · ${modeL(p)}${viaOf(p)?' · '+rcvLabel(viaOf(p)):''}${p.note?' · '+p.note:''}`,cr:+p.amt||0,cls:'cr'}));
   logOf(c).forEach(x=>{if(x.from<from||x.from>to)return;E.push({date:x.from,o:0,part:'Rate badla: '+rateChg(x)+(x.why?' ('+x.why+')':''),cls:'info'})});
   return E.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:a.o-b.o)}
@@ -175,8 +176,8 @@ function tabPayments(c){const P=paymentsOf(c.id).slice().reverse();const A2=adjO
     <div class="small muted" style="margin:6px 0 4px">Mode se</div>${chips2(byMode)}<div class="small muted" style="margin:10px 0 4px">Kisne liya</div>${chips2(byVia)}</div>
    <div class="ac-card np"><table class="ldg"><thead><tr><th>Date</th><th class="n">Amount</th><th>Mode</th><th>Kisne liya</th><th>Note</th><th></th></tr></thead><tbody>
     ${P.map(p=>`<tr><td class="dt">${fmtDate(p.date)} ${p.date.slice(0,4)}</td><td class="n"><b>${inr(p.amt)}</b></td><td>${modeL(p)}</td><td>${esc(rcvLabel(viaOf(p)))}${p.by&&p.via&&p.by!==p.via?` <span class="small muted">(entry: ${esc(rcvLabel(p.by))})</span>`:''}</td><td>${esc(p.note||'')}${p.proof?` <button class="btn xs o" data-act="viewProof" data-id="${p.id}">${ICONS.cam} Screenshot</button>`:''}</td><td class="ac-noprint">${isOwner()?`<button class="btn xs" data-act="delPayment" data-id="${p.id}">Delete</button>`:''}</td></tr>`).join('')||'<tr><td colspan="6" class="muted">Abhi koi payment nahi</td></tr>'}</tbody></table></div>
-   <div class="ac-card np"><div class="row sp" style="padding:12px 14px 0"><h3 style="padding:0">Adjustments (discount / charge / write-off)</h3><button class="btn sm o ac-noprint" data-act="acAdjForm">+ Adjustment</button></div><table class="ldg" style="margin-top:8px"><thead><tr><th>Date</th><th>Type</th><th class="n">Amount</th><th>Note</th><th>Kisne</th><th></th></tr></thead><tbody>
-    ${A2.map(a=>`<tr><td class="dt">${fmtDate(a.date)}</td><td>${ADJ_L[a.type]}</td><td class="n"><b>${a.type==='charge'?'+':'−'}${inr(a.amt)}</b></td><td>${esc(a.note||'')}</td><td class="small muted">${esc(a.by||'')}</td><td class="ac-noprint"><button class="btn xs" data-act="acAdjDel" data-id="${a.id}">Delete</button></td></tr>`).join('')||'<tr><td colspan="6" class="muted">Koi adjustment nahi</td></tr>'}</tbody></table></div>`}
+   <div class="ac-card np"><div class="row sp" style="padding:12px 14px 0"><h3 style="padding:0">Adjustments (discount / charge / write-off / paisa wapas)</h3><button class="btn sm o ac-noprint" data-act="acAdjForm">+ Adjustment</button></div><table class="ldg" style="margin-top:8px"><thead><tr><th>Date</th><th>Type</th><th class="n">Amount</th><th>Note</th><th>Kisne</th><th></th></tr></thead><tbody>
+    ${A2.map(a=>`<tr><td class="dt">${fmtDate(a.date)}</td><td>${ADJ_L[a.type]}${a.type==='refund'&&a.via?' · '+esc(rcvLabel(a.via)):''}</td><td class="n"><b>${adjPlus(a.type)?'+':'−'}${inr(a.amt)}</b></td><td>${esc(a.note||'')}</td><td class="small muted">${esc(a.by||'')}</td><td class="ac-noprint"><button class="btn xs" data-act="acAdjDel" data-id="${a.id}">Delete</button></td></tr>`).join('')||'<tr><td colspan="6" class="muted">Koi adjustment nahi</td></tr>'}</tbody></table></div>`}
 function botMoves(c){const out=[];const logN=sum(c.botLog||[],x=>x.n);const open=(+c.bottles||0)-logN;
   if(open)out.push({date:custSince(c)||'',t:'Opening / purana manual sudhaar',u:open});
   (c.botLog||[]).forEach(x=>out.push({date:x.date,t:'Manual sudhaar'+(x.note?' · '+x.note:'')+(x.by?' · '+x.by:''),u:+x.n||0}));
@@ -219,14 +220,15 @@ function tabProfile(c){const m=mapOf(c);
 
 /* ---------- forms (sheet, account ke upar khulte hain) ---------- */
 function adjForm(){const c=S.customers[S.ac.id];if(!c)return;const bal=balanceUpto(c,null);
-  openSheet('Adjustment · '+c.name,`<div class="stack"><div class="small muted">Abhi ka baki: <b>${inr(bal)}</b>. Adjustment cash / UPI collection me nahi judta.</div>
-    <div class="field"><label class="f">Type</label><select class="input" id="adT"><option value="discount">Discount (baki kam)</option><option value="charge">Extra charge (baki zyada) · bottle toota, late fee</option><option value="writeoff">Write-off (baki band karo)</option></select></div>
+  openSheet('Adjustment · '+c.name,`<div class="stack"><div class="small muted">Abhi ka baki: <b>${inr(bal)}</b>. Adjustment cash / UPI collection me nahi judta. "Paisa wapas diya" cash me ho to dene wale ke haath ka cash ghatega.</div>
+    <div class="field"><label class="f">Type</label><select class="input" id="adT"><option value="discount">Discount (baki kam)</option><option value="charge">Extra charge (baki zyada) · bottle toota, late fee</option><option value="writeoff">Write-off (baki band karo)</option><option value="refund">Paisa wapas diya (customer ko, jaise advance lautaya)</option></select></div>
+    <div class="grid g2" id="adRW" style="display:none"><div class="field"><label class="f">Kisne diya</label><select class="input" id="adV">${window.rcvOpts?rcvOpts():''}</select></div><div class="field"><label class="f">Kaise</label><select class="input" id="adM"><option value="cash">Cash</option><option value="upi">UPI</option></select></div></div>
     <div class="grid g2"><div class="field"><label class="f">Amount ₹</label><input class="input" id="adA" type="number" inputmode="decimal" min="0"></div><div class="field"><label class="f">Date</label><input class="input" id="adD" type="date" value="${todayISO()}"></div></div>
     <div class="field"><label class="f">Note</label><input class="input" id="adN" placeholder="e.g. Diwali discount / 1L bottle toota"></div>
     <label class="small" id="adPW" style="display:none;gap:6px;align-items:center"><input type="checkbox" id="adP" checked> Customer ko Pause bhi karo (chhod diya)</label>
     <button class="btn p block" data-act="acAdjSave">Save adjustment</button></div>`);
   setTimeout(()=>{const a=$('#adA');if(a)a.focus()},40)}
-document.addEventListener('change',e=>{const el=e.target;if(el.id==='adT'){const c=S.customers[S.ac.id];const w=el.value==='writeoff';$('#adPW').style.display=w?'flex':'none';if(w&&c)$('#adA').value=Math.max(0,Math.round(balanceUpto(c,null)))}
+document.addEventListener('change',e=>{const el=e.target;if(el.id==='adT'){const c=S.customers[S.ac.id];const w=el.value==='writeoff';$('#adPW').style.display=w?'flex':'none';const rw=$('#adRW');if(rw)rw.style.display=el.value==='refund'?'grid':'none';if(w&&c)$('#adA').value=Math.max(0,Math.round(balanceUpto(c,null)))}
   if(!el.dataset)return;if('acm' in el.dataset&&el.value){S.ac.m=el.value;if(S.ac.per==='custom'||S.ac.per==='all')S.ac.per='full';acDraw(false)}
   if(el.dataset.acf&&el.value){S.ac[el.dataset.acf]=el.value;acDraw(false)}});
 
@@ -268,9 +270,9 @@ Object.assign(A,{
     if(!await confirmBox({title:'Ye aane wala rate hatayein?',html:esc(fmtDate(x.from)+' se · '+rateChg(x)),yes:'Haan, hatao'}))return;saveCustField(c.id,{rateLog:(c.rateLog||[]).filter(e=>e.id!==d.id)});render()},
   acAdjForm(){if(!isOwner())return toast('Sirf owner kar sakta hai');adjForm()},
   async acAdjSave(){const c=S.customers[S.ac.id];if(!c)return;if(!canWrite())return toast('Aapko write permission nahi hai');const type=$('#adT').value,amt=+$('#adA').value,date=$('#adD').value||todayISO(),note=$('#adN').value.trim();
-    if(!(amt>0))return toast('Amount likho');const pause=type==='writeoff'&&$('#adP').checked;const bal=balanceUpto(c,null);const nb=bal+(type==='charge'?amt:-amt);
-    if(!await confirmBox({title:`${ADJ_L[type]} ${type==='charge'?'+':'−'}${inr(amt)} · ${esc(c.name)}`,html:`Baki ${inr(bal)} → <b>${inr(nb)}</b>${note?'<div class="small muted">'+esc(note)+'</div>':''}${pause?'<div class="small" style="margin-top:6px">Customer Pause bhi hoga.</div>':''}`,yes:'Haan, save'}))return;
-    const id=uid();const doc={cid:c.id,date,type,amt,note,by:S.me||'',t:Date.now()};S.adjust[id]={id,...doc};closeSheet();render();
+    if(!(amt>0))return toast('Amount likho');const pause=type==='writeoff'&&$('#adP').checked;const bal=balanceUpto(c,null);const nb=bal+(adjPlus(type)?amt:-amt);const via=type==='refund'?($('#adV')||{}).value||S.me||'':'',rmode=type==='refund'?($('#adM')||{}).value||'cash':'';
+    if(!await confirmBox({title:`${ADJ_L[type]} ${adjPlus(type)?'+':'−'}${inr(amt)} · ${esc(c.name)}`,html:`Baki ${inr(bal)} → <b>${inr(nb)}</b>${type==='refund'?`<div class="small muted">${esc(rcvLabel(via))} ne ${rmode==='cash'?'cash':'UPI'} me diya</div>`:''}${note?'<div class="small muted">'+esc(note)+'</div>':''}${pause?'<div class="small" style="margin-top:6px">Customer Pause bhi hoga.</div>':''}`,yes:'Haan, save'}))return;
+    const id=uid();const doc={cid:c.id,date,type,amt,note,by:S.me||'',t:Date.now()};if(type==='refund'){doc.via=via;doc.mode=rmode}S.adjust[id]={id,...doc};closeSheet();render();
     await queue('adj:'+id,()=>S.db.doc('adjust/'+id).set(doc));if(pause&&c.status==='active')await saveCustomer({...S.customers[c.id],status:'paused'});toast(ADJ_L[type]+' save · baki '+inr(balanceUpto(S.customers[c.id],null)))},
   acAdjDel(d,el){if(!isOwner())return;if(el.dataset.c!=='1'){el.dataset.c='1';el.textContent='Pakka delete?';el.classList.add('d');setTimeout(()=>{if(el.isConnected){el.dataset.c='';el.textContent='Delete';el.classList.remove('d')}},3000);return}
     delete S.adjust[d.id];render();queue('adj:'+d.id,()=>S.db.doc('adjust/'+d.id).delete()).then(()=>toast('Adjustment hata diya'))},

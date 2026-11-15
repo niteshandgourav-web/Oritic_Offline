@@ -467,7 +467,7 @@ function deliveredRows(cid,from,to){const out=[];for(const d in S.days){if(from&
 function paymentsOf(cid,from,to){return Object.values(S.payments).filter(p=>p.cid===cid&&(!from||p.date>=from)&&(!to||p.date<=to)).sort((a,b)=>a.date<b.date?-1:1)}
 /* adjustments: discount / extra charge / write-off (collection "adjust"). Charge baki badhata hai, baaki ghatate hain */
 function adjOf(cid,from,to){return Object.values(S.adjust||{}).filter(a=>a.cid===cid&&(!from||a.date>=from)&&(!to||a.date<=to)).sort((a,b)=>a.date<b.date?-1:1)}
-const adjNet=a=>a.type==='charge'?(+a.amt||0):-(+a.amt||0);
+const adjNet=a=>(a.type==='charge'||a.type==='refund')?(+a.amt||0):-(+a.amt||0);
 function mapOf(c){
   const m=String(c.map||'').trim();
   if(/^https?:\/\//i.test(m))return {url:m,exact:true};
@@ -498,7 +498,7 @@ function billText(b){
   if(b.extras)t+=`Paneer / dahi / other: ${inr(b.extras)}\n`;
   t+=`Delivery days: ${b.rows.length}\n----------------\nIs period ka bill: ${inr(b.amount)}\n`;
   if(Math.abs(b.prev)>0.5)t+=`Pichla baki: ${inr(b.prev)}\n`;
-  (b.adj||[]).forEach(a=>{t+=(a.type==='charge'?'Extra charge':a.type==='writeoff'?'Write-off':'Discount')+`: ${a.type==='charge'?'+':'−'}${inr(a.amt)}`+(a.note?` (${a.note})`:'')+'\n'});
+  (b.adj||[]).forEach(a=>{t+=(a.type==='charge'?'Extra charge':a.type==='refund'?'Paisa wapas diya':a.type==='writeoff'?'Write-off':'Discount')+`: ${a.type==='charge'||a.type==='refund'?'+':'−'}${inr(a.amt)}`+(a.note?` (${a.note})`:'')+'\n'});
   if(b.paid)t+=`Jama (paid): ${inr(b.paid)}\n`;
   t+=`*Kul baki: ${inr(b.closing)}*\n`;
   if(st.upi)t+=`\nUPI: ${st.upi}`;
@@ -795,7 +795,7 @@ function vSettings(){
       </div>
       <div class="field" style="margin-top:10px"><label class="f">Bill ke neeche line</label><input class="input" id="stNote" value="${esc(st.billNote)}" placeholder="Dhanyavaad 🙏 — payment 5 tareekh tak kar dein"></div>
     </div>
-    <div class="card"><h3>Delivery boys</h3><div class="small muted" style="margin:4px 0 8px">Comma se alag karo</div><input class="input" id="stBoys" value="${esc(st.boys.join(', '))}"></div>
+    <div class="card"><h3>Delivery boys</h3><div class="small muted" style="margin:4px 0 8px">Comma se alag karo. Phone, gaadi, joining aur incentive ke saath jodna ho to <b>Team & cash → + Naya member</b>.</div><input class="input" id="stBoys" value="${esc(st.boys.join(', '))}"></div>
     <div class="card"><h3>Login PIN</h3><div class="small muted" style="margin:4px 0 8px">4 digit. Owner ka PIN sirf owner ke paas rahe. Boys ka PIN unhe bata do.</div>
       <div class="grid g2">
         <div class="field"><label class="f">Owner PIN</label><input class="input" id="stPinOwner" inputmode="numeric" maxlength="6" value="${esc((settings().pins||{}).owner||'1234')}"></div>

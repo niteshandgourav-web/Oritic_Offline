@@ -68,6 +68,7 @@ function cashAll(){const H={};persons().forEach(p=>H[p]=0);const add=(p,n)=>{if(
   for(const x of Object.values(S.cash)){if(x.status!=='ok'||!ok(x.date))continue;
     if(x.type==='handover'){add(x.from,-got(x));add(x.to,got(x))}else if(x.type==='bank')add(x.from,-(+x.amt||0));else if(x.type==='suppay'){if(x.mode==='cash')add(x.from,-(+x.amt||0))}else if(x.type==='adjust')add(x.to,+x.amt||0)}
   for(const p of Object.values(S.purchases||{}))if(p.mode==='cash'&&p.paidBy&&ok(p.date))add(p.paidBy,-(+p.amt||0));
+  for(const a of Object.values(S.adjust||{}))if(a.type==='refund'&&a.mode==='cash'&&a.via&&ok(a.date))add(a.via,-(+a.amt||0));
   return H}
 const cashInHand=p=>cashAll()[p]||0;
 function cashMoves(person){const from=cashFrom();const ok=d=>!from||d>=from;const E=[];
@@ -81,6 +82,7 @@ function cashMoves(person){const from=cashFrom();const ok=d=>!from||d>=from;cons
     else if(x.type==='suppay'&&x.from===person&&x.mode==='cash')E.push({...b,part:'Supplier ko diya · '+x.to+(x.note?' · '+x.note:''),out:+x.amt||0});
     else if(x.type==='adjust'&&x.to===person){const a=+x.amt||0;E.push({...b,part:'Sudhaar'+(x.note?' · '+x.note:''),in:a>0?a:0,out:a<0?-a:0})}}
   for(const p of Object.values(S.purchases||{})){if(p.mode!=='cash'||p.paidBy!==person||!ok(p.date))continue;E.push({date:p.date,t:p.t||0,part:(p.kind==='kharcha'?'Kharcha · '+(p.cat||'')+(p.item&&p.item!==p.cat?' · '+p.item:''):'Maal khareeda · '+p.item)+(p.person?' · '+pl(p.person)+' ko':''),out:+p.amt||0})}
+  for(const a of Object.values(S.adjust||{})){if(a.type!=='refund'||a.mode!=='cash'||a.via!==person||!ok(a.date))continue;const c=S.customers[a.cid];E.push({date:a.date,t:a.t||0,part:'Customer ko paisa wapas · '+(c?c.name:'(deleted customer)')+(a.note?' · '+a.note:''),out:+a.amt||0})}
   return E.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:a.t-b.t)}
 function cashWrite(id,doc){if(!canWrite()){toast('Aapko write permission nahi hai');return Promise.resolve()}S.cash[id]={...(S.cash[id]||{}),id,...doc};render();return queue('cash:'+id,()=>S.db.doc('cashbook/'+id).set(doc,{merge:true}))}
 const cbLabel=x=>x.type==='handover'?pl(x.from)+' → '+pl(x.to):x.type==='bank'?pl(x.from)+' → Bank':x.type==='suppay'?pl(x.from)+' → Supplier '+x.to+' ('+({cash:'Cash',upi:'UPI',bank:'Bank'}[x.mode]||'')+')':'Sudhaar · '+pl(x.to);
@@ -132,7 +134,7 @@ function vTeam(){const H=cashAll(),today=todayISO(),m=today.slice(0,7),[mf,mt]=p
   const rows=P.map(p=>{const tc=sum(tp.filter(x=>viaP(x)===p&&x.mode==='cash'),x=>x.amt),tu=sum(tp.filter(x=>viaP(x)===p&&x.mode!=='cash'),x=>x.amt);
     let del='<span class="muted">–</span>';if(isBoy(p)){const Ls=todaysList(today,p);del=`<b>${Ls.filter(x=>x.r&&x.r.s==='d').length}</b>/${Ls.length}`}
     const km=Object.values(S.kms).filter(k=>k.boy===p&&k.date.slice(0,7)===m);const pn=sum(pend.filter(x=>x.from===p),x=>x.amt);const h=H[p]||0;const over=lim>0&&h>lim;
-    return `<tr class="click" data-act="pcOpen" data-p="${esc(p)}"><td><b>${esc(pl(p))}</b><div class="small muted">${isBoy(p)?'Delivery boy':'Office'}</div></td>
+    return `<tr class="click" data-act="pcOpen" data-p="${esc(p)}"><td><b>${esc(pl(p))}</b><div class="small muted">${esc(subLine(p))}</div></td>
      <td class="n" style="font-weight:800;font-size:15px;color:${over?'var(--danger)':'inherit'}">${inr(h)}${over?'<div class="small" style="font-weight:600">limit se zyada</div>':''}</td>
      <td class="n">${pn?`<span class="badge y">${inr(pn)} confirm baaki</span>`:'<span class="muted">–</span>'}</td>
      <td class="n">${tc||tu?`${inr(tc)} <span class="small muted">cash</span>${tu?`<div class="small muted">${inr(tu)} UPI</div>`:''}`:'<span class="muted">–</span>'}</td>
@@ -140,7 +142,7 @@ function vTeam(){const H=cashAll(),today=todayISO(),m=today.slice(0,7),[mf,mt]=p
   const rec=Object.values(S.cash).sort((a,b)=>(b.t||0)-(a.t||0)).slice(0,15);
   const html=`<div class="stack">
    <div class="row sp wrap"><div class="small muted" style="max-width:640px">Cash kiske haath me hai, kisne office ko diya, bank me kitna gaya. UPI seedha company ke account me jata hai, isliye kisi ke haath me nahi gina jata.</div>
-    <div class="row wrap"><button class="btn p" data-act="hoForm">+ Cash handover</button><button class="btn" data-act="bankForm">+ Bank me jama</button><button class="btn o" data-act="cadjForm">Sudhaar</button></div></div>
+    <div class="row wrap"><button class="btn o" data-act="tmNew">+ Naya member</button><button class="btn p" data-act="hoForm">+ Cash handover</button><button class="btn" data-act="bankForm">+ Bank me jama</button><button class="btn o" data-act="cadjForm">Sudhaar</button></div></div>
    <div class="kpi"><div class="card"><div class="l">Sabke haath me cash</div><div class="v">${inr(sum(Object.values(H),v=>v))}</div><div class="s">${cashFrom()?fmtShort(cashFrom())+' se gina':'shuru se gina'}</div></div>
     <div class="card"><div class="l">Handover confirm baaki</div><div class="v" style="color:${pend.length?'var(--warn)':'inherit'}">${pend.length}</div><div class="s">${inr(sum(pend,x=>x.amt))}</div></div>
     <div class="card"><div class="l">Aaj cash aaya</div><div class="v">${inr(sum(tp.filter(x=>x.mode==='cash'),x=>x.amt))}</div><div class="s">customers se</div></div>
@@ -148,6 +150,7 @@ function vTeam(){const H=cashAll(),today=todayISO(),m=today.slice(0,7),[mf,mt]=p
     <div class="card"><div class="l">${fmtMonth(m)} bank jama</div><div class="v">${inr(bankM)}</div></div></div>
    ${pend.length?`<div class="card"><h3>Ye cash office ko mila ya nahi?</h3><div class="list" style="margin-top:6px">${pend.map(x=>`<div class="item"><div class="grow"><div class="t">${esc(pl(x.from))} → ${esc(pl(x.to))} · ${inr(x.amt)}</div><div class="s">${fmtDate(x.date)} · likha ${esc(pl(x.by))} ne${x.note?' · '+esc(x.note):''}</div></div><button class="btn sm p" data-act="hoOkForm" data-id="${x.id}">✓ Mila</button><button class="btn sm o" data-act="hoNo" data-id="${x.id}">Nahi mila</button></div>`).join('')}</div></div>`:''}
    <div class="card" style="padding:0"><div class="scroll"><table class="tbl"><thead><tr><th>Kaun</th><th class="n">Haath me cash</th><th class="n">Handover</th><th class="n">Aaj liya</th><th class="n">Aaj delivery</th><th class="n">${fmtMonth(m)} KM</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>
+   ${(()=>{const X=Object.keys(teamAll()).filter(p=>!isActiveP(p)).sort();return X.length?`<div class="card"><h3>Purane member (kaam chhod diya)</h3><div class="row wrap" style="margin-top:6px">${X.map(p=>`<button class="chip" data-act="pcOpen" data-p="${esc(p)}">${esc(p)}</button>`).join('')}</div><div class="small muted" style="margin-top:6px">Click karke purana hisab dekho ya wapas kaam pe lao.</div></div>`:''})()}
    <div class="card"><h3>Haal ki cash entries</h3><div style="margin-top:6px">${rec.map(x=>`<div class="mini"><span>${fmtShort(x.date)} · <b>${esc(cbLabel(x))}</b>${x.note?' · '+esc(x.note):''} <span class="small muted">· ${esc(pl(x.by))}</span></span><span style="white-space:nowrap"><b>${inr(x.type==='handover'&&x.status==='ok'?got(x):x.amt)}</b> ${cbStatus(x)} ${x.status!=='rejected'?`<button class="btn xs" data-act="cbRadd" data-id="${x.id}">Radd</button>`:''}</span></div>`).join('')||'<div class="small muted">Abhi koi entry nahi. Boy ne office ko cash diya ho to "+ Cash handover" dabao.</div>'}</div></div>
    <div class="card"><h3>Cash hisab ki setting</h3><div class="grid g3" style="margin-top:8px"><div class="field"><label class="f">Hisab kis date se gino</label><input class="input" type="date" id="tmFrom" value="${esc(cashFrom())}"><div class="small muted" style="margin-top:4px">Khaali = shuru se. Naya mahina fresh shuru karna ho to wo date daalo.</div></div>
      <div class="field"><label class="f">Haath me cash ki limit ₹</label><input class="input" type="number" id="tmLim" value="${lim}"><div class="small muted" style="margin-top:4px">Isse zyada cash kisi ke paas ho to laal dikhega. 0 = band.</div></div><div class="field" style="align-self:flex-start;padding-top:22px"><button class="btn p" data-act="tmSave">Save</button></div></div></div></div>`;
@@ -157,19 +160,20 @@ function vTeam(){const H=cashAll(),today=todayISO(),m=today.slice(0,7),[mf,mt]=p
 function pcEl(){let el=$('#pacct');if(!el){el=document.createElement('div');el.id='pacct';el.className='acct';el.hidden=true;document.body.appendChild(el);el.addEventListener('click',e=>{if(e.target===el)pcClose()})}return el}
 function pcClose(){const el=$('#pacct');if(el){el.hidden=true;el.innerHTML=''}S.pc.id=null;if($('#sheet').hidden&&!(S.ac&&S.ac.id))document.body.style.overflow=''}
 function pcDraw(fresh){const p=S.pc.id;if(!p)return;const el=pcEl();const b=$('#pcBody');const sc=!fresh&&b?b.scrollTop:0;const wasOpen=!el.hidden&&el.innerHTML;
-  const tabs=[['cash','Cash khata'],['coll','Collection'],...(isBoy(p)?[['del','Delivery'],['km','KM & incentive']]:[]),['pay','Salary / advance']];if(!tabs.some(t=>t[0]===S.pc.tab))S.pc.tab='cash';
-  const body={cash:pcCash,coll:pcColl,del:pcDel,km:pcKm,pay:pcPayT}[S.pc.tab](p);
+  const tabs=[...(p!=='Owner'?[['prof','Profile']]:[]),['cash','Cash khata'],['coll','Collection'],...(isBoyP(p)?[['del','Delivery'],['bot','Bottles'],['km','KM & petrol']]:[]),...(p!=='Owner'?[['hisab','Hisab / incentive']]:[]),['pay','Salary / advance']];if(!tabs.some(t=>t[0]===S.pc.tab))S.pc.tab='cash';
+  const body={prof:pcProf,cash:pcCash,coll:pcColl,del:pcDel,bot:pcBot,km:pcKm,hisab:pcHisab,pay:pcPayT}[S.pc.tab](p);
   el.innerHTML=`<div class="ac-panel ${wasOpen?'':'anim'}" role="dialog" aria-modal="true" aria-label="${esc(pl(p))} ka account"><div class="ac-hd">${pcHead(p)}<div class="ac-tabs">${tabs.map(([k,l])=>`<button class="${S.pc.tab===k?'on':''}" data-act="pcTab" data-v="${k}">${l}</button>`).join('')}</div></div><div class="ac-bd" id="pcBody">${body}</div></div>`;
   el.hidden=false;document.body.style.overflow='hidden';$('#pcBody').scrollTop=sc}
 function pcHead(p){const h=cashInHand(p),lim=+(settings().cashLimit??2000),m=S.pc.m,[mf,mt]=periodRange(m,'full');
   const pay=Object.values(S.payments).filter(x=>viaP(x)===p&&x.date>=mf&&x.date<=mt);const pcash=sum(pay.filter(x=>x.mode==='cash'),x=>x.amt),pupi=sum(pay.filter(x=>x.mode!=='cash'),x=>x.amt);
   const pn=Object.values(S.cash).filter(x=>x.type==='handover'&&x.status==='pending'&&x.from===p);const km=Object.values(S.kms).filter(k=>k.boy===p&&k.date.slice(0,7)===m);
   const sal=Object.values(S.purchases||{}).filter(x=>x.person===p&&x.date>=mf&&x.date<=mt);
-  return `<div class="ac-top"><h2 class="grow">${esc(pl(p))}</h2><span class="badge b">${isBoy(p)?'Delivery boy':'Office'}</span><button class="btn sm o" data-act="pcClose" title="Band karo (Esc)">✕</button></div>
+  return `<div class="ac-top"><h2 class="grow">${esc(pl(p))}</h2><button class="btn sm o" data-act="pcClose" title="Band karo (Esc)" aria-label="Band karo">✕</button></div>
+   <div class="row wrap" style="gap:6px;margin-top:6px">${pcBadges(p)}</div>
    <div class="ac-stats"><div class="ac-stat"><div class="l">Haath me cash</div><div class="v" style="color:${lim>0&&h>lim?'var(--danger)':'inherit'}">${inr(h)}</div><div class="s">${pn.length?inr(sum(pn,x=>x.amt))+' handover confirm baaki':'abhi tak ka'}</div></div>
     <div class="ac-stat"><div class="l">${fmtMonth(m)} collection</div><div class="v">${inr(pcash+pupi)}</div><div class="s">Cash ${inr(pcash)} · UPI ${inr(pupi)}</div></div>
-    ${isBoy(p)?`<div class="ac-stat"><div class="l">${fmtMonth(m)} KM</div><div class="v">${L(sum(km,k=>k.km))} km</div><div class="s">incentive ${inr(sum(km,k=>k.inc))} · ${km.length} din</div></div>`:''}
-    <div class="ac-stat"><div class="l">${fmtMonth(m)} salary / advance diya</div><div class="v">${inr(sum(sal,x=>x.amt))}</div><div class="s">${sal.length} entries</div></div></div>
+    ${isBoyP(p)?`<div class="ac-stat"><div class="l">${fmtMonth(m)} KM</div><div class="v">${L(sum(km,k=>k.km))} km</div><div class="s">incentive ${inr(sum(km,k=>k.inc))} · ${km.length} din</div></div>`:''}
+    ${p==='Owner'?`<div class="ac-stat"><div class="l">${fmtMonth(m)} salary / advance diya</div><div class="v">${inr(sum(sal,x=>x.amt))}</div><div class="s">${sal.length} entries</div></div>`:(()=>{const H=payCalc(p,m),b=H.total-H.paid;return `<div class="ac-stat"><div class="l">${fmtMonth(m)} hisab (bana)</div><div class="v">${inr(H.total)}</div><div class="s">diya ${inr(H.paid)} · ${b>=0?'baaki '+inr(b):'zyada '+inr(-b)}</div></div>`})()}</div>
    <div class="ac-acts"><button class="btn sm p" data-act="hoForm" data-p="${esc(p)}">Cash handover</button><button class="btn sm" data-act="bankForm" data-p="${esc(p)}">Bank me jama</button><button class="btn sm" data-act="pcPay">Salary / advance do</button>
     <input type="month" class="input" style="width:auto;padding:5px 8px" value="${m}" data-pcm aria-label="Mahina"></div>`}
 function pcCash(p){const E=cashMoves(p),all=S.pc.all,[mf,mt]=periodRange(S.pc.m,'full');const before=all?[]:E.filter(e=>e.date<mf),cur=all?E:E.filter(e=>e.date>=mf&&e.date<=mt);
@@ -179,24 +183,163 @@ function pcCash(p){const E=cashMoves(p),all=S.pc.all,[mf,mt]=periodRange(S.pc.m,
     <tr class="ob"><td></td><td>${all?'Shuruaat':'Pichla (mahine se pehle haath me)'}</td><td></td><td></td><td class="n">${inr(opening)}</td><td></td></tr>
     ${Lg.map(e=>`<tr class="${e.cls||''}"><td class="dt">${fmtShort(e.date)}</td><td>${esc(e.part)}</td><td class="n c">${e.in?inr(e.in):''}</td><td class="n">${e.out?inr(e.out):''}</td><td class="n bal">${e.in||e.out?inr(e.bal):''}</td><td>${e.cb&&isOwner()?`<button class="btn xs" data-act="cbRadd" data-id="${e.cb}">Radd</button>`:''}</td></tr>`).join('')||'<tr><td colspan="6" class="muted">Is period me koi cash entry nahi</td></tr>'}
     <tr class="tot"><td></td><td>Total · ab haath me</td><td class="n">${inr(ti)}</td><td class="n">${inr(to)}</td><td class="n">${inr(opening+ti-to)}</td><td></td></tr></tbody></table></div>`}
-function pcColl(p){const [mf,mt]=periodRange(S.pc.m,'full');const P=Object.values(S.payments).filter(x=>viaP(x)===p&&x.date>=mf&&x.date<=mt).sort((a,b)=>b.date.localeCompare(a.date)||(b.t||0)-(a.t||0));
+function pcColl(p){const [mf,mt]=periodRange(S.pc.m,'full');const R=Object.values(S.adjust||{}).filter(a=>a.type==='refund'&&a.via===p&&a.date>=mf&&a.date<=mt).sort((a,b)=>b.date.localeCompare(a.date));const P=Object.values(S.payments).filter(x=>viaP(x)===p&&x.date>=mf&&x.date<=mt).sort((a,b)=>b.date.localeCompare(a.date)||(b.t||0)-(a.t||0));
   return `<div class="ac-card"><h3>${fmtMonth(S.pc.m)} me ${esc(pl(p))} ne customers se liya: ${inr(sum(P,x=>x.amt))}</h3><div class="row wrap"><span class="bchip">Cash ${inr(sum(P.filter(x=>x.mode==='cash'),x=>x.amt))}</span><span class="bchip">UPI ${inr(sum(P.filter(x=>x.mode!=='cash'),x=>x.amt))}</span><span class="bchip">${P.length} payments</span></div></div>
-   <div class="ac-card np"><table class="ldg"><thead><tr><th>Date</th><th>Customer</th><th class="n">Amount</th><th>Mode</th><th>Note</th></tr></thead><tbody>${P.map(x=>{const c=S.customers[x.cid];return `<tr><td class="dt">${fmtShort(x.date)}</td><td>${c?`<button class="acopen" style="width:auto;padding:0" data-act="openCustomer" data-id="${c.id}">${esc(c.name)} ↗</button>`:'(deleted customer)'}</td><td class="n"><b>${inr(x.amt)}</b></td><td>${x.mode==='cash'?'Cash':'UPI'}</td><td>${esc(x.note||'')}</td></tr>`}).join('')||'<tr><td colspan="5" class="muted">Is mahine koi payment nahi liya</td></tr>'}</tbody></table></div>`}
-function pcDel(p){const m=S.pc.m,n=dim(m),today=todayISO();const rows=[];let T={n:0,d:0,k:0,pe:0,l:0,a:0,bo:0,br:0};
+   <div class="ac-card np"><table class="ldg"><thead><tr><th>Date</th><th>Customer</th><th class="n">Amount</th><th>Mode</th><th>Note</th></tr></thead><tbody>${P.map(x=>{const c=S.customers[x.cid];return `<tr><td class="dt">${fmtShort(x.date)}</td><td>${c?`<button class="acopen" style="width:auto;padding:0" data-act="openCustomer" data-id="${c.id}">${esc(c.name)} ↗</button>`:'(deleted customer)'}</td><td class="n"><b>${inr(x.amt)}</b></td><td>${x.mode==='cash'?'Cash':'UPI'}</td><td>${esc(x.note||'')}</td></tr>`}).join('')||'<tr><td colspan="5" class="muted">Is mahine koi payment nahi liya</td></tr>'}</tbody></table></div>
+   <div class="ac-card np"><div class="row sp" style="padding:12px 14px 0"><h3 style="padding:0">Customers ko paisa wapas diya: ${inr(sum(R,a=>a.amt))}</h3></div><table class="ldg" style="margin-top:8px"><thead><tr><th>Date</th><th>Customer</th><th class="n">Amount</th><th>Mode</th><th>Note</th></tr></thead><tbody>${R.map(a=>{const c=S.customers[a.cid];return `<tr><td class="dt">${fmtShort(a.date)}</td><td>${c?`<button class="acopen" style="width:auto;padding:0" data-act="openCustomer" data-id="${c.id}">${esc(c.name)} ↗</button>`:'(deleted customer)'}</td><td class="n"><b>${inr(a.amt)}</b></td><td>${a.mode==='cash'?'Cash':'UPI'}</td><td>${esc(a.note||'')}</td></tr>`}).join('')||'<tr><td colspan="5" class="muted">Is mahine kisi ko paisa wapas nahi diya. Dena ho to: customer ka account → Adjustment → "Paisa wapas diya".</td></tr>'}</tbody></table></div>`}
+function pcDel(p){if(S.pc.dv==='cust')return pcDelCust(p);const m=S.pc.m,n=dim(m),today=todayISO();const rows=[];let T={n:0,d:0,k:0,pe:0,l:0,a:0,bo:0,br:0};
   for(let i=1;i<=n;i++){const d=m+'-'+String(i).padStart(2,'0');if(d>today)break;const Ls=todaysList(d,p);if(!Ls.length)continue;const o={d,n:Ls.length,dn:0,k:0,pe:0,l:0,a:0,bo:0,br:0};
     Ls.forEach(({c,r})=>{if(r&&r.s==='d'){o.dn++;o.a+=+r.a||0;o.bo+=+r.bo||0;PRODUCTS.forEach(x=>o.l+=+(r.q&&r.q[x.k])||0)}else if(r&&r.s==='k')o.k++;else o.pe++;if(r)o.br+=+r.br||0});
     rows.push(o);T.n+=o.n;T.d+=o.dn;T.k+=o.k;T.pe+=o.pe;T.l+=o.l;T.a+=o.a;T.bo+=o.bo;T.br+=o.br}
-  return `<div class="ac-card np"><table class="ldg"><thead><tr><th>Date</th><th class="n">Ghar</th><th class="n">Delivered</th><th class="n">Skip</th><th class="n">✓ nahi hua</th><th class="n">Litre</th><th class="n">Bill ₹</th><th class="n">Bottle di</th><th class="n">Bottle wapas</th></tr></thead><tbody>
+  return `${dvBar()}<div class="ac-card np"><table class="ldg"><thead><tr><th>Date</th><th class="n">Ghar</th><th class="n">Delivered</th><th class="n">Skip</th><th class="n">✓ nahi hua</th><th class="n">Litre</th><th class="n">Bill ₹</th><th class="n">Bottle di</th><th class="n">Bottle wapas</th></tr></thead><tbody>
     ${rows.reverse().map(o=>`<tr><td class="dt">${fmtDate(o.d)}</td><td class="n">${o.n}</td><td class="n"><b>${o.dn}</b></td><td class="n">${o.k||'–'}</td><td class="n" style="color:${o.pe?'var(--warn)':'inherit'}">${o.pe||'–'}</td><td class="n">${L(o.l)}</td><td class="n">${inr(o.a)}</td><td class="n">${o.bo||'–'}</td><td class="n">${o.br||'–'}</td></tr>`).join('')||'<tr><td colspan="9" class="muted">Is mahine koi delivery nahi</td></tr>'}
     <tr class="tot"><td>Total</td><td class="n">${T.n}</td><td class="n">${T.d}</td><td class="n">${T.k}</td><td class="n">${T.pe}</td><td class="n">${L(T.l)}</td><td class="n">${inr(T.a)}</td><td class="n">${T.bo}</td><td class="n">${T.br}</td></tr></tbody></table></div>
    <div class="small muted">Ye us boy ke customers ki list se bana hai. "✓ nahi hua" wale din ka paisa bill me nahi judta, Delivery sheet me us date pe jaake theek karo.</div>`}
-function pcKm(p){const K=Object.values(S.kms).filter(k=>k.boy===p&&k.date.slice(0,7)===S.pc.m).sort((a,b)=>b.date.localeCompare(a.date));
-  return `<div class="ac-card np"><table class="ldg"><thead><tr><th>Date</th><th>Shuru</th><th>Khatam</th><th class="n">Start KM</th><th class="n">End KM</th><th class="n">Total KM</th><th class="n">Incentive</th></tr></thead><tbody>
-    ${K.map(k=>`<tr><td class="dt">${fmtDate(k.date)}</td><td>${esc(k.st||'–')}</td><td>${esc(k.en||'–')}${k.st&&k.en?` <span class="small muted">(${durTxt(k.st,k.en)})</span>`:''}</td><td class="n">${k.r0!=null&&k.r0!==''?L(k.r0):'–'}</td><td class="n">${k.r1!=null&&k.r1!==''?L(k.r1):'–'}</td><td class="n"><b>${L(k.km)}</b></td><td class="n">${inr(k.inc)}</td></tr>`).join('')||'<tr><td colspan="7" class="muted">Is mahine KM ka record nahi. Menu → Meter me daalo.</td></tr>'}
-    <tr class="tot"><td>Total</td><td></td><td></td><td></td><td></td><td class="n">${L(sum(K,k=>k.km))}</td><td class="n">${inr(sum(K,k=>k.inc))}</td></tr></tbody></table></div>`}
+function pcKm(p){const m=S.pc.m;const K=Object.values(S.kms).filter(k=>k.boy===p&&k.date.slice(0,7)===m).sort((a,b)=>b.date.localeCompare(a.date));const E=energyOf(p,m);const km=sum(K,k=>k.km),en=sum(E,x=>x.amt),tr=sum(K,k=>+k.trips||0);const P=prof(p);
+  return `<div class="ac-stats" style="margin:0 0 12px"><div class="ac-stat"><div class="l">${fmtMonth(m)} KM</div><div class="v">${L(km)}</div><div class="s">${K.length} din${tr?' · '+tr+' trip':''}</div></div><div class="ac-stat"><div class="l">KM incentive</div><div class="v">${inr(sum(K,k=>k.inc))}</div><div class="s">abhi ka rate ₹${L(kmRateOf(p))}/km</div></div><div class="ac-stat"><div class="l">Petrol / charging</div><div class="v">${inr(en)}</div><div class="s">${E.length} entries${P.vehicle?' · '+esc(VEH_L[P.vehicle]):''}</div></div><div class="ac-stat"><div class="l">Petrol ₹ per KM</div><div class="v">${km&&en?'₹'+L(Math.round(en/km*100)/100):'—'}</div></div></div>
+   <div class="ac-card np"><div class="row sp" style="padding:12px 14px 0"><h3 style="padding:0">Meter (roz ka KM)</h3><span class="small muted">Menu → Meter me likho</span></div><table class="ldg" style="margin-top:8px"><thead><tr><th>Date</th><th>Shuru</th><th>Khatam</th><th class="n">Start KM</th><th class="n">End KM</th><th class="n">Total KM</th><th class="n">Trip</th><th class="n">Incentive</th></tr></thead><tbody>
+    ${K.map(k=>`<tr><td class="dt">${fmtDate(k.date)}</td><td>${esc(k.st||'–')}</td><td>${esc(k.en||'–')}${k.st&&k.en?` <span class="small muted">(${durTxt(k.st,k.en)})</span>`:''}</td><td class="n">${k.r0!=null&&k.r0!==''?L(k.r0):'–'}</td><td class="n">${k.r1!=null&&k.r1!==''?L(k.r1):'–'}</td><td class="n"><b>${L(k.km)}</b></td><td class="n">${k.trips||'–'}</td><td class="n">${inr(k.inc)}</td></tr>`).join('')||'<tr><td colspan="8" class="muted">Is mahine KM ka record nahi. Menu → Meter me daalo.</td></tr>'}
+    <tr class="tot"><td>Total</td><td></td><td></td><td></td><td></td><td class="n">${L(km)}</td><td class="n">${tr||''}</td><td class="n">${inr(sum(K,k=>k.inc))}</td></tr></tbody></table></div>
+   <div class="ac-card np"><div class="row sp" style="padding:12px 14px 0"><h3 style="padding:0">Petrol / charging</h3><button class="btn sm p" data-act="enForm" data-p="${esc(p)}">+ Petrol / charging</button></div><table class="ldg" style="margin-top:8px"><thead><tr><th>Date</th><th>Kya</th><th class="n">Kitna</th><th class="n">₹</th><th>Kisne diya</th><th>Note</th></tr></thead><tbody>
+    ${E.map(x=>`<tr><td class="dt">${fmtShort(x.date)}</td><td>${esc(FUEL_L[x.fuel]||x.cat||'')}</td><td class="n">${x.qty?L(x.qty)+' '+esc(x.unit||''):'–'}</td><td class="n"><b>${inr(x.amt)}</b></td><td>${esc(modeTxt(x.mode))}${x.paidBy?' · '+esc(pl(x.paidBy)):''}</td><td>${esc(x.note||'')}</td></tr>`).join('')||'<tr><td colspan="6" class="muted">Is mahine koi entry nahi</td></tr>'}</tbody></table></div>
+   <div class="small muted">Petrol cash se diya ho to dene wale ke "haath me cash" se apne aap ghatega, aur Kharcha page ke mahine ke hisab me bhi judega.</div>`}
 function pcPayT(p){const X=Object.values(S.purchases||{}).filter(x=>x.person===p).sort((a,b)=>b.date.localeCompare(a.date)||(b.t||0)-(a.t||0));
   return `<div class="ac-card"><div class="row sp wrap"><h3>${esc(pl(p))} ko ab tak diya: ${inr(sum(X,x=>x.amt))}</h3><button class="btn sm p" data-act="pcPay">+ Salary / advance do</button></div><div class="small muted">Ye entries Kharcha page se aati hain (category Salary / Advance / Incentive, "Kisko" me is insaan ka naam).</div></div>
    <div class="ac-card np"><table class="ldg"><thead><tr><th>Date</th><th>Kya</th><th class="n">Amount</th><th>Kaise diya</th><th>Note</th></tr></thead><tbody>${X.map(x=>`<tr><td class="dt">${fmtShort(x.date)} ${x.date.slice(0,4)}</td><td>${esc(x.cat||x.item||'')}</td><td class="n"><b>${inr(x.amt)}</b></td><td>${esc(modeTxt(x.mode))}${x.paidBy?' · '+esc(pl(x.paidBy))+' ne diya':''}</td><td>${esc(x.note||'')}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">Abhi koi entry nahi</td></tr>'}</tbody></table></div>`}
+/* =====================================================================
+   TEAM MASTER (v4): har insaan ki profile, gaadi, incentive ke niyam, mahine ka hisab
+   settings().team[naam] = {role, phone, join, vehicle, fuel, vno, note, inc:{salary,fixed,perL,perHouse,perKm,perRound}, adj:{'YYYY-MM':{amt,note}}, left}
+   Naam aur login pehle jaise settings.boys / settings.staff / settings.pins se chalte hain, purana code waise hi chalta hai.
+   ===================================================================== */
+const teamAll=()=>settings().team||{};
+const prof=p=>{const t=teamAll()[p]||{};return {phone:'',join:'',vehicle:'',fuel:'',vno:'',note:'',...t,inc:{...(t.inc||{})}}};
+const isBoyP=p=>isBoy(p)||(teamAll()[p]||{}).role==='boy';
+const isActiveP=p=>p==='Owner'||boys().includes(p)||staffL().includes(p);
+const VEH_L={own:'Apni gaadi',company:'Company ki gaadi',none:'Gaadi nahi'};
+const FUEL_L={petrol:'Petrol',diesel:'Diesel',cng:'CNG',ev:'Electric (EV)',cycle:'Cycle / paidal'};
+const INC_F=[['salary','Mahine ki salary','₹ / mahina'],['fixed','Fixed bhatta (phone, gaadi)','₹ / mahina'],['perL','Har litre pe','₹ / litre'],['perHouse','Har ghar pe (har din)','₹ / ghar'],['perKm','Har KM pe (Meter se)','₹ / km'],['perRound','Har chakkar / trip pe','₹ / trip']];
+const expTxt=from=>{const t=todayISO();if(!from||from>t)return '';const a=new Date(from+'T12:00:00'),b=new Date(t+'T12:00:00');let m=(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth());if(b.getDate()<a.getDate())m--;
+  if(m<1)return dd(from,t)+' din';const y=Math.floor(m/12),mm=m%12;return ((y?y+' saal ':'')+(mm?mm+' mahine':'')).trim()};
+const kmRateOf=b=>{const v=prof(b).inc.perKm;return v!==undefined&&v!==null&&v!==''?+v:+(settings().kmRate??2)};
+const subLine=p=>{if(p==='Owner')return 'Office';const P=prof(p);return [isBoyP(p)?'Delivery boy':'Office',P.vehicle?VEH_L[P.vehicle]+(P.fuel?' · '+FUEL_L[P.fuel]:''):'',P.join?expTxt(P.join)+' se':''].filter(Boolean).join(' · ')};
+function pcBadges(p){const P=prof(p);return `<span class="badge b">${isBoyP(p)?'Delivery boy':'Office'}</span>${isActiveP(p)?'':'<span class="badge r">Kaam chhod diya</span>'}${P.vehicle?`<span class="badge n">${esc(VEH_L[P.vehicle])}${P.fuel?' · '+esc(FUEL_L[P.fuel]):''}</span>`:''}${P.join?`<span class="badge n">${esc(expTxt(P.join)||'naya')}</span>`:''}`}
+const energyOf=(p,m)=>Object.values(S.purchases||{}).filter(x=>x.veh===p&&String(x.date).slice(0,7)===m).sort((a,b)=>b.date.localeCompare(a.date)||(b.t||0)-(a.t||0));
+const activeCusts=p=>Object.values(S.customers).filter(c=>c.boy===p&&c.status==='active').length;
+
+/* mahine me is boy ke customers ko kya gaya (customer ke abhi ke boy ke hisab se, Delivery tab jaisa) */
+function delStats(p,m){const n=dim(m),today=todayISO();const o={days:0,h:0,l:0,a:0,bo:0,br:0,by:{}};const g0=c=>o.by[c.id]||(o.by[c.id]={c,n:0,l:0,a:0,bo:0,br:0});
+  for(let i=1;i<=n;i++){const d=m+'-'+String(i).padStart(2,'0');if(d>today)break;let any=false;
+    todaysList(d,p).forEach(({c,r})=>{if(!r)return;const br=+r.br||0;o.br+=br;if(r.s!=='d'){if(br)g0(c).br+=br;return}
+      any=true;let l=0;PRODUCTS.forEach(x=>l+=+(r.q&&r.q[x.k])||0);const g=g0(c);o.h++;o.l+=l;o.a+=+r.a||0;o.bo+=+r.bo||0;g.n++;g.l+=l;g.a+=+r.a||0;g.bo+=+r.bo||0;g.br+=br});
+    if(any)o.days++}
+  return o}
+/* mahine ka hisab: salary + bhatta + litre + ghar + KM + trip + sudhaar, minus jo diya */
+function payCalc(p,m){const P=prof(p),I=P.inc,[mf,mt]=periodRange(m,'full');const D=isBoyP(p)?delStats(p,m):{h:0,l:0};const r2=v=>Math.round(v*100)/100;
+  const K=Object.values(S.kms).filter(k=>k.boy===p&&k.date.slice(0,7)===m);const km=sum(K,k=>k.km),trips=sum(K,k=>+k.trips||0);const rt=k=>+I[k]||0;
+  const parts=[['Salary',rt('salary'),''],['Fixed bhatta',rt('fixed'),''],['Litre',r2(D.l*rt('perL')),`${L(D.l)} L × ₹${L(rt('perL'))}`],['Ghar',r2(D.h*rt('perHouse')),`${D.h} ghar × ₹${L(rt('perHouse'))}`],
+    ['KM (Meter)',r2(sum(K,k=>k.inc)),`${L(km)} km, Meter pe save ke waqt ke rate se`],['Trip / chakkar',r2(trips*rt('perRound')),`${trips} trip × ₹${L(rt('perRound'))}`]];
+  const adj=(P.adj||{})[m]||null;const total=r2(sum(parts,x=>x[1])+(adj?+adj.amt||0:0));
+  const paidL=Object.values(S.purchases||{}).filter(x=>x.person===p&&x.date>=mf&&x.date<=mt);
+  return {parts,adj,total,paid:sum(paidL,x=>x.amt),paidL,km,trips,D}}
+
+const dvBar=()=>`<div class="ac-bar"><div class="seg"><button class="${S.pc.dv==='cust'?'':'on'}" data-act="pcDv" data-v="day">Din-wise</button><button class="${S.pc.dv==='cust'?'on':''}" data-act="pcDv" data-v="cust">Customer-wise</button></div><span class="small muted">${fmtMonth(S.pc.m)} · kis kis ko deliver kiya</span></div>`;
+function pcDelCust(p){const D=delStats(p,S.pc.m);const R=Object.values(D.by).sort((a,b)=>b.n-a.n||a.c.name.localeCompare(b.c.name));
+  return `${dvBar()}<div class="ac-card np"><table class="ldg"><thead><tr><th>Customer</th><th class="n">Din diya</th><th class="n">Litre</th><th class="n">Bill ₹</th><th class="n">Bottle di</th><th class="n">Bottle wapas</th></tr></thead><tbody>
+   ${R.map(g=>`<tr><td><button class="acopen" style="width:auto;padding:0" data-act="openCustomer" data-id="${g.c.id}">${esc(g.c.name)} ↗</button></td><td class="n"><b>${g.n}</b></td><td class="n">${L(g.l)}</td><td class="n">${inr(g.a)}</td><td class="n">${g.bo||'–'}</td><td class="n">${g.br||'–'}</td></tr>`).join('')||'<tr><td colspan="6" class="muted">Is mahine koi delivery nahi</td></tr>'}
+   <tr class="tot"><td>Total · ${R.length} customers</td><td class="n">${D.h}</td><td class="n">${L(D.l)}</td><td class="n">${inr(D.a)}</td><td class="n">${D.bo}</td><td class="n">${D.br}</td></tr></tbody></table></div>
+   <div class="small muted">Us boy ke abhi ke customers se bana hai. Customer ka boy badla ho to purane din bhi naye boy me dikhenge.</div>`}
+
+function pcBot(p){const m=S.pc.m,D=delStats(p,m),M=botAll();const ids=Object.values(S.customers).filter(c=>c.boy===p).map(c=>c.id);const {T,u,t}=botTotals(M,ids);
+  const late=ids.map(id=>({c:S.customers[id],g:M[id]})).filter(x=>x.g&&x.g.t>0&&x.g.days>=7).sort((a,b)=>b.g.days-a.g.days);const pc=D.bo?Math.round(D.br/D.bo*100):0;
+  return `<div class="ac-stats" style="margin:0 0 12px"><div class="ac-stat"><div class="l">${fmtMonth(m)} bottle di</div><div class="v">${D.bo}</div></div><div class="ac-stat"><div class="l">${fmtMonth(m)} wapas laaya</div><div class="v">${D.br}</div><div class="s">${D.bo?pc+'% wapsi':''}</div></div>
+    <div class="ac-stat"><div class="l">Abhi customers ke paas</div><div class="v">${t}</div><div class="s">${u?u+' bina size':'iske saare customers'}</div></div><div class="ac-stat"><div class="l">7+ din se nahi lautayi</div><div class="v" style="color:${late.length?'var(--warn)':'inherit'}">${late.length}</div><div class="s">customers</div></div></div>
+   <div class="ac-card"><h3>Iske customers ke paas bottles (doodh ke hisab se)</h3><div style="margin-top:8px">${botMatrix(T)}</div></div>
+   <div class="ac-card np"><table class="ldg"><thead><tr><th>Customer (7+ din purani bottle)</th><th class="n">½L / 1L</th><th class="n">Kitne din se</th></tr></thead><tbody>${late.map(x=>`<tr><td><button class="acopen" style="width:auto;padding:0" data-act="openCustomer" data-id="${x.c.id}">${esc(x.c.name)} ↗</button></td><td class="n">${x.g.s} / ${x.g.b}${x.g.u?' + '+x.g.u:''}</td><td class="n" style="color:var(--warn)"><b>${x.g.days}</b> din</td></tr>`).join('')||'<tr><td colspan="3" class="muted">Kisi customer ke paas 7 din se purani bottle nahi</td></tr>'}</tbody></table></div>
+   <div class="small muted">"Wapsi %" = is mahine jitni bottle di, unme se kitni wapas aayi. Us boy ke abhi ke customers se gina hai.</div>`}
+
+function pcHisab(p){const m=S.pc.m,H=payCalc(p,m);const r=H.parts.filter(x=>x[1]);const b=H.total-H.paid;
+  return `<div class="ac-card"><div class="row sp wrap"><h3>${fmtMonth(m)} ka hisab · ${esc(pl(p))}</h3>${isOwner()?'<button class="btn sm o" data-act="pcTab" data-v="prof">Niyam badlo</button>':''}</div>
+   <table class="ldg" style="margin-top:8px"><thead><tr><th>Kis cheez ka</th><th>Kaise bana</th><th class="n">₹</th></tr></thead><tbody>
+   ${r.map(x=>`<tr><td>${esc(x[0])}</td><td class="small muted">${esc(x[2])}</td><td class="n">${inr(x[1])}</td></tr>`).join('')||'<tr><td colspan="3" class="muted">Salary / incentive ke niyam set nahi, ya is mahine kuch nahi bana. Profile tab me niyam daalo.</td></tr>'}
+   ${H.adj?`<tr><td>Sudhaar</td><td class="small muted">${esc(H.adj.note||'')}</td><td class="n">${inr(H.adj.amt)}</td></tr>`:''}
+   <tr class="tot"><td>Kul bana</td><td></td><td class="n">${inr(H.total)}</td></tr>
+   <tr><td>Diya (salary / advance / incentive)</td><td class="small muted">${H.paidL.length} entries · Kharcha se</td><td class="n">− ${inr(H.paid)}</td></tr>
+   <tr class="tot"><td>${b>=0?'Dena baaki':'Zyada de diya'}</td><td></td><td class="n" style="color:${b>0.5?'var(--danger)':'inherit'}">${inr(Math.abs(b))}</td></tr></tbody></table></div>
+   ${isOwner()?`<div class="ac-card"><h3>Sudhaar (sirf ${fmtMonth(m)})</h3><div class="small muted" style="margin:4px 0 8px">Hisab se alag kuch jodna ya ghatana: bonus (+) ya chhutti / nuksan (−). Khaali ya 0 = hatao.</div>
+    <div class="frm"><div class="field"><label class="f">₹ (+ ya −)</label><input class="input" id="haA" type="number" inputmode="decimal" value="${H.adj?esc(H.adj.amt):''}"></div><div class="field grow"><label class="f">Kyun</label><input class="input" id="haN" value="${H.adj?esc(H.adj.note||''):''}" placeholder="e.g. Diwali bonus / 2 din chhutti"></div><div class="field" style="align-self:flex-end"><button class="btn p" data-act="hisabAdj">Save</button></div></div></div>
+    <div class="row wrap"><button class="btn sm p" data-act="pcPay">Salary / advance do</button></div>`:''}`}
+
+function memberFields(p,P,pin){const boy=p?isBoyP(p):true;const o=(mp,v)=>Object.entries(mp).map(([k,l])=>`<option value="${k}" ${v===k?'selected':''}>${esc(l)}</option>`).join('');const inc=P.inc||{};
+  return `<div class="frm">
+   ${p?'':'<div class="field"><label class="f">Naam *</label><input class="input" id="tmName" placeholder="e.g. Ramesh" autocomplete="off"></div>'}
+   <div class="field"><label class="f">Kaam</label><select class="input" id="tmRole"><option value="boy" ${boy?'selected':''}>Delivery boy</option><option value="office" ${boy?'':'selected'}>Office</option></select></div>
+   <div class="field"><label class="f">Phone</label><input class="input" id="tmPhone" inputmode="tel" value="${esc(P.phone||'')}"></div>
+   <div class="field"><label class="f">Joining date</label><input class="input" id="tmJoin" type="date" value="${esc(P.join||'')}" max="${todayISO()}"></div>
+   <div class="field"><label class="f">Login PIN (sirf boy)</label><input class="input" id="tmPin" inputmode="numeric" maxlength="6" value="${esc(pin||'')}" placeholder="4-6 digit" autocomplete="off"></div>
+   <div class="field"><label class="f">Gaadi</label><select class="input" id="tmVeh"><option value="">—</option>${o(VEH_L,P.vehicle)}</select></div>
+   <div class="field"><label class="f">Fuel</label><select class="input" id="tmFuel"><option value="">—</option>${o(FUEL_L,P.fuel)}</select></div>
+   <div class="field"><label class="f">Gaadi number</label><input class="input" id="tmVno" value="${esc(P.vno||'')}"></div>
+   <div class="field grow"><label class="f">Note</label><input class="input" id="tmNote" value="${esc(P.note||'')}" placeholder="e.g. subah tempo se gaanv se doodh laata hai"></div></div>
+   <h3 style="margin-top:14px">Salary / incentive ke niyam</h3><div class="small muted" style="margin:2px 0 8px">Jo lagu nahi wo khaali chhodo. Apni gaadi wale ka per KM zyada rakho, company ki gaadi wale ka kam ya 0. Do chakkar (jaise pehle tempo se gaanv se doodh, phir delivery) ho to "Har chakkar" me rate daalo aur Meter me trips likho.</div>
+   <div class="frm">${INC_F.map(([k,l,u])=>`<div class="field"><label class="f">${l} (${u})</label><input class="input" type="number" inputmode="decimal" min="0" data-inc="${k}" value="${inc[k]!==undefined&&inc[k]!==''?esc(inc[k]):''}" ${k==='perKm'?`placeholder="khaali = ₹${L(settings().kmRate??2)} (Settings)"`:''}></div>`).join('')}</div>`}
+function readMember(){const v=id=>(($('#'+id)||{}).value||'').trim();const inc={};document.querySelectorAll('[data-inc]').forEach(i=>{if(i.value!=='')inc[i.dataset.inc]=Math.max(0,+i.value||0)});
+  return {role:v('tmRole')||'boy',phone:v('tmPhone'),join:v('tmJoin'),pin:v('tmPin'),vehicle:v('tmVeh'),fuel:v('tmFuel'),vno:v('tmVno'),note:v('tmNote'),inc}}
+async function saveMember(name,M,activate){const st=settings();let B=[...boys()],F=[...staffL()];const T={...(st.team||{})};const old=T[name]||{};
+  if(M.role==='boy'&&M.pin&&!/^[0-9]{4,6}$/.test(M.pin)){toast('PIN 4-6 digit ka ho');return false}
+  const pins={owner:'1234',...(st.pins||{})};pins.boys={...(pins.boys||{})};
+  if(activate){if(M.role==='boy'){if(!B.includes(name))B.push(name);F=F.filter(x=>x!==name);pins.boys[name]=M.pin||pins.boys[name]||'0000'}else{if(!F.includes(name))F.push(name);B=B.filter(x=>x!==name);delete pins.boys[name]}}
+  const {pin,...rest}=M;T[name]={...old,...rest,left:activate?'':(old.left||'')};
+  await saveSettings({...st,boys:B,staff:F,pins,team:T});return true}
+
+function pcProf(p){const P=prof(p),boy=isBoyP(p),act=isActiveP(p);const pin=((settings().pins||{}).boys||{})[p]||'';const nC=activeCusts(p);
+  const view=`<div class="ac-card"><h3>Details</h3><table class="ldg" style="margin-top:6px"><tbody>
+    <tr><td>Kaam</td><td>${boy?'Delivery boy':'Office'}${act?'':' · <b>kaam chhod diya</b>'+(P.left?' ('+fmtDate(P.left)+')':'')}</td></tr>
+    <tr><td>Phone</td><td>${P.phone?`<a href="tel:${esc(P.phone)}">${esc(P.phone)}</a>`:'—'}</td></tr>
+    <tr><td>Joining</td><td>${P.join?esc(fmtDate(P.join))+' · '+esc(expTxt(P.join)||'aaj se'):'— (joining date daalo to kitne samay se kaam kar raha hai dikhega)'}</td></tr>
+    ${boy?`<tr><td>Customers</td><td>${nC} active</td></tr><tr><td>Gaadi</td><td>${P.vehicle?esc(VEH_L[P.vehicle]):'—'}${P.fuel?' · '+esc(FUEL_L[P.fuel]):''}${P.vno?' · '+esc(P.vno):''}</td></tr>`:''}
+    ${P.note?`<tr><td>Note</td><td>${esc(P.note)}</td></tr>`:''}</tbody></table></div>
+   <div class="ac-card"><h3>Salary / incentive ke niyam</h3><table class="ldg" style="margin-top:6px"><tbody>${INC_F.map(([k,l,u])=>`<tr><td>${l}</td><td class="n">${P.inc[k]!==undefined&&P.inc[k]!==''?'₹'+L(P.inc[k]):k==='perKm'&&boy?`<span class="muted">₹${L(settings().kmRate??2)} (Settings ka)</span>`:'<span class="muted">—</span>'}</td><td class="small muted">${u}</td></tr>`).join('')}</tbody></table></div>`;
+  if(!isOwner())return view;
+  return view+`<div class="ac-card"><h3>Profile badlo</h3><div style="margin-top:8px">${memberFields(p,P,pin)}</div><div class="row wrap" style="margin-top:12px"><button class="btn p" data-act="tmProfSave" data-p="${esc(p)}">Save profile</button>${act?`<button class="btn d" data-act="tmLeave" data-p="${esc(p)}">Kaam chhod diya</button>`:`<button class="btn o" data-act="tmBack" data-p="${esc(p)}">Wapas kaam pe</button>`}</div></div>`}
+
+function enFormHtml(p){const P=p?prof(p):{};const bl=[...new Set([...boys(),...(p?[p]:[])])];const f=P.fuel&&P.fuel!=='cycle'?P.fuel:'petrol';const me=isOwner()?'Owner':S.me;
+  return `<div class="stack"><div class="frm">
+   <div class="field"><label class="f">Kiski gaadi</label><select class="input" id="enP">${bl.map(b=>`<option ${b===p?'selected':''}>${esc(b)}</option>`).join('')}</select></div>
+   <div class="field"><label class="f">Date</label><input class="input" type="date" id="enD" value="${S.route==='odo'&&S.odod?S.odod:todayISO()}" max="${todayISO()}"></div>
+   <div class="field"><label class="f">Kya</label><select class="input" id="enF">${['petrol','diesel','cng','ev'].map(k=>`<option value="${k}" ${k===f?'selected':''}>${FUEL_L[k]}</option>`).join('')}</select></div>
+   <div class="field"><label class="f" id="enUL">${f==='ev'?'Unit (kWh)':f==='cng'?'kg':'Litre'}</label><input class="input" type="number" inputmode="decimal" id="enQ" min="0"></div>
+   <div class="field"><label class="f">₹ Amount *</label><input class="input" type="number" inputmode="decimal" id="enA" min="0"></div>
+   <div class="field"><label class="f">Kisne paise diye</label><select class="input" id="enBy">${persons().map(x=>`<option value="${esc(x)}" ${x===me?'selected':''}>${esc(pl(x))}</option>`).join('')}</select></div>
+   <div class="field"><label class="f">Kaise</label><select class="input" id="enM"><option value="cash">Cash</option><option value="upi">UPI</option><option value="bank">Bank / card</option></select></div>
+   <div class="field grow"><label class="f">Note</label><input class="input" id="enN" placeholder="e.g. pump ka naam / meter 12450"></div></div>
+   <div class="small muted">Cash me diya to "Kisne paise diye" wale ke haath ka cash ghatega. Ye Kharcha me "${'Petrol / diesel'}" ya "EV charging" me bhi judega.</div>
+   <button class="btn p block" data-act="enSave">Save</button></div>`}
+document.addEventListener('change',e=>{const el=e.target;if(el.id==='enF'){const l=$('#enUL');if(l)l.textContent=el.value==='ev'?'Unit (kWh)':el.value==='cng'?'kg':'Litre'}});
+
+Object.assign(A,{
+  tmNew(){if(!isOwner())return toast('Sirf owner kar sakta hai');openSheet('Naya team member',`<div class="stack">${memberFields('',{inc:{}},'')}<button class="btn p block" data-act="tmNewSave">Save member</button></div>`);$('#sheet .panel').classList.add('wide');setTimeout(()=>{const i=$('#tmName');if(i)i.focus()},40)},
+  async tmNewSave(){if(!isOwner())return;const name=(($('#tmName')||{}).value||'').trim().replace(/\s+/g,' ');if(!name)return toast('Naam likho');
+    const lo=name.toLowerCase();if(lo==='owner'||persons().some(x=>x.toLowerCase()===lo)||Object.keys(teamAll()).some(x=>x.toLowerCase()===lo))return toast('Ye naam pehle se hai. Purana member ho to "Purane member" se wapas lao.');
+    const M=readMember();if(M.role==='boy'&&!M.pin)return toast('Boy ka login PIN likho (4-6 digit)');
+    if(await saveMember(name,M,true)){closeSheet();toast(name+' jud gaya');render()}},
+  async tmProfSave(d){if(!isOwner())return;const p=d.p;const M=readMember();const nC=activeCusts(p);
+    if(M.role!=='boy'&&isBoyP(p)&&nC)return toast(`${p} ke ${nC} active customer hain. Office banane se pehle unhe dusre boy ko do.`);
+    if(await saveMember(p,M,isActiveP(p))){toast('Profile save');pcDraw(false)}},
+  async tmLeave(d){if(!isOwner())return;const p=d.p;const nC=activeCusts(p);if(nC)return toast(`${p} ke ${nC} active customer hain. Pehle unhe dusre boy ko do (Customers → grid → boy badlo).`);const h=cashInHand(p);
+    if(!await confirmBox({title:`${esc(p)} ne kaam chhod diya?`,html:`Login band ho jayega aur naam list se hat jayega. Purana hisab (cash, delivery, salary) waise hi rahega.${Math.abs(h)>0.5?`<div style="margin-top:8px;color:var(--danger)"><b>Abhi haath me cash: ${inr(h)}</b>. Pehle handover le lo.</div>`:''}`,yes:'Haan, hatao'}))return;
+    const st=settings();const T={...(st.team||{})};T[p]={...(T[p]||{}),role:isBoyP(p)?'boy':'office',left:todayISO()};const pins={...(st.pins||{}),boys:{...((st.pins||{}).boys||{})}};delete pins.boys[p];
+    await saveSettings({...st,boys:boys().filter(x=>x!==p),staff:staffL().filter(x=>x!==p),pins,team:T});toast(p+' list se hat gaya');pcDraw(false)},
+  async tmBack(d){if(!isOwner())return;const p=d.p;const P=prof(p);const role=P.role||'boy';
+    if(await saveMember(p,{...P,role,pin:''},true)){toast(p+' wapas jud gaya'+(role==='boy'?' · PIN 0000 hai, Profile me badlo':''));pcDraw(false)}},
+  pcDv(d){S.pc.dv=d.v;pcDraw(false)},
+  async hisabAdj(){const p=S.pc.id;if(!p||!isOwner())return;const a=$('#haA').value,n=$('#haN').value.trim();const st=settings();const T={...(st.team||{})};const P={...(T[p]||{})};const adj={...(P.adj||{})};
+    if(a===''||+a===0)delete adj[S.pc.m];else adj[S.pc.m]={amt:+a,note:n,by:S.me||'',t:Date.now()};P.adj=adj;if(!P.role)P.role=isBoyP(p)?'boy':'office';T[p]=P;await saveSettings({...st,team:T});toast('Sudhaar save');pcDraw(false)},
+  enForm(d){if(!canWrite())return toast('Aapko write permission nahi hai');openSheet('Petrol / charging',enFormHtml(d.p||''));setTimeout(()=>{const i=$('#enA');if(i)i.focus()},40)},
+  enSave(){if(!canWrite())return toast('Aapko write permission nahi hai');const amt=+$('#enA').value;if(!(amt>0))return toast('₹ amount likho');const veh=$('#enP').value;if(!veh)return toast('Gaadi kiski hai, chuno');
+    const fuel=$('#enF').value,qty=+$('#enQ').value||0,unit=fuel==='ev'?'kWh':fuel==='cng'?'kg':'L';
+    const doc={date:$('#enD').value||todayISO(),amt,mode:$('#enM').value,paidBy:$('#enBy').value,note:$('#enN').value.trim(),by:S.me||'',t:Date.now(),kind:'kharcha',cat:fuel==='ev'?'EV charging':'Petrol / diesel',item:FUEL_L[fuel]+(qty?' '+L(qty)+' '+unit:'')+' · '+veh,veh,fuel,qty,unit,energy:true};
+    const id=uid();S.purchases[id]={id,...doc};closeSheet();render();queue('pur:'+id,()=>S.db.doc('purchases/'+id).set(doc)).then(()=>toast(FUEL_L[fuel]+' · '+inr(amt)+' save'))}
+});
 document.addEventListener('change',e=>{const el=e.target;if(el.dataset&&'pcm' in el.dataset&&el.value){S.pc.m=el.value;S.pc.all=false;pcDraw(false)}});
 
 /* boy ke phone pe: mere paas kitna cash hai */
@@ -210,7 +353,7 @@ vPayments=function(){const o=_vp();if(isOwner())return o;const h=cashInHand(S.me
    PURCHASE & KHARCHA (+ suppliers)
    ===================================================================== */
 S.pk={kind:'maal',tab:'day',pre:null};S.purchases=S.purchases||{};
-const DEF_CATS=['Petrol / diesel','Salary','Advance','Incentive','Packing / bottle','Gaadi repair','Rent','Bijli / phone','Other'];
+const DEF_CATS=['Petrol / diesel','EV charging','Salary','Advance','Incentive','Packing / bottle','Gaadi repair','Rent','Bijli / phone','Other'];
 const expCats=()=>Array.isArray(settings().expCats)&&settings().expCats.length?settings().expCats:DEF_CATS;
 const kindOf=p=>p.kind||'maal';
 const modeTxt=m=>({cash:'Cash',upi:'UPI',bank:'Bank',udhaar:'Udhaar'}[m]||'');
@@ -413,7 +556,7 @@ vOdoOwner=function(){const date=S.odod;loadOdo(date);purgeOld();const o=S.odo[da
   const html=`<div class="stack">
     <div class="row sp wrap"><div class="row"><button class="btn sm o" data-act="odoShift" data-n="-1">‹</button><button class="btn sm"><b>${date===todayISO()?'Aaj · ':''}${fmtDate(date)}</b></button><button class="btn sm o" data-act="odoShift" data-n="1" ${date>=todayISO()?'disabled':''}>›</button></div>
       <div class="row"><input type="date" class="input" style="width:auto;padding:6px 10px" value="${date}" max="${todayISO()}" data-act="odoD"><button class="btn sm o" data-act="odoReload">Refresh</button></div></div>
-    <div class="small muted">Boy duty shuru aur khatam karte waqt meter ki photo leta hai (time apne aap aata hai). Aap photo dekh ke Start KM aur End KM likho, Total KM apne aap nikal aayega. Photo na ho to time aur KM haath se bhi likh sakte ho. Photos 30 din baad hat jaati hain, KM aur incentive hamesha rehte hain. Rate: ₹${L(rate)}/km.</div>
+    <div class="small muted">Boy duty shuru aur khatam karte waqt meter ki photo leta hai (time apne aap aata hai). Aap photo dekh ke Start KM aur End KM likho, Total KM apne aap nikal aayega. Photo na ho to time aur KM haath se bhi likh sakte ho. Photos 30 din baad hat jaati hain, KM aur incentive hamesha rehte hain. Rate har boy ka apna (Team & cash → naam → Profile), na ho to ₹${L(rate)}/km. Petrol / charging ⛽ button se.</div>
     ${o.loading?'<div class="empty">Photos load ho rahi hain…</div>':bl.map(b=>{const ph=(o.list||[]).filter(x=>x.boy===b);const k=S.kms[kmKey(date,b)];const kid=norm(b)||'x';
       const s0=ph.find(x=>x.kind==='start'),e0=ph.filter(x=>x.kind==='end').slice(-1)[0];const st=(k&&k.st)||(s0?hhmm(s0.t):''),en=(k&&k.en)||(e0?hhmm(e0.t):'');
       return `<div class="card"><div class="row sp wrap"><h2>${esc(b)}</h2>${k?`<span class="badge g">${L(k.km)} km · ${inr(k.inc)}</span>`:ph.length?'<span class="badge y">KM likhna baaki</span>':'<span class="badge n">Photo nahi</span>'}</div>
@@ -421,17 +564,20 @@ vOdoOwner=function(){const date=S.odod;loadOdo(date);purgeOld();const o=S.odo[da
        <div class="frm" style="margin-top:12px"><div class="field"><label class="f">Duty shuru (time)</label><input class="input" type="time" id="odS_${kid}" value="${esc(st)}"></div><div class="field"><label class="f">Duty khatam (time)</label><input class="input" type="time" id="odE_${kid}" value="${esc(en)}"></div>
         <div class="field"><label class="f">Start KM (meter)</label><input class="input" type="number" inputmode="decimal" id="odR0_${kid}" data-odr="${kid}" value="${k&&k.r0!=null?esc(k.r0):''}"></div><div class="field"><label class="f">End KM (meter)</label><input class="input" type="number" inputmode="decimal" id="odR1_${kid}" data-odr="${kid}" value="${k&&k.r1!=null?esc(k.r1):''}"></div>
         <div class="field"><label class="f">Total KM *</label><input class="input" id="km_${kid}" type="number" inputmode="decimal" value="${k?L(k.km):''}" placeholder="End − Start"></div>
-        <div class="field" style="align-self:flex-end"><button class="btn p block" data-act="kmSave" data-b="${esc(b)}">Save · incentive</button></div></div>
+        <div class="field"><label class="f">Trip / chakkar</label><input class="input" id="odT_${kid}" type="number" inputmode="numeric" min="0" value="${k&&k.trips?esc(k.trips):''}" placeholder="1"></div>
+        <div class="field" style="align-self:flex-end"><button class="btn p block" data-act="kmSave" data-b="${esc(b)}">Save · incentive (₹${L(kmRateOf(b))}/km)</button></div>
+        <div class="field" style="align-self:flex-end"><button class="btn o block" data-act="enForm" data-p="${esc(b)}">⛽ Petrol / charging</button></div></div>
        ${st&&en&&durTxt(st,en)?`<div class="small muted" style="margin-top:6px">Duty: ${esc(st)} se ${esc(en)} · ${durTxt(st,en)}</div>`:''}</div>`}).join('')}
-    <div class="card"><div class="row sp wrap"><h3>Mahine ka incentive</h3><input type="month" class="input" style="width:auto" value="${S.odom}" data-act="odoM"></div>
-      <table class="tbl compact" style="margin-top:8px"><thead><tr><th>Boy</th><th class="n">Din</th><th class="n">KM</th><th class="n">Incentive</th></tr></thead><tbody>
-      ${[...new Set(mk.map(k=>k.boy))].sort().map(b=>{const r=mk.filter(k=>k.boy===b);return `<tr class="click" data-act="pcOpenKm" data-p="${esc(b)}"><td><b>${esc(b)}</b></td><td class="n">${r.length}</td><td class="n">${L(sum(r,k=>k.km))}</td><td class="n"><b>${inr(sum(r,k=>k.inc))}</b></td></tr>`}).join('')||'<tr><td colspan="4" class="muted">Is mahine koi KM record nahi</td></tr>'}</tbody></table>
-      <div class="small muted" style="margin-top:6px">Boy ke naam pe click karo to din-wise KM dikhega.</div></div></div>`;
+    <div class="card"><div class="row sp wrap"><h3>Mahine ka KM, incentive aur petrol</h3><input type="month" class="input" style="width:auto" value="${S.odom}" data-act="odoM"></div>
+      <div class="scroll"><table class="tbl compact" style="margin-top:8px"><thead><tr><th>Boy</th><th class="n">Din</th><th class="n">KM</th><th class="n">Trip</th><th class="n">KM incentive</th><th class="n">Petrol / charging</th><th class="n">Petrol ₹/km</th></tr></thead><tbody>
+      ${(()=>{const EM=Object.values(S.purchases||{}).filter(x=>x.veh&&String(x.date).slice(0,7)===S.odom);const B=[...new Set([...mk.map(k=>k.boy),...EM.map(x=>x.veh)])].sort();
+        return B.map(b=>{const r=mk.filter(k=>k.boy===b),km=sum(r,k=>k.km),en=sum(EM.filter(x=>x.veh===b),x=>x.amt);return `<tr class="click" data-act="pcOpenKm" data-p="${esc(b)}"><td><b>${esc(b)}</b></td><td class="n">${r.length}</td><td class="n">${L(km)}</td><td class="n">${sum(r,k=>+k.trips||0)||'–'}</td><td class="n"><b>${inr(sum(r,k=>k.inc))}</b></td><td class="n">${en?inr(en):'–'}</td><td class="n">${km&&en?'₹'+L(Math.round(en/km*100)/100):'–'}</td></tr>`}).join('')||'<tr><td colspan="7" class="muted">Is mahine koi KM record nahi</td></tr>'})()}</tbody></table></div>
+      <div class="small muted" style="margin-top:6px">Boy ke naam pe click karo to din-wise KM aur petrol dikhega.</div></div></div>`;
   return {html}};
 document.addEventListener('input',e=>{const el=e.target;if(!el.dataset||!el.dataset.odr)return;const k=el.dataset.odr;const a=$('#odR0_'+k).value,b=$('#odR1_'+k).value;if(a!==''&&b!==''&&+b>=+a)$('#km_'+k).value=Math.round((+b-+a)*10)/10});
 Object.assign(A,{
   kmSave(d){const b=d.b,kid=norm(b)||'x';const inp=$('#km_'+kid);const km=+inp.value;if(inp.value===''||!(km>=0))return toast('Total KM likho (ya Start aur End KM)');const r0=$('#odR0_'+kid).value,r1=$('#odR1_'+kid).value;if(r0!==''&&r1!==''&&+r1<+r0)return toast('End KM, Start KM se kam nahi ho sakta');
-    const rate=+(settings().kmRate??2);const id=kmKey(S.odod,b);const doc={date:S.odod,boy:b,km,rate,inc:Math.round(km*rate*100)/100,st:$('#odS_'+kid).value||'',en:$('#odE_'+kid).value||'',r0:r0===''?null:+r0,r1:r1===''?null:+r1,by:S.me||'',t:Date.now()};
+    const rate=kmRateOf(b);const id=kmKey(S.odod,b);const doc={date:S.odod,boy:b,km,rate,inc:Math.round(km*rate*100)/100,trips:Math.max(0,Math.round(+(($('#odT_'+kid)||{}).value)||0)),st:$('#odS_'+kid).value||'',en:$('#odE_'+kid).value||'',r0:r0===''?null:+r0,r1:r1===''?null:+r1,by:S.me||'',t:Date.now()};
     S.kms[id]={id,...doc};render();queue('km:'+id,()=>S.db.doc('kms/'+id).set(doc)).then(()=>toast(b+': '+L(km)+' km · incentive '+inr(doc.inc)))},
   pcOpenKm(d){S.pc.id=d.p;S.pc.tab='km';S.pc.m=S.odom;pcDraw(true)}
 });

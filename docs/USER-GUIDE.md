@@ -124,10 +124,15 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 2. Boy ne office ko cash diya: "+ Cash handover" → Kisne diya, Kisko diya, Amount → Save.
 3. Boy apne phone se bhi likh sakta hai (Payments → "Office ko cash diya"). Tab yahan "Ye cash office ko mila ya nahi?" me aayega: ginke "✓ Mila" dabao. Kam mila to utna hi likho.
 4. Cash bank me jama kiya: "+ Bank me jama".
-5. Kisi ke naam pe click = uska account: Cash khata (har rupaya kahan se aaya, kahan gaya), Collection, Delivery (din-wise), KM & incentive, Salary / advance.
-6. Salary ya advance dena: account me "Salary / advance do". Ye Kharcha me bhi jud jata hai.
+5. Naya boy ya office wala: "+ Naya member" → naam, kaam, phone, joining date, PIN, gaadi (apni / company ki), fuel (petrol / EV), aur salary / incentive ke niyam.
+6. Kisi ke naam pe click = uska account: Profile, Cash khata (har rupaya kahan se aaya, kahan gaya), Collection (aur kisko paisa wapas diya), Delivery (din-wise ya customer-wise), Bottles (di, wapas, 7+ din purani), KM & petrol, Hisab / incentive, Salary / advance.
+7. Hisab / incentive: salary + bhatta + har litre + har ghar + KM + trip, minus jo salary / advance diya = dena baaki. Bonus ya chhutti ke liye "Sudhaar".
+8. Kisi ne kaam chhod diya: uske Profile me "Kaam chhod diya". Login band, purana hisab "Purane member" me rehta hai.
+9. Salary ya advance dena: account me "Salary / advance do". Ye Kharcha me bhi jud jata hai.
 
 > Dhyan: UPI seedha company ke account me jata hai, isliye kisi ke haath me nahi gina jata.
+>
+> Dhyan: Customer ko paisa wapas dena (advance lautana): customer ka account → Adjustment → "Paisa wapas diya", aur kisne diya chuno. Cash me diya to uske haath ka cash ghatega.
 >
 > Dhyan: Naya mahina fresh shuru karna ho to neeche "Hisab kis date se gino" me tareekh daalo.
 >
@@ -185,9 +190,11 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 1. Boy duty shuru aur khatam karte waqt apne phone se meter ki photo leta hai. Time apne aap aa jata hai.
 2. Office: photo dekh ke "Start KM" aur "End KM" likho. Total KM apne aap nikalta hai. Save dabao to incentive ban jata hai.
 3. Photo na ho to time aur KM haath se bhi likh sakte ho.
-4. Neeche mahine ka incentive. Boy ke naam pe click = din-wise KM.
+4. Do chakkar lagaye (jaise pehle tempo se gaanv se doodh, phir delivery) to "Trip / chakkar" me likho.
+5. Petrol bharwaya ya EV charge kiya: "⛽ Petrol / charging" → litre / unit, ₹, kisne paise diye. Ye Kharcha me bhi judta hai.
+6. Neeche mahine ka KM, incentive aur petrol, aur petrol ka ₹ per KM. Boy ke naam pe click = din-wise.
 
-> Dhyan: ₹ per km Settings me set hota hai.
+> Dhyan: ₹ per km har boy ka apna (Team & cash → naam → Profile). Na ho to Settings wala rate lagta hai.
 
 ## 16. Settings aur backup
 
