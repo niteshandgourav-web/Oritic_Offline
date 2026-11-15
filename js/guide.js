@@ -65,7 +65,10 @@ const GUIDE=[
    'Mahina chuno, phir Pura mahina / 1–15 / 16–end.',
    'Customer pe click = bill ka message. "WhatsApp pe bhejo" ya "Bill copy karo".',
    '"WhatsApp queue": sabke bill ek ke baad ek bhejne ke liye.',
-   '"Excel (.xlsx)": poori list download.'],tips:[]},
+   '"Excel (.xlsx)": poori list download.',
+   'Bill ka PDF: customer ke bill me "📄 PDF" (phone pe "PDF bhejo" se seedha WhatsApp). Sabke bill ek file me: "📄 PDF (sab bills)", har bill alag page, upar wale filter (mahina, boy, search) ke hisab se.',
+   '"⚙ Bill format": business naam, title, address, phone, GSTIN, logo, UPI ID aur QR, page A4 / A5, aur bill me kya dikhe (rate, pichla baki, payments, din-wise list, boy ka naam). "Namoona PDF dekho" se pehle dekh lo.'],
+  tips:['PDF me ₹ ki jagah "Rs." aata hai (PDF font ki seema). Baki ho to bill me UPI QR aata hai, customer scan karke wahi amount bhar sakta hai.']},
  {id:'pay',t:'Payments (paisa lena)',where:'Menu → Payments · ya kahin se bhi P dabao',steps:[
    'Ek payment: "+ Payment lo" → customer → amount → Cash / UPI → "Kisne liya" → Save (do baar dabana hota hai, galti se bachne ke liye).',
    'Kai payments ek saath: "Bulk payment entry" me naam likho → Enter → amount → Enter → agli line. Aakhir me Ctrl + S.',

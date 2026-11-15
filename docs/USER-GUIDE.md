@@ -109,6 +109,10 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 2. Customer pe click = bill ka message. "WhatsApp pe bhejo" ya "Bill copy karo".
 3. "WhatsApp queue": sabke bill ek ke baad ek bhejne ke liye.
 4. "Excel (.xlsx)": poori list download.
+5. Bill ka PDF: customer ke bill me "📄 PDF" (phone pe "PDF bhejo" se seedha WhatsApp). Sabke bill ek file me: "📄 PDF (sab bills)", har bill alag page, upar wale filter (mahina, boy, search) ke hisab se.
+6. "⚙ Bill format": business naam, title, address, phone, GSTIN, logo, UPI ID aur QR, page A4 / A5, aur bill me kya dikhe (rate, pichla baki, payments, din-wise list, boy ka naam). "Namoona PDF dekho" se pehle dekh lo.
+
+> Dhyan: PDF me ₹ ki jagah "Rs." aata hai (PDF font ki seema). Baki ho to bill me UPI QR aata hai, customer scan karke wahi amount bhar sakta hai.
 
 ## 9. Payments (paisa lena)
 
