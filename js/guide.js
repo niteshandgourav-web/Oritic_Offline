@@ -66,6 +66,24 @@ const GUIDE=[
   tips:['Har badlav likha jata hai: kisne, kab, kya badla, pehle kitna tha. Entry dobara kholo to neeche dikhta hai, aur Khata me "✎ sudhari" likha aata hai.',
    'Yahan badla hua doodh ka rate sirf usi din ka hai. Customer ka rate aage ke liye badalna ho to account me "Rate badlo / Discount" use karo.',
    'Free me diya (sample): us line me "Free diya" tick kar do, phir wo laal nahi dikhega.']},
+ {id:'neworder',t:'Naya order (call pe customer aaya)',where:'Menu → Naya order',steps:[
+   'Sabse pehle mobile number likho. Number purana hai to customer ka naam dikh jayega: "Isi customer ka order badlo" dabao. Naya hai to naam, area, address bharo.',
+   'Neeche har doodh ke saamne list rate likha hai, customer ko wahi bata do. + dabake quantity chuno. Is customer ko alag rate dena ho to Rate wale dabbe me likh do.',
+   'Paneer, ghee jaise product roz chahiye to unke chip pe tap karo.',
+   'Kab se shuru, Roz ya ek din chhod ke, kaun sa boy, aur discount ho to wo chuno. Neeche hari patti me ek din aur mahine ka bill dikhta hai.',
+   '"Customer + order save karo". Customer us date se Delivery sheet me apne aap aa jayega.'],
+  tips:['Start date aage ki hai to tab tak customer sheet me nahi aayega.','Trial customer ho to Note me "trial" likh do, boy ko dikhega.']},
+ {id:'galti',t:'Galti pakdo (galat entries dhoondna)',where:'Menu → Galti pakdo',steps:[
+   'Upar 6 button hain, har ek ke saath ginti: Product price ₹0, Doodh ka rate ajeeb, Quantity ajeeb, Purane din pending, Bina rate ke customer, Double customer.',
+   'Button dabao to list khulti hai. Har line ke aage ✎ dabao to wahi entry "Entry sudharo" me khul jati hai.',
+   'Product price ₹0 me upar "Product ke hisab se ek saath theek karo" se ek rate sab pe lag jata hai.',
+   'Purane din pending me "Us din ki sheet kholo" dabake Diya / Skip laga do.'],
+  tips:['Hafte me ek baar ye page dekh lo. Sab theek ho to "Sab theek hai" likha aata hai.','Quantity ajeeb wali line sahi bhi ho sakti hai (mehmaan aaye the). Tab use chhod do.']},
+ {id:'mdisc',t:'Mahine ka discount (alag customer, alag discount)',where:'Customer account → Mahine ka discount · phir Bills → Discount lagao',steps:[
+   'Customer ka account kholo → "Mahine ka discount" → % (bill ka) ya ₹ fix har mahine chuno → Save.',
+   'Mahina khatam hone pe Bills page pe neeli patti "Discount lagao / dekho" dabao. Mahina chuno, har customer ka bill aur discount dikh jayega.',
+   '"Customers pe lagao" dabao. Har customer ke khate me us mahine ki ek "Discount" line ban jati hai aur baki kam ho jata hai.'],
+  tips:['Dobara dabane se discount double nahi hota. Bill badla ho to sirf naya hisab update hota hai.','Hamesha ke liye sasta rate dena ho to discount nahi, "Rate badlo / Discount" use karo.','Ek baar ka discount: "Adjustment".']},
  {id:'dues',t:'Vasooli (kis se kitna lena hai)',where:'Menu → Vasooli',steps:[
    'Upar ke dabbe: kul lena hai, 0–15 din, 16–30 din, 30+ din (pichle payment ko kitne din hue).',
    'Filter: 15+ din, 30+ din, ₹1,000+, Limit paar, Paused / chhod gaye, Advance.',
