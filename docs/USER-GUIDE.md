@@ -8,7 +8,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 2. Demand page se kal ka order supplier ko WhatsApp karo. Delivery sheet ke "Loading sheet" se dekho kis boy ko kitni bottle deni hai.
 3. Subah: boys apne phone me "Aaj list" se har ghar pe ✓ lagate hain, khali bottle wapas likhte hain, payment lete hain.
 4. Din me office: Payments me aaye paise likho, boy ne cash diya to Team & cash me "Mila ✓" karo, kharcha / maal Kharcha page me likho.
-5. Raat ko: Dashboard ka "Dhyan dein" box dekho. Jo laal hai use theek karo. Settings me "Pura backup" le lo.
+5. Raat ko: Dashboard ka "Dhyan dein" box dekho. Jo laal hai use theek karo. Settings me "Pura backup" le lo, ya ⋯ Aur → ☁ Drive backup se aaj ka hisaab Drive pe bhejo.
 
 > Dhyan: Delivery sheet subah 9 baje ke baad apne aap agle din pe khulti hai. Ye time Settings → Office tools me badal sakte ho.
 >
@@ -39,9 +39,10 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 6. Shahad, dahi, gur jaise product: "+ Product jodo" se. Jo product roz jaate hain unka apna column bana lo (⋯ Aur → ⚙ Columns → Product ka apna column), phir bas quantity likhni hai.
 7. Kai customers ek saath: line ke aage ka checkbox tick karo (Shift + click = poori range). Neeche kaali patti aayegi: Confirm, ✓ Diya, Skip, quantity, product, comment sab ek saath.
 8. ⋯ Aur → 📄 Boy sheets: har boy ki alag Excel file, uske route kram me. ⚙ Columns se tay karo kaunse column aur kis kram me. (Team & cash page pe bhi ye button hai.)
-9. ⋯ Aur → ⚙ Columns: kaunsa column pehle, kaunsa baad me, kaunsa chhupana hai. ↑ ↓ se aage-peeche karo. "Customer ka baki" column bhi yahin se on hota hai.
-10. "Loading sheet": har boy ko Cow / Buffalo / Gir ki kitni ½L aur 1L bottle aur kaunsa saamaan load karna hai. Copy karke WhatsApp ya Print.
-11. ⋯ me: route ka order badlo, Auto-fill dobara, chhote rows (compact).
+9. ⋯ Aur → ☁ Drive backup: us din ka poora hisaab (deliveries, payments, refund, cash, kharcha, meter, bottle) + har boy ki file aapki Google Drive ke "Oritic Backup" folder me. Pehli baar owner Settings → Google Drive backup me 5 step karke set kare.
+10. ⋯ Aur → ⚙ Columns: kaunsa column pehle, kaunsa baad me, kaunsa chhupana hai. ↑ ↓ se aage-peeche karo. "Customer ka baki" column bhi yahin se on hota hai.
+11. "Loading sheet": har boy ko Cow / Buffalo / Gir ki kitni ½L aur 1L bottle aur kaunsa saamaan load karna hai. Copy karke WhatsApp ya Print.
+12. ⋯ me: route ka order badlo, Auto-fill dobara, chhote rows (compact).
 
 > Dhyan: Pichli date pe kuch bhi badloge to popup poochhega aur badlav ka record ban jayega (Settings → Pichli date ke badlav).
 >

@@ -10,7 +10,7 @@ const GUIDE=[
    'Demand page se kal ka order supplier ko WhatsApp karo. Delivery sheet ke "Loading sheet" se dekho kis boy ko kitni bottle deni hai.',
    'Subah: boys apne phone me "Aaj list" se har ghar pe ✓ lagate hain, khali bottle wapas likhte hain, payment lete hain.',
    'Din me office: Payments me aaye paise likho, boy ne cash diya to Team & cash me "Mila ✓" karo, kharcha / maal Kharcha page me likho.',
-   'Raat ko: Dashboard ka "Dhyan dein" box dekho. Jo laal hai use theek karo. Settings me "Pura backup" le lo.'],
+   'Raat ko: Dashboard ka "Dhyan dein" box dekho. Jo laal hai use theek karo. Settings me "Pura backup" le lo, ya ⋯ Aur → ☁ Drive backup se aaj ka hisaab Drive pe bhejo.'],
   tips:['Delivery sheet subah 9 baje ke baad apne aap agle din pe khulti hai. Ye time Settings → Office tools me badal sakte ho.','Kahin se bhi Ctrl + K dabao aur customer ka naam likho. Sabse tez tareeka.','Bayen taraf ka menu sirf icons me simta rehta hai, mouse le jao to khulta hai. Hamesha khula chahiye to menu me upar 📌 dabao (har computer apni pasand yaad rakhta hai).']},
  {id:'home',t:'Dashboard',where:'Menu → Dashboard',steps:[
    '"Dhyan dein" box: jo kaam ruka hai wo yahan dikhta hai (order confirm baaki, delivery pe ✓ nahi, cash handover baaki, limit se zyada baki, bottle nahi lauti). Kisi line pe click karo to wahi page khulta hai.',
@@ -27,6 +27,7 @@ const GUIDE=[
    'Shahad, dahi, gur jaise product: "+ Product jodo" se. Jo product roz jaate hain unka apna column bana lo (⋯ Aur → ⚙ Columns → Product ka apna column), phir bas quantity likhni hai.',
    'Kai customers ek saath: line ke aage ka checkbox tick karo (Shift + click = poori range). Neeche kaali patti aayegi: Confirm, ✓ Diya, Skip, quantity, product, comment sab ek saath.',
    '⋯ Aur → 📄 Boy sheets: har boy ki alag Excel file, uske route kram me. ⚙ Columns se tay karo kaunse column aur kis kram me. (Team & cash page pe bhi ye button hai.)',
+   '⋯ Aur → ☁ Drive backup: us din ka poora hisaab (deliveries, payments, refund, cash, kharcha, meter, bottle) + har boy ki file aapki Google Drive ke "Oritic Backup" folder me. Pehli baar owner Settings → Google Drive backup me 5 step karke set kare.',
    '⋯ Aur → ⚙ Columns: kaunsa column pehle, kaunsa baad me, kaunsa chhupana hai. ↑ ↓ se aage-peeche karo. "Customer ka baki" column bhi yahin se on hota hai.',
    '"Loading sheet": har boy ko Cow / Buffalo / Gir ki kitni ½L aur 1L bottle aur kaunsa saamaan load karna hai. Copy karke WhatsApp ya Print.',
    '⋯ me: route ka order badlo, Auto-fill dobara, chhote rows (compact).'],
