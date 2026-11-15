@@ -35,14 +35,15 @@ if(typeof NAVG!=='undefined'){NAVG[0][1].splice(1,0,'neworder');NAVG[1][1].push(
 window.EXTRA_VIEWS={...(window.EXTRA_VIEWS||{}),neworder:()=>vNew(),galti:()=>vGalti()};
 
 /* ================= 1. Naya order ================= */
-const blank=()=>({id:'',phone:'',name:'',area:'',address:'',landmark:'',map:'',boy:boys()[0]||'',sched:'daily',since:addDays(todayISO(),1),q:{},r:{},x:{},notes:'',dt:'',dv:'',saved:null});
+const blank=()=>({id:'',phone:'',name:'',area:'',address:'',landmark:'',map:'',boy:boys()[0]||'',sched:'daily',since:addDays(todayISO(),1),q:{},r:{},x:{},xr:{},pq:'',notes:'',dt:'',dv:'',saved:null});
 let N=null;
 const rateFor=k=>{const o=N.id&&S.customers[N.id];if(o)return +ratesOf(o)[k]||0;return num(N.r[k])||+defRates()[k]||0};
 function foundHtml(){const ph=cleanPhone(N.phone);if(!ph)return '';if(ph.length<10)return '<div class="small muted" style="margin-top:6px">Mobile 10 digit ka likho</div>';
   const c=Object.values(S.customers).find(x=>x.phone===ph&&x.id!==N.id);if(!c)return N.id?'':'<div class="small muted" style="margin-top:6px">Naya number hai — naya customer banega.</div>';
   return `<div class="of-warn">Ye number pehle se hai: <b>${esc(c.name)}</b> · ${esc(c.area||'')} · ${esc(c.boy||'')} · ${c.status==='active'?'Active':'Paused'}
    <div class="row wrap" style="margin-top:6px;gap:6px"><button type="button" class="btn sm p" data-act="noLoad" data-id="${c.id}">Isi customer ka order badlo</button><button type="button" class="btn sm o" data-act="noAc" data-id="${c.id}">Account kholo</button></div></div>`}
-function dayValue(){let a=0;PRODUCTS.forEach(p=>a+=(+N.q[p.k]||0)*rateFor(p.k));products().forEach(p=>a+=(+N.x[p.id]||0)*(+p.a||0));return r2(a)}
+const xRate=p=>N.xr[p.id]!=null&&N.xr[p.id]!==''?num(N.xr[p.id]):(+p.a||0);
+function dayValue(){let a=0;PRODUCTS.forEach(p=>a+=(+N.q[p.k]||0)*rateFor(p.k));products().forEach(p=>a+=(+N.x[p.id]||0)*xRate(p));return r2(a)}
 function sumHtml(){const d=dayValue();const days=N.sched==='alternate'?15:30;const m=d*days;const dv=num(N.dv);const disc=N.dt==='pct'?Math.round(m*dv/100):N.dt==='amt'?Math.min(dv,m):0;
   return `<span>Ek din ka bill<br><b>${inr(d)}</b></span><span style="text-align:right"><small>Mahine ka andaza (${days} din)</small><br><b>${inr(m-disc)}</b>${disc?` <small>(discount ${inr(disc)})</small>`:''}</span>`}
 function vNew(){if(!N)N=blank();const dr=defRates();const pm=products().filter(p=>p.on!==false);const old=N.id&&S.customers[N.id];
@@ -60,10 +61,15 @@ function vNew(){if(!N)N=blank();const dr=defRates();const pm=products().filter(p
      ${PRODUCTS.map(p=>{const q=+N.q[p.k]||0;return `<div class="of-ln ${q>0?'on':''}"><div class="of-nm"><b>${pn(p)}</b><span class="small muted">List rate ₹${L(dr[p.k])}/L</span></div>
        <div class="of-ctl">${old?`<span class="ee-u">₹${L(rateFor(p.k))}/L</span>`:`<span class="ee-u">Rate ₹</span><input class="ee-in" type="number" inputmode="decimal" min="0" data-no="r.${p.k}" value="${esc(N.r[p.k]||'')}" placeholder="${L(dr[p.k])}" aria-label="${pn(p)} rate"><span class="ee-u">/L</span>`}
         <div class="step"><button type="button" data-act="noStep" data-k="${p.k}" data-n="-0.5" aria-label="Kam">−</button><input type="number" inputmode="decimal" step="0.5" min="0" data-no="q.${p.k}" value="${L(q)}" aria-label="${pn(p)} litre"><button type="button" data-act="noStep" data-k="${p.k}" data-n="0.5" aria-label="Zyada">+</button></div><span class="ee-u">L</span></div></div>`}).join('')}
-     ${old?'<div class="small muted">Is customer ka rate badalna ho to uske account me "Rate badlo / Discount" use karo.</div>':'<div class="small muted">Rate khali chhodo = list rate lagega. Is customer ko alag rate dena ho to likh do.</div>'}
+     ${old?`<div class="small muted">Doodh ka rate badalna ho to: <button type="button" class="btn xs o" data-act="noAc" data-id="${old.id}">Account kholo → Rate badlo</button></div>`:'<div class="small muted">Rate khali chhodo = list rate lagega. Is customer ko alag rate dena ho to likh do.</div>'}
      <div class="of-h" style="margin-top:12px">Roz ke other products (zaroori nahi)</div>
-     ${pm.filter(p=>+N.x[p.id]>0).map(p=>`<div class="of-ln on"><div class="of-nm"><b>${esc(p.n)}</b><span class="small muted">₹${L(p.a)}/${esc(p.u||'pc')}</span></div><div class="of-ctl"><input class="ee-in" type="number" inputmode="decimal" min="0" step="any" data-no="x.${esc(p.id)}" value="${L(N.x[p.id])}" aria-label="${esc(p.n)} quantity"><span class="ee-u">${esc(p.u||'pc')}</span><button type="button" class="ee-del" data-act="noX" data-id="${esc(p.id)}" data-n="0" aria-label="Hatao">✕</button></div></div>`).join('')}
-     <div class="chips">${pm.filter(p=>!(+N.x[p.id]>0)).map(p=>`<button type="button" class="chip" data-act="noX" data-id="${esc(p.id)}" data-n="${p.u==='kg'?0.25:1}">+ ${esc(p.n)} ₹${L(p.a)}/${esc(p.u||'pc')}</button>`).join('')}</div></div>
+     ${pm.filter(p=>p.id in N.x).map(p=>`<div class="of-ln on"><div class="of-nm"><b>${esc(p.n)}</b><span class="small muted">List rate ₹${L(p.a)}/${esc(p.u||'pc')}</span></div><div class="of-ctl"><span class="ee-u">Rate ₹</span><input class="ee-in" type="number" inputmode="decimal" min="0" step="any" data-no="xr.${esc(p.id)}" value="${esc(N.xr[p.id]!=null?N.xr[p.id]:'')}" placeholder="${L(p.a)}" aria-label="${esc(p.n)} rate"><span class="ee-u">/${esc(p.u||'pc')}</span>
+        <input class="ee-in" type="number" inputmode="decimal" min="0" step="any" data-no="x.${esc(p.id)}" value="${L(N.x[p.id])}" aria-label="${esc(p.n)} quantity"><span class="ee-u">${esc(p.u||'pc')}</span><button type="button" class="ee-del" data-act="noXDel" data-id="${esc(p.id)}" aria-label="Hatao">✕</button></div></div>`).join('')}
+     <input class="input" id="noQ" type="search" placeholder="🔍 Product dhoondo (paneer, ghee, dahi…)" value="${esc(N.pq||'')}" autocomplete="off" style="margin:4px 0 8px" aria-label="Product dhoondo">
+     <div class="chips" id="noChips">${pm.filter(p=>!(p.id in N.x)).map(p=>`<button type="button" class="chip" data-act="noX" data-id="${esc(p.id)}" data-n="${p.u==='kg'?0.25:1}" data-noc="${esc(p.n.toLowerCase())}" ${N.pq&&!p.n.toLowerCase().includes(N.pq.toLowerCase())?'hidden':''}>+ ${esc(p.n)} ₹${L(p.a)}/${esc(p.u||'pc')}</button>`).join('')}</div>
+     <details style="margin-top:10px" ${N.np?'open':''}><summary class="small" style="cursor:pointer;font-weight:700">+ Naya product (jo list me nahi hai)</summary>
+      <div class="of-ctl" style="margin-top:8px"><input class="input" id="noPN" placeholder="Product ka naam" style="flex:1 1 160px" aria-label="Naya product naam"><select class="input" id="noPU" style="flex:0 0 90px" aria-label="Unit"><option value="kg">kg</option><option value="pc">pc</option><option value="L">L</option></select><span class="ee-u">₹</span><input class="ee-in" id="noPA" type="number" inputmode="decimal" min="0" placeholder="rate" aria-label="Rate"><button type="button" class="btn sm p" data-act="noNewP">Banao + jodo</button></div>
+      <div class="small muted" style="margin-top:4px">Ye product Product master me bhi jud jayega, agli baar list me milega.</div></details></div>
    <div class="of-card"><div class="of-h">3 · Kab se, kaun dega</div><div class="of-g">
      ${F('Kab se shuru','since','date')}
      <div class="field"><label class="f">Kaise</label><select class="input" data-no="sched"><option value="daily" ${N.sched==='daily'?'selected':''}>Roz</option><option value="alternate" ${N.sched==='alternate'?'selected':''}>Ek din chhod ke</option></select></div>
@@ -74,9 +80,10 @@ function vNew(){if(!N)N=blank();const dr=defRates();const pm=products().filter(p
    <button type="button" class="btn p block" data-act="noSave">${old?'Order badlo (save)':'Customer + order save karo'}</button>
    <button type="button" class="btn o block" data-act="noClear" style="margin-top:8px">Form khali karo</button>`}}
 document.addEventListener('input',e=>{const t=e.target,f=t.dataset&&t.dataset.no;if(!f||!N)return;const v=t.value;
-  if(f.indexOf('q.')===0)N.q[f.slice(2)]=num(v);else if(f.indexOf('r.')===0)N.r[f.slice(2)]=v;else if(f.indexOf('x.')===0)N.x[f.slice(2)]=num(v);else N[f]=v;
+  if(f.indexOf('q.')===0)N.q[f.slice(2)]=num(v);else if(f.indexOf('r.')===0)N.r[f.slice(2)]=v;else if(f.indexOf('xr.')===0)N.xr[f.slice(3)]=v;else if(f.indexOf('x.')===0)N.x[f.slice(2)]=num(v);else N[f]=v;
   if(f==='phone'){const el=$('#noFound');if(el)el.innerHTML=foundHtml()}
   const s=$('#noSum');if(s)s.innerHTML=sumHtml()});
+document.addEventListener('input',e=>{const t=e.target;if(t.id!=='noQ'||!N)return;N.pq=t.value.trim();const q=N.pq.toLowerCase();document.querySelectorAll('#noChips [data-noc]').forEach(b=>b.hidden=!!q&&!b.dataset.noc.includes(q))});
 
 /* ================= 2. Galti pakdo ================= */
 const GP=[['price0','Product price ₹0','Product diya gaya par price nahi likha, isliye bill kam ban raha hai.'],
@@ -94,7 +101,7 @@ function galti(){const today=todayISO();const G={price0:[],rate:[],qty:[],pend:[
       if(!rt)G.rate.push({d,cid,t:nm+' ka rate ₹0'});else if(usual&&rs.length>=5&&Math.abs(rt-usual)/usual>0.25)G.rate.push({d,cid,t:`${nm} ₹${L(rt)}/L (aam taur pe ₹${L(usual)})`});
       if(rs.length>=5&&q>=med*3&&q-med>=2)G.qty.push({d,cid,t:`${nm} ${L(q)} L (aam taur pe ${L(med)} L)`})})})}
   if(window.eeZeroList)eeZeroList().forEach(o=>G.price0.push({d:o.d,cid:o.cid,t:o.z.base+' '+(o.z.u==='kg'?fq(o.z.qty,'kg'):L(o.z.qty)+' '+o.z.u)+' · price nahi'}));
-  Object.keys(S.days).filter(d=>d<today&&Object.keys(S.days[d].rows||{}).length).forEach(d=>{const n=todaysList(d,'all').filter(({c,r})=>(!r||r.s==='p')&&c.status==='active'&&(c.since||'')<=d&&(PRODUCTS.some(p=>+(c.order&&c.order[p.k])>0)||(c.xorder||[]).length)).length;if(n)G.pend.push({d,n})});
+  Object.keys(S.days).filter(d=>d<today&&Object.keys(S.days[d].rows||{}).length).forEach(d=>{const n=todaysList(d,'all').filter(({c,r})=>(!r||r.s==='p')&&c.status==='active'&&(typeof existedOn==='function'?existedOn(c,d):(c.since||'')<=d)&&(PRODUCTS.some(p=>+(c.order&&c.order[p.k])>0)||(c.xorder||[]).length)).length;if(n)G.pend.push({d,n})});
   const ph={};Object.values(S.customers).forEach(c=>{if(c.status==='active'&&PRODUCTS.some(p=>+(c.order&&c.order[p.k])>0&&!(+ratesOf(c)[p.k]>0)))G.norate.push({cid:c.id,t:'order hai, rate 0'});if(c.phone)(ph[c.phone]=ph[c.phone]||[]).push(c)});
   Object.values(ph).forEach(l=>{if(l.length>1)l.forEach(c=>G.dup.push({cid:c.id,t:'Mobile '+c.phone+' · saath me: '+l.filter(x=>x!==c).map(x=>x.name).join(', ')}))});
   ['price0','rate','qty','pend'].forEach(k=>G[k].sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0));return G}
@@ -131,16 +138,20 @@ const _vB=vBills;vBills=function(){const o=_vB();if(!isOwner()||!o||typeof o.htm
 
 Object.assign(A,{
   noStep(d){if(!N)return;N.q[d.k]=Math.max(0,r2((+N.q[d.k]||0)+(+d.n)));render()},
-  noX(d){if(!N)return;N.x[d.id]=+d.n||0;render()},
+  noX(d){if(!N)return;N.x[d.id]=+d.n||0;N.pq='';render();const f=document.querySelector('[data-no="x.'+CSS.escape(d.id)+'"]');if(f){f.focus();f.select()}},
+  noXDel(d){if(!N)return;delete N.x[d.id];delete N.xr[d.id];render()},
+  noNewP(){if(!N)return;const n=($('#noPN').value||'').trim(),u=$('#noPU').value,a=num($('#noPA').value);if(!n)return toast('Product ka naam likho');
+    let p=findProd(n);if(!p){p={id:'p'+uid(),n,u,a,on:true};saveSettings({...settings(),products:[...products(),p]})}
+    N.x[p.id]=p.u==='kg'?0.25:1;N.np=0;render();toast(p.n+' jud gaya')},
   noClear(){N=blank();render();window.scrollTo(0,0)},
   noAc(d){if(window.acOpen)acOpen(d.id)},
   noLoad(d){const c=S.customers[d.id];if(!c)return;N={...blank(),id:c.id,phone:c.phone||'',name:c.name||'',area:c.area||'',address:c.address||'',landmark:c.landmark||'',map:c.map||'',boy:c.boy||'',sched:c.schedule==='alternate'?'alternate':'daily',since:todayISO(),q:{...orderOf(c)},x:{},notes:c.notes||'',dt:discOf(c)?c.disc.t:'',dv:discOf(c)?String(c.disc.v):''};
-    (c.xorder||[]).forEach(e=>{const p=(e.pid&&products().find(x=>x.id===e.pid))||findProd(e.n);if(p)N.x[p.id]=+e.qty||0});render()},
+    (c.xorder||[]).forEach(e=>{const p=(e.pid&&products().find(x=>x.id===e.pid))||findProd(e.n);if(p){N.x[p.id]=+e.qty||0;if(e.rate!=null)N.xr[p.id]=String(e.rate)}});render()},
   async noSave(){if(!N)return;if(!isOwner())return toast('Sirf owner / office kar sakta hai');const name=N.name.trim(),ph=cleanPhone(N.phone);const old=N.id?S.customers[N.id]:null;
     if(!name)return toast('Customer ka naam likho');if(ph&&ph.length!==10)return toast('Mobile 10 digit ka hona chahiye');
     if(!old&&ph&&Object.values(S.customers).some(c=>c.phone===ph))return toast('Ye number pehle se hai — upar "Isi customer ka order badlo" dabao');
     const order={};for(const p of PRODUCTS){const q=+N.q[p.k]||0;if(Math.round(q*2)!==q*2)return toast(pn(p)+': quantity 0.5 ke step me likho');order[p.k]=q}
-    const xorder=products().filter(p=>+N.x[p.id]>0).map(p=>({n:p.n,pid:p.id,qty:+N.x[p.id]}));
+    const xorder=products().filter(p=>+N.x[p.id]>0).map(p=>{const o={n:p.n,pid:p.id,qty:+N.x[p.id]};if(N.xr[p.id]!=null&&N.xr[p.id]!=='')o.rate=num(N.xr[p.id]);return o});
     if(!PRODUCTS.some(p=>order[p.k]>0)&&!xorder.length)return toast('Order me kuch to chuno');
     if(!N.since)return toast('Kab se shuru karna hai, date chuno');
     const dv=num(N.dv);if(N.dt==='pct'&&dv>50)return toast('Discount 50% se zyada nahi ho sakta');const disc=N.dt&&dv>0?{t:N.dt,v:dv}:null;
@@ -167,5 +178,24 @@ Object.assign(A,{
      <button type="button" class="btn p block" data-act="mdSetSave" style="margin-top:6px">Save</button>`)},
   mdSetSave(){const id=S.ac&&S.ac.id;if(!id)return;const t=$('#mdT').value,v=num($('#mdV').value);if(t&&!v)return toast('Kitna discount, likho');if(t==='pct'&&v>50)return toast('Discount 50% se zyada nahi ho sakta');
     saveCustField(id,{disc:t?{t,v}:null});closeSheet();render();toast(t?'Discount set: '+discText({t,v}):'Discount hata diya')},
+  asToggle(){try{localStorage.setItem('oritic.autosave',asOn()?'0':'1')}catch(_){}render();toast(asOn()?'Auto save ON: dusri line pe jaate hi save hoga':'Auto save OFF: Save button / Ctrl+S se save karo')},
 });
+
+/* ================= 4. Auto save (Customers grid + Delivery sheet) =================
+   Jis line me abhi type ho raha hai use nahi chhedte. Line se bahar jaate hi baaki badli hui lines save.
+   Galti wali line dobara tabhi try hoti hai jab usme kuch badle, taki baar baar toast na aaye. */
+const asOn=()=>{try{return localStorage.getItem('oritic.autosave')!=='0'}catch(_){return true}};
+window.autoSaveOn=asOn;
+let asBusy=false,cgFail='';const shFail={};
+const refocus=sel=>{if(!sel)return;const el=document.querySelector(sel);if(el&&document.activeElement!==el){el.focus();try{const n=el.value.length;el.setSelectionRange(n,n)}catch(_){}}};
+async function cgAuto(){if(asBusy||!asOn()||S.route!=='customers'||!isOwner()||!S.cgDirty)return;const a=document.activeElement;const cur=a&&a.classList&&a.classList.contains('cgi')?a.dataset.cg:null;
+  const ids=Object.keys(S.cgDirty).filter(id=>id!==cur);if(!ids.length)return;const sig=JSON.stringify(ids.map(id=>[id,S.cgDirty[id]]));if(sig===cgFail)return;
+  asBusy=true;const sel=cur?'.cgi[data-cg="'+cur+'"][data-f="'+a.dataset.f+'"]':'';const keep=cur?S.cgDirty[cur]:null;if(keep)delete S.cgDirty[cur];
+  try{await A.cgSave()}finally{if(keep){S.cgDirty[cur]={...keep,...(S.cgDirty[cur]||{})};render()}
+    const left=Object.keys(S.cgDirty).filter(id=>id!==cur);cgFail=left.length?JSON.stringify(left.map(id=>[id,S.cgDirty[id]])):'';asBusy=false;refocus(sel)}}
+async function shAuto(){if(asBusy||!asOn()||S.route!=='sheet'||!isOwner()||!$('#sheet').hidden||!S.pldr)return;const a=document.activeElement;const tr=a&&a.closest?a.closest('tr[data-row]'):null;const cur=tr?tr.dataset.row:null;
+  const pre=S.pld+'|';const ids=Object.keys(S.pldr).filter(k=>k.indexOf(pre)===0&&S.pldr[k]&&S.pldr[k].dirty).map(k=>k.slice(pre.length)).filter(id=>id!==cur&&S.customers[id]&&shFail[pre+id]!==JSON.stringify(S.pldr[pre+id].qty));
+  if(!ids.length)return;asBusy=true;const ds=a&&a.dataset&&cur?a.dataset:null;const sel=ds&&ds.act?'[data-act="'+ds.act+'"]'+(ds.id?'[data-id="'+ds.id+'"]':'')+(ds.p?'[data-p="'+ds.p+'"]':'')+(ds.pid?'[data-pid="'+ds.pid+'"]':''):'';
+  try{for(const id of ids){const k=pre+id;const q=JSON.stringify(S.pldr[k].qty);await A.shOk({id});if(S.pldr[k]&&S.pldr[k].dirty)shFail[k]=q;else delete shFail[k]}}finally{asBusy=false;refocus(sel)}}
+document.addEventListener('focusout',e=>{const t=e.target;if(!t||!t.closest)return;if(t.classList&&t.classList.contains('cgi'))setTimeout(cgAuto,250);else if(t.closest('tr[data-row]'))setTimeout(shAuto,250)});
 })();

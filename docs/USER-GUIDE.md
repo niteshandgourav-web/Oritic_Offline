@@ -35,14 +35,15 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 2. Har customer ki line me roz ka order pehle se bhara hai. Customer ne badlav bola to us dabbe me number likho. Enter = neeche wala customer, Tab = agla product.
 3. Line ke shuru me ✓ dabao = order confirm. Quantity 0 karke ✓ = us din doodh nahi jayega. Sab theek ho to upar "Sab confirm karo".
 4. Delivery ho gayi to Status column me "✓ Diya", nahi gaya to "Skip". Galti ho to ↺ se wapas pending.
-5. "Wapas" column me likho kitni ½L aur 1L khali bottle wapas aayi.
-6. Shahad, dahi, gur jaise product: "+ Product jodo" se. Jo product roz jaate hain unka apna column bana lo (⋯ Aur → ⚙ Columns → Product ka apna column), phir bas quantity likhni hai.
-7. Kai customers ek saath: line ke aage ka checkbox tick karo (Shift + click = poori range). Neeche kaali patti aayegi: Confirm, ✓ Diya, Skip, quantity, product, comment sab ek saath.
-8. ⋯ Aur → 📄 Boy sheets: har boy ki alag Excel file, uske route kram me. ⚙ Columns se tay karo kaunse column aur kis kram me. (Team & cash page pe bhi ye button hai.)
-9. ⋯ Aur → ☁ Drive backup: us din ka poora hisaab (deliveries, payments, refund, cash, kharcha, meter, bottle) + har boy ki file aapki Google Drive ke "Oritic Backup" folder me. Pehli baar owner Settings → Google Drive backup me 5 step karke set kare.
-10. ⋯ Aur → ⚙ Columns: kaunsa column pehle, kaunsa baad me, kaunsa chhupana hai. ↑ ↓ se aage-peeche karo. "Customer ka baki" column bhi yahin se on hota hai.
-11. "Loading sheet": har boy ko Cow / Buffalo / Gir ki kitni ½L aur 1L bottle aur kaunsa saamaan load karna hai. Copy karke WhatsApp ya Print.
-12. ⋯ me: route ka order badlo, Auto-fill dobara, chhote rows (compact).
+5. Quantity badal ke dusri line pe jaoge to wo line apne aap save (confirm) ho jati hai. Ye Customers page ke "Auto save" button se band / chalu hota hai.
+6. "Wapas" column me likho kitni ½L aur 1L khali bottle wapas aayi.
+7. Shahad, dahi, gur jaise product: "+ Product jodo" se. Jo product roz jaate hain unka apna column bana lo (⋯ Aur → ⚙ Columns → Product ka apna column), phir bas quantity likhni hai.
+8. Kai customers ek saath: line ke aage ka checkbox tick karo (Shift + click = poori range). Neeche kaali patti aayegi: Confirm, ✓ Diya, Skip, quantity, product, comment sab ek saath.
+9. ⋯ Aur → 📄 Boy sheets: har boy ki alag Excel file, uske route kram me. ⚙ Columns se tay karo kaunse column aur kis kram me. (Team & cash page pe bhi ye button hai.)
+10. ⋯ Aur → ☁ Drive backup: us din ka poora hisaab (deliveries, payments, refund, cash, kharcha, meter, bottle) + har boy ki file aapki Google Drive ke "Oritic Backup" folder me. Pehli baar owner Settings → Google Drive backup me 5 step karke set kare.
+11. ⋯ Aur → ⚙ Columns: kaunsa column pehle, kaunsa baad me, kaunsa chhupana hai. ↑ ↓ se aage-peeche karo. "Customer ka baki" column bhi yahin se on hota hai.
+12. "Loading sheet": har boy ko Cow / Buffalo / Gir ki kitni ½L aur 1L bottle aur kaunsa saamaan load karna hai. Copy karke WhatsApp ya Print.
+13. ⋯ me: route ka order badlo, Auto-fill dobara, chhote rows (compact).
 
 > Dhyan: Pichli date pe kuch bhi badloge to popup poochhega aur badlav ka record ban jayega (Settings → Pichli date ke badlav).
 >
@@ -68,7 +69,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 
 **Kahan:** Menu → Customers
 
-1. Grid view Excel jaisa hai: kisi bhi dabbe me seedha likho, Ctrl + S se save. Badle hue dabbe peele, galat wale laal dikhte hain.
+1. Grid view Excel jaisa hai: kisi bhi dabbe me seedha likho. Upar "Auto save: ON" ho to dusri line pe jaate hi apne aap save ho jata hai (OFF karoge to Ctrl + S se save). Badle hue dabbe peele, galat wale laal dikhte hain.
 2. Naya customer: "+ 1 khali row" ya "+ 10 rows", naam / boy / schedule bharo, Ctrl + S. Mobile zaroori nahi.
 3. Excel se copy karke grid me paste kar sakte ho (kai dabbe ek saath).
 4. Bahut saare naye customer: "Excel import" → Template download → bhar ke upload → preview me galti dekho → Import.
@@ -114,7 +115,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 
 1. Sabse pehle mobile number likho. Number purana hai to customer ka naam dikh jayega: "Isi customer ka order badlo" dabao. Naya hai to naam, area, address bharo.
 2. Neeche har doodh ke saamne list rate likha hai, customer ko wahi bata do. + dabake quantity chuno. Is customer ko alag rate dena ho to Rate wale dabbe me likh do.
-3. Paneer, ghee jaise product roz chahiye to unke chip pe tap karo.
+3. Paneer, ghee jaise product roz chahiye to "Product dhoondo" me naam likho aur chip pe tap karo. Us customer ke liye alag price ho to Rate wale dabbe me likh do. Product list me nahi hai to "+ Naya product" se wahin bana lo.
 4. Kab se shuru, Roz ya ek din chhod ke, kaun sa boy, aur discount ho to wo chuno. Neeche hari patti me ek din aur mahine ka bill dikhta hai.
 5. "Customer + order save karo". Customer us date se Delivery sheet me apne aap aa jayega.
 

@@ -161,7 +161,9 @@ async function commitRows(rows){const date=S.pld,ids=Object.keys(rows);if(!ids.l
   else toast('Save nahi hua, dobara dabao');
   return ok===true}
 function shBuild(c){const r=rowOf(S.pld,c.id);const b=plBuild(c);if(b.s==='k')return null;
-  const row=makeRow(c,'d',b.q,b.x,(r&&r.n)||'',(r&&r.by)||c.boy||'');row.pl=1;return row}
+  const row=makeRow(c,'d',b.q,b.x,(r&&r.n)||'',(r&&r.by)||c.boy||'');row.pl=1;
+  if(r&&r.s==='d'){if(r.r){row.r={...row.r,...r.r};row.a=calcAmount(row.q,row.x,row.r)}if(r.rl)row.rl=1;if(r.ed)row.ed=r.ed;if(r.t)row.t=r.t;if(!(+r.bo>0)&&PRODUCTS.some(p=>+(r.q&&r.q[p.k])>0))row.bo=0}
+  return row}
 function pastPending(){const p=planDayISO(),out=[];for(let i=1;i<=7;i++){const d=addDays(p,-i);if(d>todayISO())continue;const day=S.days[d];
   if(!day||!Object.values(day.rows||{}).some(r=>r.s==='d'))continue;
   const n=todaysList(d,'all').filter(({c,r})=>c.status==='active'&&(!r||r.s==='p')&&existedOn(c,d)).length;if(n)out.push({d,n})}return out}
@@ -461,7 +463,7 @@ function cgCell(id,col,ci){const v=cgCur(id,col.f);const d=S.cgDirty[id];const d
     return `<td class="${cls}"${ttl}><select class="cgi" data-cg="${id}" data-f="${col.f}">${col.f==='boy'&&!v?'<option value="">— chuno —</option>':''}${opts.map(o=>`<option value="${esc(o[0])}" ${o[0]===v?'selected':''}>${esc(o[1])}</option>`).join('')}</select></td>`}
   return `<td class="${cls}"${ttl}><input class="cgi" data-cg="${id}" data-f="${col.f}" value="${esc(v)}" ${col.num?`type="number" inputmode="decimal" min="0" step="${col.step}"`:col.f==='phone'?'inputmode="tel"':''} autocomplete="off"></td>`}
 function cgBarHtml(){const dn=Object.keys(S.cgDirty).length,sn=[...S.cgSel].filter(id=>cgObj(id)).length;if(!dn&&!sn)return '';
-  return `<div class="bulkbar">${dn?`<b>${dn} customers me badlav</b><button class="btn sm p" data-act="cgSave">Save karo <span class="kbd" style="background:transparent;color:inherit">Ctrl S</span></button><button class="btn sm" data-act="cgReset">Reset</button>`:''}
+  return `<div class="bulkbar">${dn?`<b>${dn} customers me badlav</b>${window.autoSaveOn&&autoSaveOn()?'<span class="small">dusri line pe jaate hi apne aap save</span>':''}<button class="btn sm p" data-act="cgSave">Save karo <span class="kbd" style="background:transparent;color:inherit">Ctrl S</span></button><button class="btn sm" data-act="cgReset">Reset</button>`:''}
    ${sn?`${dn?'<span class="sep"></span>':''}<b>${sn} chune</b>
    <select id="cbBoy" aria-label="Boy">${boys().map(b=>`<option>${esc(b)}</option>`).join('')}</select><button class="btn sm" data-act="cgBulk" data-op="boy">Boy lagao</button>
    <button class="btn sm" data-act="cgBulk" data-op="active">Active</button><button class="btn sm" data-act="cgBulk" data-op="paused">Pause</button>
@@ -486,7 +488,7 @@ function vCustGrid(){const {list,pos,total,act}=cgList();const cols=CGCOLS();
   cgBarN=Object.keys(S.cgDirty).length+'|'+S.cgSel.size;
   const html=`<div class="stack">
     <div class="row sp wrap"><div class="search grow" style="min-width:220px;max-width:420px">${ICONS.search}<input class="input" placeholder="Naam, phone, area…  ( / )" value="${esc(S.cq)}" data-act="cq"></div>
-     <div class="row wrap"><button class="btn sm o" data-act="cgAdd" data-n="1">+ 1 khali row</button><button class="btn sm o" data-act="cgAdd" data-n="10">+ 10 rows</button><button class="btn sm o" data-act="impOpen">Excel import</button><button class="btn sm o" data-act="cgXlsx">Excel export</button></div></div>
+     <div class="row wrap"><button class="btn sm o" data-act="cgAdd" data-n="1">+ 1 khali row</button><button class="btn sm o" data-act="cgAdd" data-n="10">+ 10 rows</button><button class="btn sm o" data-act="impOpen">Excel import</button><button class="btn sm o" data-act="cgXlsx">Excel export</button>${window.autoSaveOn?`<button class="btn sm ${autoSaveOn()?'p':'o'}" data-act="asToggle" title="ON: dusri line pe jaate hi badlav apne aap save">Auto save: ${autoSaveOn()?'ON':'OFF'}</button>`:''}</div></div>
     <div class="row sp wrap">${boyChips(S.cboy,'setCBoy')}<div class="row"><div class="seg">${[['active','Active'],['paused','Paused'],['all','Sab']].map(([v,l])=>`<button class="${S.cstatus===v?'on':''}" data-act="setCStatus" data-v="${v}">${l}</button>`).join('')}</div>
      <div class="seg">${[['route','Route order'],['az','Area / A–Z']].map(([v,l])=>`<button class="${(S.csort||'route')===v?'on':''}" data-act="setCSort" data-v="${v}">${l}</button>`).join('')}</div><button class="btn sm o" data-act="routeOrder" data-b="${esc(S.cboy)}">⇅ Order</button></div></div>
     <div class="small muted">${list.length} dikh rahe · ${act} active · ${total-act} paused. Cell me seedha likho, <span class="kbd">Enter</span>/<span class="kbd">↑↓</span> se upar-neeche, <span class="kbd">Ctrl</span>+<span class="kbd">S</span> save. Excel se kai cells copy karke yahan paste kar sakte ho.</div>

@@ -1041,7 +1041,7 @@ const A={
     PRODUCTS.forEach(p=>{order[p.k]=Math.max(0,+$('#fQ_'+p.k).value||0);rates[p.k]=+$('#fR_'+p.k).value||0});
     const wdays=[...document.querySelectorAll('[data-wd]:checked')].map(i=>+i.dataset.wd);
     if($('#fSched').value==='custom'&&!wdays.length)return toast('Custom schedule ke liye kam se kam ek din chuno');
-    const xorder=$('#fXo').value.split('\n').map(l=>{const m=l.match(/^(.*?)\s*[=:]\s*(\d+(?:\.\d+)?)\s*$/);const n=(m?m[1]:l).trim();if(!n)return null;const p=findProd(n);return {n:p?p.n:n,pid:p?p.id:'',qty:m?+m[2]:1}}).filter(Boolean);
+    const xorder=$('#fXo').value.split('\n').map(l=>{const m=l.match(/^(.*?)\s*[=:]\s*(\d+(?:\.\d+)?)\s*$/);const n=(m?m[1]:l).trim();if(!n)return null;const p=findProd(n);const o={n:p?p.n:n,pid:p?p.id:'',qty:m?+m[2]:1};const was=((S.customers[d.id]||{}).xorder||[]).find(z=>z.n===o.n);if(was&&was.rate!=null)o.rate=was.rate;return o}).filter(Boolean);
     const c={...old,id:d.id||null,name,phone:cleanPhone($('#fPhone').value),area:$('#fArea').value.trim(),address:$('#fAddress').value.trim(),house:$('#fHouse').value.trim(),landmark:$('#fLandmark').value.trim(),wdays,xorder,since:$('#fSince').value||old.since||todayISO(),map:(()=>{const v=$('#fMap').value.trim();const m=v.match(/https?:\/\/\S+/);return m?m[0]:v})(),boy:$('#fBoy').value,schedule:$('#fSched').value,status:$('#fStatus').value,order,rates,openingDue:+$('#fOpen').value||0,bottles:+$('#fBottles').value||0,notes:$('#fNotes').value.trim(),createdAt:old.createdAt||todayISO()};
     if(old.seq==null||old.boy!==c.boy)c.seq=Object.values(S.customers).filter(x=>x.boy===c.boy&&x.id!==c.id).reduce((m,x)=>Math.max(m,+x.seq||0),0)+10;
     if(!d.id&&c.phone&&S.customers['c'+c.phone])return toast('Is number ka customer pehle se hai');
@@ -1217,7 +1217,7 @@ function saveDayField(date,patch){if(!canWrite()){toast('Aapko write permission 
 function addVar(cid,v){const c=S.customers[cid];if(!c)return;saveCustField(cid,{vars:[...(c.vars||[]),{id:uid(),at:todayISO(),by:S.me||'',t0:Date.now(),...v}]})}
 
 /* --- items: kisi din customer ko kya jayega (row ho to row, warna schedule + standing order) --- */
-function standingX(c){return (c.xorder||[]).filter(e=>+e.qty>0).map(e=>{const p=(e.pid&&products().find(x=>x.id===e.pid))||findProd(e.n);const lr=lastRate(c.id,p?p.id:'',e.n);const rate=lr!=null?lr:(p?+p.a||0:0);const base=p?p.n:e.n;const qty=+e.qty;
+function standingX(c){return (c.xorder||[]).filter(e=>+e.qty>0).map(e=>{const p=(e.pid&&products().find(x=>x.id===e.pid))||findProd(e.n);const lr=lastRate(c.id,p?p.id:'',e.n);const rate=e.rate!=null&&e.rate!==''?(+e.rate||0):lr!=null?lr:(p?+p.a||0:0);const base=p?p.n:e.n;const qty=+e.qty;
   return {n:base+(qty!==1?' ×'+L(qty):''),base,pid:p?p.id:'',qty,rate,a:Math.round(qty*rate*100)/100,so:1}})}
 function rowItems(c,r){if(r&&(r.s!=='p'||r.pl))return {q:r.q||orderOf(c),x:r.x||[]};return {q:orderOf(c),x:r&&r.x&&r.x.length?r.x:standingX(c)}}
 function projDue(c,date){if(c.status!=='active')return false;if(onHold(c,date))return false;if(date<=addDays(todayISO(),1)||c.schedule!=='alternate')return dueOn(c,date);

@@ -23,6 +23,7 @@ const GUIDE=[
    'Har customer ki line me roz ka order pehle se bhara hai. Customer ne badlav bola to us dabbe me number likho. Enter = neeche wala customer, Tab = agla product.',
    'Line ke shuru me ✓ dabao = order confirm. Quantity 0 karke ✓ = us din doodh nahi jayega. Sab theek ho to upar "Sab confirm karo".',
    'Delivery ho gayi to Status column me "✓ Diya", nahi gaya to "Skip". Galti ho to ↺ se wapas pending.',
+   'Quantity badal ke dusri line pe jaoge to wo line apne aap save (confirm) ho jati hai. Ye Customers page ke "Auto save" button se band / chalu hota hai.',
    '"Wapas" column me likho kitni ½L aur 1L khali bottle wapas aayi.',
    'Shahad, dahi, gur jaise product: "+ Product jodo" se. Jo product roz jaate hain unka apna column bana lo (⋯ Aur → ⚙ Columns → Product ka apna column), phir bas quantity likhni hai.',
    'Kai customers ek saath: line ke aage ka checkbox tick karo (Shift + click = poori range). Neeche kaali patti aayegi: Confirm, ✓ Diya, Skip, quantity, product, comment sab ek saath.',
@@ -40,7 +41,7 @@ const GUIDE=[
    '"⇅ Order badlo": apne gharon ka kram (route) khud set karo. Naam pe tap karo → Sabse upar / Sabse neeche / Kisi ke baad rakho (phir us ghar pe tap karo). Ya ⠿ pakad ke khiskao, ↑ ↓. Aakhir me "Save karo". Paas-paas ke ghar saath rakho, taaki ek ke yahan jao to dusre ka order bhi dikh jaye.'],
   tips:['Office bhi yahi list dekh sakta hai, par office ke liye Delivery sheet zyada tez hai.','Owner / office kisi bhi boy ka order badal sakte hain: Delivery sheet → ⋯ Aur → Customer ka order, ya Boy sheets → ⇅ Order. Kram apne aap kabhi nahi badalta.']},
  {id:'cust',t:'Customers (list, grid, Excel import)',where:'Menu → Customers',steps:[
-   'Grid view Excel jaisa hai: kisi bhi dabbe me seedha likho, Ctrl + S se save. Badle hue dabbe peele, galat wale laal dikhte hain.',
+   'Grid view Excel jaisa hai: kisi bhi dabbe me seedha likho. Upar "Auto save: ON" ho to dusri line pe jaate hi apne aap save ho jata hai (OFF karoge to Ctrl + S se save). Badle hue dabbe peele, galat wale laal dikhte hain.',
    'Naya customer: "+ 1 khali row" ya "+ 10 rows", naam / boy / schedule bharo, Ctrl + S. Mobile zaroori nahi.',
    'Excel se copy karke grid me paste kar sakte ho (kai dabbe ek saath).',
    'Bahut saare naye customer: "Excel import" → Template download → bhar ke upload → preview me galti dekho → Import.',
@@ -69,7 +70,7 @@ const GUIDE=[
  {id:'neworder',t:'Naya order (call pe customer aaya)',where:'Menu → Naya order',steps:[
    'Sabse pehle mobile number likho. Number purana hai to customer ka naam dikh jayega: "Isi customer ka order badlo" dabao. Naya hai to naam, area, address bharo.',
    'Neeche har doodh ke saamne list rate likha hai, customer ko wahi bata do. + dabake quantity chuno. Is customer ko alag rate dena ho to Rate wale dabbe me likh do.',
-   'Paneer, ghee jaise product roz chahiye to unke chip pe tap karo.',
+   'Paneer, ghee jaise product roz chahiye to "Product dhoondo" me naam likho aur chip pe tap karo. Us customer ke liye alag price ho to Rate wale dabbe me likh do. Product list me nahi hai to "+ Naya product" se wahin bana lo.',
    'Kab se shuru, Roz ya ek din chhod ke, kaun sa boy, aur discount ho to wo chuno. Neeche hari patti me ek din aur mahine ka bill dikhta hai.',
    '"Customer + order save karo". Customer us date se Delivery sheet me apne aap aa jayega.'],
   tips:['Start date aage ki hai to tab tak customer sheet me nahi aayega.','Trial customer ho to Note me "trial" likh do, boy ko dikhega.']},
