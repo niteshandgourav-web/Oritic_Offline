@@ -13,6 +13,8 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 > Dhyan: Delivery sheet subah 9 baje ke baad apne aap agle din pe khulti hai. Ye time Settings → Office tools me badal sakte ho.
 >
 > Dhyan: Kahin se bhi Ctrl + K dabao aur customer ka naam likho. Sabse tez tareeka.
+>
+> Dhyan: Bayen taraf ka menu sirf icons me simta rehta hai, mouse le jao to khulta hai. Hamesha khula chahiye to menu me upar 📌 dabao (har computer apni pasand yaad rakhta hai).
 
 ## 2. Dashboard
 
@@ -34,9 +36,9 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 3. Line ke shuru me ✓ dabao = order confirm. Quantity 0 karke ✓ = us din doodh nahi jayega. Sab theek ho to upar "Sab confirm karo".
 4. Delivery ho gayi to Status column me "✓ Diya", nahi gaya to "Skip". Galti ho to ↺ se wapas pending.
 5. "Wapas" column me likho kitni ½L aur 1L khali bottle wapas aayi.
-6. Shahad, dahi, gur jaise product: "+ Product jodo" se. Jo product roz jaate hain unka apna column bana lo (⚙ Columns → Product ka apna column), phir bas quantity likhni hai.
+6. Shahad, dahi, gur jaise product: "+ Product jodo" se. Jo product roz jaate hain unka apna column bana lo (⋯ Aur → ⚙ Columns → Product ka apna column), phir bas quantity likhni hai.
 7. Kai customers ek saath: line ke aage ka checkbox tick karo (Shift + click = poori range). Neeche kaali patti aayegi: Confirm, ✓ Diya, Skip, quantity, product, comment sab ek saath.
-8. ⚙ Columns: kaunsa column pehle, kaunsa baad me, kaunsa chhupana hai. ↑ ↓ se aage-peeche karo. "Customer ka baki" column bhi yahin se on hota hai.
+8. ⋯ Aur → ⚙ Columns: kaunsa column pehle, kaunsa baad me, kaunsa chhupana hai. ↑ ↓ se aage-peeche karo. "Customer ka baki" column bhi yahin se on hota hai.
 9. "Loading sheet": har boy ko Cow / Buffalo / Gir ki kitni ½L aur 1L bottle aur kaunsa saamaan load karna hai. Copy karke WhatsApp ya Print.
 10. ⋯ me: route ka order badlo, Auto-fill dobara, chhote rows (compact).
 

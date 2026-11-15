@@ -54,7 +54,16 @@ h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
 .small{font-size:12.5px}
 .num{font-variant-numeric:tabular-nums}
 .app{display:flex;min-height:100%}
-.side{display:none;width:220px;flex:none;background:var(--surface);border-right:1px solid var(--line);padding:18px 12px;position:sticky;top:0;height:100vh}
+.side{display:none;width:64px;flex:none;position:sticky;top:0;height:100vh;z-index:30}
+.sidein{position:absolute;top:0;bottom:0;left:0;width:64px;background:var(--surface);border-right:1px solid var(--line);padding:18px 12px;overflow-x:hidden;overflow-y:auto;transition:width .16s ease,box-shadow .16s ease}
+.side:hover .sidein,.side:has(:focus-visible) .sidein{width:220px;box-shadow:0 12px 32px rgba(0,0,0,.16);transition-delay:.12s}
+body.navpin .side{width:220px}body.navpin .sidein{width:220px;box-shadow:none}
+.sidein .brand{padding-left:5px;padding-right:0;white-space:nowrap}.sidein .btxt{min-width:0;overflow:hidden}.sidein .btxt b{display:block;overflow:hidden;text-overflow:ellipsis}.sidein .navbtn{position:relative;white-space:nowrap}
+.sidein .navbtn span,.sidein .navgrp,.sidein .navhint,.sidein .btxt,.navpinb{transition:opacity .12s}
+body:not(.navpin) .side:not(:hover):not(:has(:focus-visible)) :is(.navbtn span,.navgrp,.navhint,.btxt,.navpinb){opacity:0}
+body:not(.navpin) .side:not(:hover):not(:has(:focus-visible)) .navdot{position:absolute;left:28px;top:3px;padding:0 5px}
+.navpinb{margin-left:auto;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:var(--muted);flex:none}
+.navpinb svg{width:16px;height:16px}.navpinb:hover{background:var(--surface2)}body.navpin .navpinb{color:var(--accent-ink);background:var(--accent-soft)}
 .brand{display:flex;align-items:center;gap:10px;padding:6px 10px 18px}
 .brand .mark{width:30px;height:30px;border-radius:9px;background:var(--accent);color:var(--accent-fg);display:grid;place-items:center;font-weight:800;font-size:15px}
 .brand b{font-size:16px;letter-spacing:.14em;font-weight:800}
@@ -298,10 +307,10 @@ label.f{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-b
 </head>
 <body>
 <div class="app">
-  <aside class="side">
-    <div class="brand"><div class="mark">O</div><div><b id="brandName">ORITIC</b><span>Delivery panel</span></div></div>
+  <aside class="side"><div class="sidein">
+    <div class="brand"><div class="mark">O</div><div class="btxt"><b id="brandName">ORITIC</b><span>Delivery panel</span></div><button class="navpinb" data-act="navPin" aria-pressed="false" aria-label="Menu hamesha khula rakho" title="Menu hamesha khula rakho"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76V6h6v4.76l2 3.24H7z"/><path d="M8 3h8"/></svg></button></div>
     <div id="snav"></div>
-  </aside>
+  </div></aside>
   <main class="main">
     <header class="top"><div class="top-in" id="top"></div></header>
     <div id="view" class="view"></div>
@@ -1138,7 +1147,7 @@ function plList(){const qq=S.plq.trim().toLowerCase();
   return Object.values(S.customers).filter(c=>(S.plst==='all'||(S.plst==='active')===(c.status==='active'))&&(S.plboy==='all'||c.boy===S.plboy)&&(!qq||(c.name+' '+c.phone).toLowerCase().includes(qq)))
    .sort((a,b)=>(a.boy||'').localeCompare(b.boy||'')||((a.seq??9999)-(b.seq??9999))||a.name.localeCompare(b.name))}
 function plValue(c){const d=plDraft(c),r=ratesOf(c);let a=0;PLN.forEach(p=>a+=(+d.qty[p.k]||0)*(p.u==='kg'?kgRate(c,p.k):(+r[p.k]||0)));d.x.forEach(e=>a+=+e.a||0);return Math.round(a*100)/100}
-function plStrip(){const v=plList().filter(c=>c.status==='active');const t={},BT=btNew();let xc=0,done=0,bb=0,bs=0,val=0;
+function plStrip(sheet){const v=plList().filter(c=>c.status==='active');const t={},BT=btNew();let xc=0,done=0,bb=0,bs=0,val=0;
   v.forEach(c=>{const d=plDraft(c);PLN.forEach(p=>t[p.k]=(t[p.k]||0)+(+d.qty[p.k]||0));xc+=d.x.length;if(plConf(c)&&!d.dirty)done++;const o=bottlesOf(d.qty);bb+=o.b;bs+=o.s;btAdd(BT,d.qty);val+=plValue(c)});
   const pct=v.length?Math.round(done/v.length*100):0;
   return `<div class="plstrip">${PLN.map(p=>`<div class="plt1 ${t[p.k]?'':'z'}"><div class="k">${p.sh}</div><div class="v">${t[p.k]?fq(t[p.k],p.u):'–'}</div>${BT[p.k]&&(BT[p.k].b||BT[p.k].s)?`<div class="bsp">${btText(BT[p.k])}</div>`:''}</div>`).join('')}
@@ -1146,8 +1155,8 @@ function plStrip(){const v=plList().filter(c=>c.status==='active');const t={},BT
    <div class="plt1 ${bb?'':'z'}"><div class="k">Bade bottle (1L)</div><div class="v">${bb||'–'}</div></div>
    <div class="plt1 ${bs?'':'z'}"><div class="k">Chhote bottle (½L)</div><div class="v">${bs||'–'}</div></div>
    <div class="plt1 wide ${val?'':'z'}"><div class="k">Order value (sale)</div><div class="v">${val?inr(val):'–'}</div></div>
-   <div class="plt1 wide"><div class="k">Confirm hue <b>${done} / ${v.length}</b></div><div class="pbar" style="margin-top:6px"><i style="width:${pct}%"></i></div></div></div>
-   <div style="margin-top:10px">${btBreak(BT,'Bottles kitni lagengi'+(S.plboy!=='all'?' · '+esc(S.plboy):''))}</div>`}
+   ${sheet?'':`<div class="plt1 wide"><div class="k">Confirm hue <b>${done} / ${v.length}</b></div><div class="pbar" style="margin-top:6px"><i style="width:${pct}%"></i></div></div>`}</div>
+   ${sheet?'':`<div style="margin-top:10px">${btBreak(BT,'Bottles kitni lagengi'+(S.plboy!=='all'?' · '+esc(S.plboy):''))}</div>`}`}
 function plHistCell(c,day){const r=rowOf(day,c.id);if(!r)return '<span class="muted">–</span>';
   if(r.s==='k')return '<span class="muted">skip</span>';if(r.s==='p'&&!r.pl)return '<span class="muted">pending</span>';
   const q=PRODUCTS.filter(p=>+(r.q&&r.q[p.k])>0).map(p=>`<div><b>${L(r.q[p.k])}L</b> ${p.k==='desi'?'Gir Cow':p.sh}</div>`).join('');

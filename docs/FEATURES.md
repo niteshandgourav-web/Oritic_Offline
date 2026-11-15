@@ -93,3 +93,37 @@ Step-by-step use: [USER-GUIDE.md](USER-GUIDE.md) (same text as Menu → Guide in
 | Guide (new) | Menu → Guide: 17 sections, searchable, "Ye page kholo" buttons |
 
 New Firestore collection in v3: `cashbook`.
+
+## v4 plan (15 Nov 2026): agla kaam, abhi shuru nahi kiya
+
+Maqsad: panel **jaldi aur aasani se** chale. "Best" = jo hamari zaroorat me sahi baithe, banane aur chalane me kam dikkat, aur **free** ho.
+Kram: aasaan se shuru, phir bade kaam. **Kathin** wale kaam (neeche alag list) baad me senior AI model se karwayenge.
+
+| # | Kaam | Kya banana hai | Mehnat | Kaun |
+|---|---|---|---|---|
+| V4-01 | Skills research | Online dhoondo SaaS / UI-UX / dashboard sudharne wali Claude skills (jaise frontend design, UX audit). Download se pehle owner se poochho, `.claude/skills/` me daalo, phir unse poore app ka review | Aasaan | ✅ Ho gaya 15 Nov: 3 skills (`web-design-guidelines`, `evaluate`, `frontend-design`), review [UX-REVIEW.md](UX-REVIEW.md) |
+| V4-02 | Filter chhota | Delivery sheet ka filter wala hissa bahut jagah leta hai: ek line ki chips + "Aur filter ▾" me baaki. Skill review ke baad final | Aasaan | ✅ Ho gaya 15 Nov: table 381 px → 295 px pe shuru |
+| V4-03 | Side menu auto-hide | Menu sirf icons me simta rahe, mouse le jao to khule, 📌 se hamesha khula rakh sako (har computer apni pasand yaad rakhe) | Aasaan | ✅ Ho gaya 15 Nov |
+| V4-04 | Team master (comma list ki jagah) | Settings me naam comma se likhne ki jagah har insaan ka profile: naam, role (boy / office / owner), phone, joining date, PIN, active / band | Madhyam | Abhi |
+| V4-05 | Delivery boy ka poora account | Customer account jaisa ek window: kis kis ko deliver kiya (din-wise), kis se payment liya, kisko paisa wapas diya, cash kitna haath me, bottles (di / wapas aayi / kho gayi), kitne din se kaam kar raha hai, KM, incentive, salary / advance. v3 ka person account isi me badhega | Madhyam | Abhi |
+| V4-06 | Incentive har insaan ka alag | Rule per boy: gaadi apni ya company ki, petrol ya electric, per litre / per customer / per KM / fixed ₹, round kitne (jaise pehle tempo se gaanv se doodh, phir hotel me bharwa ke aage). Mahine ka incentive apne aap bane, hath se badal bhi sako | Madhyam | Abhi |
+| V4-07 | Meter, cash aur energy alag | Meter (KM) ki entry, cash ki entry aur energy (petrol ₹ / litre, EV charging ₹ / unit) alag jagah, per boy per gaadi. Mahine ke ant me KM vs kharcha vs incentive ka hisab | Madhyam | Abhi |
+| V4-08 | Demand aur kharcha check | Demand (supplier order) aur Kharcha ke hisab demo data pe test karo, galti mile to theek karo | Aasaan | Abhi |
+| V4-09 | Route sequence behtar | Sequence pehle se hai (boy apne customer upar-neeche kar sakta hai). Ab: drag ya ↑↓, "isko X ke baad rakho", sequence har jagah same (boy screen, Delivery sheet, Loading sheet, export). **Sab haath se, apne aap kuch nahi badle** | Aasaan | Abhi |
+| V4-10 | Boy ki roz ki sheet export | Har boy ki alag file, **usi sequence me**, columns usi order me jo hum set karein (baad me badal sakein) | Aasaan | Abhi |
+| V4-11 | Bill format + PDF | Settings me bill ka format: business naam, logo, address, kaunse column, period, neeche ka note, UPI QR. Ek customer ya sabke bill **PDF** apne aap bane (download / WhatsApp) | Madhyam | Abhi |
+| V4-12 | Simple login | Gmail / OTP nahi chahiye. Har insaan apne naam + PIN se ghuse, galat PIN 5 baar → thodi der band. Bas koi bhi aake na chala le | Madhyam | Abhi (app wala hissa) |
+| V4-13 | Free hosting research | GitHub se free me live karna, repo **private** rakhna: Netlify / Cloudflare Pages / Firebase Hosting / GitHub Pages ki tulna (free limits, private repo chalta hai ya nahi). Free database: Firebase (code pehle se) vs Supabase vs aur. Report + suggestion, phir owner tay kare | Aasaan | Abhi |
+| V4-14 | Live karna | Chuni hui hosting pe site daalna aur free database jodna. Account banana / sign-in owner karega, baaki setup main | Madhyam | Abhi (owner ke account ke saath) |
+| V4-15 | "Backup on Drive" button | Ek button: aaj ka data Google Drive pe. Folder `Oritic Backup/2026-11/2026-11-15/`: ek main file (us din ki deliveries, payments, cash, kharcha, bottles) + **har boy ki alag file** (V4-10 wali, sequence me). Poora data roz nahi, sirf **us din ka** | Madhyam | Abhi (Google setup owner ke saath) |
+
+### Kathin: senior AI model ke liye alag rakha (abhi nahi karna)
+
+| # | Kaam | Kyun kathin |
+|---|---|---|
+| V4-H1 | Database ki asli suraksha (R-3) | Login sirf app me ho to database phir bhi khula rehta hai. Firebase Auth + Firestore rules (har role kya padh / likh sakta hai) sahi banana, bina data tode |
+| V4-H2 | Raat ko apne aap Drive backup | Panel band ho tab bhi chale: Google Apps Script (free) ka raat wala trigger jo database padh ke Drive pe V4-15 jaisi files banaye. Rules lagne ke baad iska access bhi secure chahiye |
+| V4-H3 | Data kabhi na khoye / server down pe bhi kaam chale | Offline me entry, net aane pe sync, do jagah se ek saath badlav ka takraav, aur server band ho to kal ki sheet backup se chal jaye. Restore ka tarika test karna |
+| V4-H4 | Local data ko live database me le jaana | Abhi wala local / demo data live pe shift karna, live data (CR-09) saaf karna, bina kuch khoye |
+
+Note: V4-12 ka app login aur V4-15 ka button pehle ban sakte hain. Asli suraksha (V4-H1) aur raat ka auto backup (V4-H2) usi ke upar lagenge.

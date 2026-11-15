@@ -16,7 +16,7 @@ const CSS=`
 details.btbox>summary{list-style:none;cursor:pointer}details.btbox>summary::-webkit-details-marker{display:none}
 details.btbox:not([open])>summary{border-bottom:0}
 .btmore{font-size:12px;color:var(--muted);align-self:center}.btmore::after{content:' ▾'}details[open] .btmore::after{content:' ▴'}
-.dtbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.dtbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .dtpill{padding:8px 14px;border-radius:10px;font-weight:800;border:1.5px solid var(--line);background:var(--surface);white-space:nowrap}
 .dtpill.past{background:#B45309;color:#fff;border-color:#B45309}.dtpill.next{background:#15803D;color:#fff;border-color:#15803D}
 .dt-past .plstrip,.dt-next .plstrip{background:rgba(255,255,255,.3)}
@@ -182,6 +182,11 @@ const stS=document.createElement('style');stS.textContent=`
 .sht.dense .plfix{min-height:30px}.sht.dense td.s2 .ck{width:26px;height:26px}.sht.dense td.s2 .small{display:none}.sht.dense .shbtns{margin-top:3px}
 .shtool{display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center;background:var(--surface);border:1px solid var(--line2);border-radius:var(--r);padding:8px 10px}
 .shtool .chips{flex-wrap:wrap}.shtool .vsep{width:1px;height:22px;background:var(--line)}
+.shtool{padding:6px 8px;gap:6px 10px}.shtool .chip{padding:5px 11px}.chip .chn{font-variant-numeric:tabular-nums;opacity:.65;margin-left:3px;font-weight:700}
+.shtool .shsel{width:auto;flex:none;padding:6px 8px;font-size:13px;min-height:0}
+.shbox{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}.shtool .stbox{padding:5px 12px;font-size:13px;border-radius:999px}
+.shsum .plstrip{grid-template-columns:repeat(auto-fit,minmax(84px,1fr))}.shsum .plt1{padding:6px 10px}.shsum .plt1 .k{font-size:11.5px}.shsum .plt1 .v{font-size:17px;line-height:1.3}
+.shw{max-height:calc(100vh - 210px)}
 .ldgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px}.ldcard{border:1px solid var(--line2);border-radius:var(--r);padding:12px;background:var(--surface)}.ldcard h3{margin:0 0 6px}.ldx{font-size:13px;margin-top:8px;line-height:1.6}
 label.chip{display:inline-flex;gap:6px;align-items:center;cursor:pointer}
 `;document.head.appendChild(stS);
@@ -281,21 +286,21 @@ function vSheet(){
   const html=`<div class="stack">
    <div class="row sp wrap">
     <div class="dtbar"><button class="btn sm o" data-act="shShift" data-n="-1" title="Pichla din  [">‹</button><span class="dtpill ${type}">${DT_L[type]} · ${fmtDate(date)}</span><button class="btn sm o" data-act="shShift" data-n="1" title="Agla din  ]">›</button>
-     <input type="date" class="input" style="width:auto;padding:6px 10px" value="${date}" data-shdate>
-     <div class="seg">${[[-1,'Pichli'],[0,'Aaj ki'],[1,'Agli']].map(([k,l])=>`<button class="${date===addDays(pd,k)?'on':''}" data-act="shJump" data-n="${k}">${l}</button>`).join('')}</div></div>
+     <input type="date" class="input" style="width:auto;padding:6px 6px" value="${date}" data-shdate aria-label="Date chuno">
+     <div class="seg">${[[-1,'Pichli'],[0,'Aaj ki'],[1,'Agli']].map(([k,l])=>`<button class="${date===addDays(pd,k)?'on':''}" data-act="shJump" data-n="${k}">${l}</button>`).join('')}</div>
+     ${histOn?`<span class="row small muted" title="History column me kaunse 7 din dikhein">History <button class="btn xs o" data-act="plHist" data-n="-1" aria-label="Pichle 7 din">‹</button>${fmtShort(days[6])}–${fmtShort(days[0])}<button class="btn xs o" data-act="plHist" data-n="1" aria-label="Agle 7 din" ${S.plhe>=todayISO()?'disabled':''}>›</button></span>`:''}</div>
     <div class="row wrap"><button class="btn sm p" data-act="plAll">Sab confirm karo</button>${type!=='next'?`<button class="btn sm" data-act="shAllD">Baaki sab ✓ Diya</button>`:''}
-     <button class="btn sm o" data-act="shLoad" title="Boy-wise: kaunsi kitni bottle aur saamaan load karna hai">Loading sheet</button><button class="btn sm o" data-act="xlsx" data-d="${date}">Excel</button>
-     <button class="btn sm o" data-act="shColsOpen" title="Kaunsa column pehle, kaunsa baad me, kaunsa chhupana hai">⚙ Columns</button><button class="btn sm o" data-act="shMore" aria-label="Aur options">⋯</button></div></div>
+     <button class="btn sm o" data-act="shLoad" title="Boy-wise: kaunsi kitni bottle aur saamaan load karna hai">Loading sheet</button><button class="btn sm o" data-act="shMore" title="Excel, ⚙ Columns, route order, compact rows" aria-label="Aur options: Excel, Columns, route order">⋯ Aur</button></div></div>
    ${pend.length?`<div class="pendbar">Pichli dates pe delivery ✓ nahi hui (bill me nahi judegi): ${pend.map(p=>`<button class="btn xs o" data-act="shGo" data-d="${p.d}">${fmtShort(p.d)} · ${p.n}</button>`).join('')}</div>`:''}
-   <div class="dt-${type}"><div id="plstrip">${plStrip()}</div></div>
-   <div class="stboxes">${boxes.join('')}</div>
-   <div class="shtool"><input class="input" style="max-width:220px;padding:7px 10px" placeholder="Naam ya mobile  ( / )" value="${esc(S.plq)}" data-act="plq">
-    ${chips(fl.map(([v,l])=>({v,l})),S.shf,'shF')}<span class="vsep"></span>${boyChips(S.plboy,'plBoy')}<span class="vsep"></span>
-    <div class="seg">${[['active','Active'],['paused','Inactive'],['all','Sab']].map(([v,l])=>`<button class="${S.plst===v?'on':''}" data-act="plSt" data-v="${v}">${l}</button>`).join('')}</div>
-    ${histOn?`<span class="row small muted">History <button class="btn xs o" data-act="plHist" data-n="-1">‹</button>${fmtShort(days[6])} – ${fmtShort(days[0])}<button class="btn xs o" data-act="plHist" data-n="1" ${S.plhe>=todayISO()?'disabled':''}>›</button></span>`:''}</div>
+   <div class="shsum dt-${type}"><div id="plstrip">${plStrip(1)}</div></div>
+   <div class="shtool"><input class="input" style="max-width:160px;padding:6px 10px" placeholder="Naam ya mobile  ( / )" aria-label="Customer dhoondo" value="${esc(S.plq)}" data-act="plq">
+    <div class="chips">${fl.map(([v,l])=>`<button class="chip ${S.shf===v?'on':''}" data-act="shF" data-v="${v}">${l} <span class="chn">${all.filter(c=>shMatch(c,v)).length}</span></button>`).join('')}</div><span class="vsep"></span>
+    ${boys().length>5?`<select class="input shsel" data-shboy aria-label="Delivery boy"><option value="all">Sab boys</option>${boys().map(b=>`<option ${S.plboy===b?'selected':''}>${esc(b)}</option>`).join('')}</select>`:boyChips(S.plboy,'plBoy')}
+    <select class="input shsel" data-shst aria-label="Customer status">${[['active','Active'],['paused','Inactive'],['all','Sab customer']].map(([v,l])=>`<option value="${v}" ${S.plst===v?'selected':''}>${l}</option>`).join('')}</select>
+    <span class="shbox">${boxes.join('')}</span></div>
    <div class="shw" data-ks="shw"><table class="sht ${S.shDense?'dense':''}" style="min-width:${W.reduce((a,b)=>a+b,0)}px;width:100%"><colgroup>${W.map(w=>`<col style="width:${w}px">`).join('')}</colgroup>
     <thead><tr>${H.map((h,i)=>`<th class="${i===0?'s1':i===1?'s2':i===2?'s3':''}">${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>
-   <div class="small muted">Number likho → <span class="kbd">Enter</span>/<span class="kbd">↓</span> agla customer, <span class="kbd">Tab</span> agla product, <span class="kbd">Ctrl</span>+<span class="kbd">Enter</span> row confirm. Quantity 0 + ✓ = us din delivery nahi. Checkbox se kai rows chuno (<span class="kbd">Shift</span>+click = range). <span class="kbd">[</span> <span class="kbd">]</span> = date badlo. Naam pe double click = poora account. Column aage-peeche karne ke liye <b>⚙ Columns</b>.</div>
+   <div class="small muted">Number likho → <span class="kbd">Enter</span>/<span class="kbd">↓</span> agla customer, <span class="kbd">Tab</span> agla product, <span class="kbd">Ctrl</span>+<span class="kbd">Enter</span> row confirm. Quantity 0 + ✓ = us din delivery nahi. Checkbox se kai rows chuno (<span class="kbd">Shift</span>+click = range). <span class="kbd">[</span> <span class="kbd">]</span> = date badlo. Naam pe double click = poora account. Column aage-peeche karne ke liye <b>⋯ Aur → ⚙ Columns</b>. Excel bhi <b>⋯ Aur</b> me hai.</div>
    ${selN?shBulkBar(selN,type):''}
    <div class="card"><div class="row sp wrap"><h3>Dispatch notes · ${fmtDate(date)}</h3><span class="small muted">${dn.by?'Last save: '+esc(dn.by)+(dn.t?' · '+new Date(dn.t).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):''):'Date-wise save hota hai'}</span></div>
     <textarea class="input dnote" style="margin-top:8px" data-act="dnote" data-d="${date}" placeholder="Bottle count verify, warehouse instructions, packing notes…">${esc(dn.t0||'')}</textarea>
@@ -331,7 +336,7 @@ function pinSet(c,p,v){const d=plDraft(c);const i=d.x.findIndex(e=>e.pid===p.id)
 function rowDirty(tr){if(!tr)return;tr.classList.add('dirty');const sp=tr.querySelector('.stp');if(sp){sp.className='stp dirty';sp.textContent='Badla · save baaki'}const b=tr.querySelector('.ck');if(b)b.classList.remove('on')}
 document.addEventListener('input',e=>{const el=e.target;if(!el.dataset||el.dataset.act!=='pxqty')return;const c=S.customers[el.dataset.id];const p=products().find(x=>x.id===el.dataset.pid);if(!c||!p)return;
   const ent=pinSet(c,p,Math.max(0,+el.value||0));const td=el.parentElement;td.classList.toggle('has',!!ent);td.classList.toggle('zero',!!ent&&!ent.rate);el.title=ent?(ent.rate?'₹'+L(ent.rate)+' × '+L(ent.qty)+' = '+inr(ent.a):'Rate ₹0 hai: Product master me rate daalo'):'';
-  rowDirty(el.closest('tr'));const s=$('#plstrip');if(s)s.innerHTML=plStrip();const v=$('#plv_'+c.id);if(v)v.textContent=inr(plValue(c))});
+  rowDirty(el.closest('tr'));const s=$('#plstrip');if(s)s.innerHTML=plStrip(1);const v=$('#plv_'+c.id);if(v)v.textContent=inr(plValue(c))});
 document.addEventListener('keydown',e=>{const t=e.target;if(!t.dataset||t.dataset.act!=='pxqty'||!['Enter','ArrowDown','ArrowUp'].includes(e.key)||e.ctrlKey||e.metaKey||e.shiftKey)return;e.preventDefault();
   const all=[...document.querySelectorAll('input[data-act="pxqty"]')].filter(x=>x.dataset.pid===t.dataset.pid),i=all.indexOf(t),nx=all[i+(e.key==='ArrowUp'?-1:1)];if(nx){nx.focus();nx.select()}});
 
@@ -365,6 +370,8 @@ document.addEventListener('click',e=>{
 document.addEventListener('input',e=>{const el=e.target;if(el.dataset&&el.dataset.act==='pqty'&&S.route==='sheet'){rowDirty(el.closest('tr'));const c=S.customers[el.dataset.id];const v=c&&$('#plv_'+c.id);if(v)v.textContent=inr(plValue(c))}});
 document.addEventListener('change',e=>{const el=e.target;if(!el.dataset)return;
   if('shdate' in el.dataset&&el.value){S.pld=el.value;S.sel.clear();render();return}
+  if('shst' in el.dataset){S.plst=el.value;render();return}
+  if('shboy' in el.dataset){S.plboy=el.value;render();return}
   if(el.dataset.shbr){const id=el.dataset.shbr,c=S.customers[id];if(!c)return;const tr=el.closest('tr');const g=k=>Math.max(0,Math.round(+(tr.querySelector(`[data-shbr="${id}"][data-k="${k}"]`)||{}).value||0));
     const r=rowOf(S.pld,id);const base=r?JSON.parse(JSON.stringify(r)):makeRow(c,'p');const s=g('S'),b=g('B');
     if(s+b>Math.max(0,bottleBal(c)+(+(r&&r.br)||0)))toast(c.name+': customer ke paas itni bottles nahi dikh rahi, phir bhi save kar rahe hain');
@@ -384,7 +391,7 @@ Object.assign(A,{
   shColReset(){ls.set('oritic.shCols','[]');ls.set('oritic.shHide','[]');render();drawCols();toast('Columns pehle jaise')},
   shDense(){S.shDense=!S.shDense;ls.set('oritic.shDense',S.shDense?'1':'0');closeSheet();render()},
   shMore(){const it=(a,t,s,extra)=>`<button class="item click" data-act="shMoreDo" data-a="${a}" ${extra||''} style="border:1px solid var(--line2);border-radius:12px"><div class="grow"><div class="t">${t}</div><div class="s" style="white-space:normal">${s}</div></div></button>`;
-    openSheet('Aur options',`<div class="stack">${it('routeOrder','⇅ Customer ka order (route) badlo','Kaun sa ghar pehle aata hai, wo kram','data-b="'+esc(S.plboy)+'"')}${it('plAuto','Auto-fill dobara','Jo rows confirm nahi hui unme roz ka order dobara bhar do')}${it('shDense',S.shDense?'Bade rows (normal)':'Chhote rows (compact)','Ek screen pe zyada customer dikhen')}${it('shColsOpen','⚙ Columns set karo','Kaunsa column pehle, kaunsa baad me, kaunsa chhupana hai')}${it('keys','⌨ Keyboard shortcuts','')}</div>`)},
+    openSheet('Aur options',`<div class="stack">${it('routeOrder','⇅ Customer ka order (route) badlo','Kaun sa ghar pehle aata hai, wo kram','data-b="'+esc(S.plboy)+'"')}${it('plAuto','Auto-fill dobara','Jo rows confirm nahi hui unme roz ka order dobara bhar do')}${it('shDense',S.shDense?'Bade rows (normal)':'Chhote rows (compact)','Ek screen pe zyada customer dikhen')}${it('shColsOpen','⚙ Columns set karo','Kaunsa column pehle, kaunsa baad me, kaunsa chhupana hai')}${it('xlsx','⬇ Excel download','Is date ki poori sheet Excel file me','data-d="'+S.pld+'"')}${it('keys','⌨ Keyboard shortcuts','')}</div>`)},
   shMoreDo(d){const fn=A[d.a];if(!['shColsOpen','keys','routeOrder'].includes(d.a))closeSheet();if(fn)fn(d)},
   shLoad(){const D=loadData();openSheet('Loading sheet · '+fmtDate(S.pld),`<div class="stack"><div class="small muted">${fmtDate(S.pld)} ko har delivery boy ko kya load karna hai: doodh ke hisaab se ½L aur 1L bottle, aur saath ka saamaan. Sheet me jo quantity abhi likhi hai (confirm ho ya na ho) usi se bana hai.</div>${Object.keys(D.by).length?loadHtml(D):'<div class="empty">Is din koi order nahi</div>'}
     <div class="row wrap"><button class="btn p" data-act="shLoadCopy">Text copy karo (WhatsApp ke liye)</button><button class="btn o" data-act="shLoadPrint">Print</button></div></div>`);$('#sheet .panel').classList.add('wide')},

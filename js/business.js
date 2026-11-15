@@ -25,6 +25,10 @@ const CSS=`
 .mini{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line2);font-size:13.5px}.mini:last-child{border-bottom:0}
 `;
 const st0=document.createElement('style');st0.textContent=CSS;document.head.appendChild(st0);
+/* side menu: icon rail, opens on hover; pin keeps it open (saved per computer) */
+const navPinSet=on=>{document.body.classList.toggle('navpin',on);const b=document.querySelector('.navpinb');if(b){b.setAttribute('aria-pressed',String(on));b.title=on?'Menu apne aap chhupne do':'Menu hamesha khula rakho';b.setAttribute('aria-label',b.title)}};
+try{navPinSet(localStorage.getItem('oritic.navPin')==='1')}catch(_){}
+Object.assign(A,{navPin(){const on=!document.body.classList.contains('navpin');navPinSet(on);try{localStorage.setItem('oritic.navPin',on?'1':'0')}catch(_){}}});
 
 /* ---------- small helpers ---------- */
 const staffL=()=>Array.isArray(settings().staff)?settings().staff.filter(Boolean):[];
