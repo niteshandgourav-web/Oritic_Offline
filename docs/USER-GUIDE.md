@@ -212,6 +212,13 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 2. Office tools: "Aaj ki date" kab badle, Paneer / Ghee rate, Udhaar limit, Kharcha ki categories, Office staff.
 3. Database: "Pura backup" roz le lo. "Backup se wapas laao" se purana data wapas aata hai.
 4. Abhi panel "Local mode" me hai: data sirf isi browser me hai. Sab phones pe chalane ke liye Firebase jodna hoga (README dekho).
+5. Login: har insaan apne naam aur PIN se. Owner ka PIN yahan, boys aur office staff ke PIN bhi yahan ya Team & cash → naam → Profile me. Office staff ka PIN khaali = wo login nahi kar payega.
+6. Kisi ka PIN badlo ya use hatao to uske saare phones se agli baar kholte hi logout ho jata hai. Phone kho gaya ho to bas PIN badal do.
+7. 5 baar galat PIN = us naam ka login us phone pe 5 min band (phir 10, 20 min…). Sahi PIN se sab theek.
+
+> Dhyan: Office staff ko "Poora access" (Team & cash → naam → Profile) diya ho to wo Settings, team aur PIN badal sakta hai. Bina iske Settings band, baaki sab kaam chalta hai.
+>
+> Dhyan: Ye login sirf "koi bhi aake na chala le" ke liye hai. Database ki asli suraksha alag kaam hai (V4-H1).
 
 ## 17. Keyboard shortcuts
 

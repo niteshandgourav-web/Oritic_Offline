@@ -56,7 +56,7 @@ if(hm){S.acPending=decodeURIComponent(hm[2]);try{history.replaceState(null,'','#
 const staff=()=>Array.isArray(settings().staff)?settings().staff.filter(Boolean):[];
 window.payReceivers=()=>isOwner()?[...new Set(['Owner',...staff(),...boys()])]:[S.me];
 window.rcvLabel=v=>v==='Owner'?'Owner / Office':v;
-window.rcvOpts=cur=>{const Lr=payReceivers();const v=cur||(isOwner()?'Owner':S.me);if(v&&!Lr.includes(v))Lr.push(v);return Lr.map(x=>`<option value="${esc(x)}" ${x===v?'selected':''}>${esc(rcvLabel(x))}</option>`).join('')};
+window.rcvOpts=cur=>{const Lr=payReceivers();const v=cur||S.me||'Owner';if(v&&!Lr.includes(v))Lr.push(v);return Lr.map(x=>`<option value="${esc(x)}" ${x===v?'selected':''}>${esc(rcvLabel(x))}</option>`).join('')};
 const modeL=p=>p.mode==='cash'?'Cash':'UPI';
 const viaOf=p=>p.via||p.by||'';
 

@@ -443,6 +443,8 @@ const cleanPhone=p=>{const d=String(p||'').replace(/\D/g,'');return d.length>10?
 const canWrite=()=>!!(S.db&&S.role);
 const MOBILE_NAV=()=>S.role==='owner'?['sheet','customers','payments','bills']:['today','customers','payments','bottles'];
 const isOwner=()=>S.role==='owner';
+/* owner khud, ya office staff jise "Poora access" diya ho: Settings, team, PIN, bill format */
+const isAdmin=()=>S.role==='owner'&&(S.me==='Owner'||!!(((settings().team||{})[S.me]||{}).full));
 const visibleRoutes=()=>isOwner()?ROUTES.filter(r=>!r.hide):ROUTES.filter(r=>['today','customers','payments','bottles','odo'].includes(r.id));
 function toast(m){const t=document.createElement('div');t.textContent=m;$('#toast').appendChild(t);setTimeout(()=>t.remove(),2600)}
 function copyText(txt,el){const done=()=>toast('Copy ho gaya');
@@ -806,6 +808,7 @@ function vSettings(){
       <div class="grid g2">
         <div class="field"><label class="f">Owner PIN</label><input class="input" id="stPinOwner" inputmode="numeric" maxlength="6" value="${esc((settings().pins||{}).owner||'1234')}"></div>
         ${st.boys.map(b=>`<div class="field"><label class="f">${esc(b)} ka PIN</label><input class="input" inputmode="numeric" maxlength="6" data-pin="${esc(b)}" value="${esc(((settings().pins||{}).boys||{})[b]||'0000')}"></div>`).join('')}
+        ${(settings().staff||[]).map(n=>`<div class="field"><label class="f">${esc(n)} (office) ka PIN</label><input class="input" inputmode="numeric" maxlength="6" data-spin="${esc(n)}" value="${esc(((settings().pins||{}).staff||{})[n]||'')}" placeholder="khaali = login nahi"></div>`).join('')}
       </div></div>
     <div class="card"><h3>Default rates (₹ / litre)</h3><div class="small muted" style="margin:4px 0 8px">Naye customer ke liye. Har customer ka apna rate uske profile me set hota hai.</div>
       <div class="grid g4">${PRODUCTS.map(p=>`<div class="field"><label class="f">${p.sh}</label><input class="input" type="number" inputmode="decimal" id="stRate_${p.k}" value="${st.rates[p.k]}"></div>`).join('')}</div></div>
@@ -1064,9 +1067,11 @@ const A={
   viewProof(d){openSheet('Payment screenshot','<div class="empty">Load ho raha hai…</div>');S.db.doc('proofs/'+d.id).get().then(s=>{if($('#sheet').hidden)return;$('#shBody').innerHTML=s.exists?`<div class="proof"><img src="${s.data().img}" alt="Screenshot"></div>`:'<div class="empty">Screenshot nahi mila</div>'}).catch(()=>{$('#shBody').innerHTML='<div class="empty">Load nahi hua</div>'})},
   delPayment(d,el){if(!isOwner())return toast('Sirf owner kar sakta hai');if(el.dataset.c!=='1'){el.dataset.c='1';el.textContent='Pakka delete?';el.classList.add('d');setTimeout(()=>{el.dataset.c='';el.textContent='Delete';el.classList.remove('d')},3000);return}deletePayment(d.id)},
   bottle(d){const c=S.customers[d.id];if(!c)return;if(bottleBal(c)+(+d.n)<0)return toast('Balance 0 se kam nahi ho sakta');saveCustField(d.id,{bottles:(+c.bottles||0)+(+d.n)});render();const n=bottleBal(S.customers[d.id]);const b=$('[data-act=bottle][data-id="'+d.id+'"]');if($('#sheet').hidden===false&&b&&b.textContent.includes('Bottle wapas'))b.textContent='Bottle wapas (−1) · '+n},
-  saveSettings(){if(!isOwner())return toast('Sirf owner kar sakta hai');const boysL=$('#stBoys').value.split(',').map(s=>s.trim()).filter(Boolean);const rates={...(settings().rates||{})};PRODUCTS.forEach(p=>rates[p.k]=+$('#stRate_'+p.k).value||DEF_RATES[p.k]);
+  saveSettings(){if(!isAdmin())return toast('Sirf owner (ya poore access wala) kar sakta hai');const boysL=$('#stBoys').value.split(',').map(s=>s.trim()).filter(Boolean);const rates={...(settings().rates||{})};PRODUCTS.forEach(p=>rates[p.k]=+$('#stRate_'+p.k).value||DEF_RATES[p.k]);
     const extras=extrasPresets();
-    const pins={owner:($('#stPinOwner').value.trim()||'1234'),boys:{}};document.querySelectorAll('[data-pin]').forEach(i=>pins.boys[i.dataset.pin]=i.value.trim()||'0000');
+    const pins={...(settings().pins||{}),owner:($('#stPinOwner').value.trim()||'1234'),boys:{},staff:{...((settings().pins||{}).staff||{})}};document.querySelectorAll('[data-pin]').forEach(i=>pins.boys[i.dataset.pin]=i.value.trim()||'0000');
+    let badPin='';document.querySelectorAll('[data-spin]').forEach(i=>{const v=i.value.trim();if(v&&!/^\d{4,6}$/.test(v))badPin=i.dataset.spin;if(v)pins.staff[i.dataset.spin]=v;else delete pins.staff[i.dataset.spin]});
+    if(badPin)return toast(badPin+' ka PIN 4-6 digit ka ho');
     if(!/^\d{4,6}$/.test(pins.owner))return toast('Owner PIN 4-6 digit ka ho');
     saveSettings({...settings(),boys:boysL,rates,extras,pins,kmRate:+$('#stKm').value||0,autoExport:$('#stAuto').value==='1',company:$('#stCompany').value.trim()||'Oritic',upi:$('#stUpi').value.trim(),billNote:$('#stNote').value.trim()}).then(()=>toast('Settings saved'))},
   exportCsv(){const [from,to]=periodRange(S.month,S.period);const bills=Object.values(S.customers).map(c=>billFor(c,S.month,S.period)).filter(b=>b.rows.length||Math.abs(b.closing)>0.5);
@@ -1076,7 +1081,7 @@ const A={
   backup(){const data={exportedAt:new Date().toISOString(),customers:S.customers,days:S.days,payments:S.payments,settings:S.settings,purchases:S.purchases,kms:S.kms};saveFile(`oritic-backup-${todayISO()}.json`,new Blob([JSON.stringify(data)],{type:'application/json'}))},
   logout(){try{localStorage.removeItem('oritic.login')}catch(_){}S.role=null;S.me='';closeSheet();render()},
   loginRole(d){LG.role=d.r;LG.name=d.n||'';LG.pin='';renderLogin()},
-  key(d){if(d.k==='del')LG.pin=LG.pin.slice(0,-1);else if(LG.pin.length<6)LG.pin+=d.k;renderLogin();if(LG.pin.length>=4)tryLogin()},
+  key(d){if(lockLeft(LG.role,LG.name))return renderLogin();if(d.k==='del')LG.pin=LG.pin.slice(0,-1);else if(LG.pin.length<6)LG.pin+=d.k;renderLogin();if(LG.pin.length>=4)tryLogin()},
 };
 document.addEventListener('click',e=>{
   const seg=e.target.closest('#payMode button');if(seg){seg.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('on'));seg.classList.add('on');const pp=$('#payProof');if(pp)pp.hidden=seg.dataset.mode==='cash';return}
@@ -1544,29 +1549,47 @@ Object.assign(A,{
 const LG={role:null,name:'',pin:''};
 function renderLogin(){
   const el=$('#login');
+  if(S.role&&S.ready&&settings().pins&&!sessionOk()){try{localStorage.removeItem('oritic.login')}catch(_){}S.role=null;S.me='';setTimeout(()=>toast('Login band hua (PIN badla ya naam hata). Dobara login karo'),50)}
   if(S.role){el.hidden=true;return}
   el.hidden=false;
   if(!S.ready){el.innerHTML=`<div class="box"><div class="brand"><div class="mark">O</div><div><b>${esc((settings().company||'Oritic').toUpperCase())}</b><span>Delivery panel</span></div></div><div class="empty">Connect ho raha hai…</div></div>`;return}
-  const bl=boys();
+  const bl=boys(),sp=(settings().pins||{}).staff||{},stf=(settings().staff||[]).filter(n=>sp[n]);const lk=LG.role?lockLeft(LG.role,LG.name):0;
   el.innerHTML=`<div class="box">
     <div class="brand"><div class="mark">O</div><div><b>${esc((settings().company||'Oritic').toUpperCase())}</b><span>Delivery panel</span></div></div>
     <h3 style="margin-bottom:8px">Kaun ho?</h3>
     <div class="roles">
-      <button class="${LG.role==='owner'?'on':''}" data-act="loginRole" data-r="owner">Owner / Office</button>
+      <button class="${LG.role==='owner'?'on':''}" data-act="loginRole" data-r="owner">Owner</button>
+      ${stf.map(n=>`<button class="${LG.role==='staff'&&LG.name===n?'on':''}" data-act="loginRole" data-r="staff" data-n="${esc(n)}">${esc(n)} <span class="small muted">office</span></button>`).join('')}
       ${bl.map(b=>`<button class="${LG.role==='boy'&&LG.name===b?'on':''}" data-act="loginRole" data-r="boy" data-n="${esc(b)}">${esc(b)}</button>`).join('')}
     </div>
-    ${LG.role?`<h3 style="margin-top:20px;text-align:center">PIN daalo</h3>
-    <div class="pin">${[0,1,2,3].map(i=>`<i class="${LG.pin.length>i?'f':''}"></i>`).join('')}</div>
+    ${LG.role&&lk?`<div class="empty" style="margin-top:18px;color:var(--danger)">Bahut baar galat PIN. <b>${Math.ceil(lk/60000)} min</b> baad dobara try karo.</div>`:''}
+    ${LG.role&&!lk?`<h3 style="margin-top:20px;text-align:center">PIN daalo</h3>
+    <div class="pin">${Array.from({length:Math.max(4,LG.pin.length)},(_,i)=>`<i class="${LG.pin.length>i?'f':''}"></i>`).join('')}</div>
     <div class="pad">${['1','2','3','4','5','6','7','8','9'].map(k=>`<button data-act="key" data-k="${k}">${k}</button>`).join('')}<button class="ghost" data-act="key" data-k="del">⌫</button><button data-act="key" data-k="0">0</button><button class="ghost" data-act="loginGo">OK</button></div>`:''}
     <div class="small muted" style="text-align:center;margin-top:18px">${S.online?'':'Offline — '}Phone me app jaise rakhne ke liye: Chrome menu → "Add to Home screen"</div>
   </div>`}
+/* ---- login: har insaan ka apna PIN, 5 galat = thodi der band (isi phone pe) ---- */
+const pinOf=(role,name)=>{const p=settings().pins||{};return role==='owner'?(p.owner||'1234'):role==='staff'?((p.staff||{})[name]||''):((p.boys||{})[name]||'0000')};
+const pinStamp=(role,name)=>{const s=role+'|'+name+'|'+pinOf(role,name);let h=5381;for(let i=0;i<s.length;i++)h=((h*33)^s.charCodeAt(i))>>>0;return h.toString(36)};
+const lockGet=()=>{try{return JSON.parse(localStorage.getItem('oritic.lock')||'{}')||{}}catch(_){return {}}};
+const lockSet=o=>{try{localStorage.setItem('oritic.lock',JSON.stringify(o))}catch(_){}};
+function lockLeft(role,name){const x=lockGet()[role+':'+name];return x&&x.until>Date.now()?x.until-Date.now():0}
+function lockFail(role,name){const L0=lockGet(),k=role+':'+name,x=L0[k]||{n:0,until:0};x.n++;if(x.n>=5&&x.n%5===0)x.until=Date.now()+Math.min(60,5*Math.pow(2,x.n/5-1))*60000;L0[k]=x;lockSet(L0);return x}
 function tryLogin(){
-  const pins=settings().pins||{};
-  const expected=LG.role==='owner'?(pins.owner||'1234'):((pins.boys||{})[LG.name]||'0000');
-  if(LG.pin===expected){S.role=LG.role;S.me=LG.role==='owner'?'Owner':LG.name;try{localStorage.setItem('oritic.login',JSON.stringify({role:S.role,me:S.me}))}catch(_){}
+  if(lockLeft(LG.role,LG.name)){LG.pin='';renderLogin();return}
+  const expected=pinOf(LG.role,LG.name);if(!expected){LG.pin='';renderLogin();return toast('Iska PIN set nahi hai. Owner se bolo')}
+  if(LG.pin===expected){const L0=lockGet();delete L0[LG.role+':'+LG.name];lockSet(L0);
+    S.role=LG.role==='staff'?'owner':LG.role;S.me=LG.role==='owner'?'Owner':LG.name;
+    try{localStorage.setItem('oritic.login',JSON.stringify({role:S.role,me:S.me,lr:LG.role,st:pinStamp(LG.role,S.me)}))}catch(_){}
     S.route=isOwner()?'sheet':'today';LG.pin='';render();toast('Namaste, '+S.me)}
-  else if(LG.pin.length>=expected.length){LG.pin='';renderLogin();toast('PIN galat hai')}}
-A.loginGo=()=>{if(LG.pin.length<4)return toast('4 digit PIN daalo');tryLogin()};
+  else if(LG.pin.length>=expected.length){const x=lockFail(LG.role,LG.name);LG.pin='';renderLogin();toast(x.until>Date.now()?'Bahut baar galat PIN. Thodi der baad try karo':'PIN galat hai'+(x.n%5?' · '+(5-x.n%5)+' try baaki':''))}}
+/* purana login: naam hata ya PIN badla to us phone se logout */
+function sessionOk(){if(!S.role)return true;let l=null;try{l=JSON.parse(localStorage.getItem('oritic.login')||'null')}catch(_){}if(!l)return true;
+  const lr=l.lr||(S.role==='owner'?(S.me==='Owner'?'owner':'staff'):'boy');
+  if(lr==='boy'&&!boys().includes(S.me))return false;
+  if(lr==='staff'&&!((settings().staff||[]).includes(S.me)&&pinOf('staff',S.me)))return false;
+  if(l.st&&l.st!==pinStamp(lr,S.me))return false;return true}
+A.loginGo=()=>{if(lockLeft(LG.role,LG.name))return renderLogin();if(LG.pin.length<4)return toast('4 digit PIN daalo');tryLogin()};
 function setupHtml(){return `<div class="setup"><div class="brand"><div class="mark">O</div><div><b>ORITIC</b><span>Delivery panel</span></div></div>
   <div class="card"><h2>Setup baaki hai</h2><p class="muted">Ye app abhi kisi database se juda nahi hai. <code>firebase-config.js</code> file me apne Firebase project ka config paste karo, phir ye page dobara kholo.</p>
   <ol><li>console.firebase.google.com → project banao</li><li>Build → Firestore Database → Create (asia-south1)</li><li>Build → Authentication → Sign-in method → Anonymous → Enable</li><li>Project settings → "Add app" → Web → config copy karo</li><li>Config ko <code>firebase-config.js</code> me paste karo</li></ol></div></div>`}

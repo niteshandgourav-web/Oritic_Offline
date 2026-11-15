@@ -102,9 +102,9 @@ async function give(blob,name,share,txt){const file=new File([blob],name,{type:'
   saveFile(name,blob)}
 const busy=(el,on,txt)=>{if(!el)return;if(on){el.dataset.o=el.textContent;el.textContent=txt||'PDF ban raha hai…';el.disabled=true}else{el.textContent=el.dataset.o||el.textContent;el.disabled=false}};
 Object.assign(A,{
-  bfOpen(){if(!isOwner())return toast('Sirf owner kar sakta hai');openSheet('Bill ka format',bfHtml());$('#sheet .panel').classList.add('wide')},
-  async bfSave(){if(!isOwner())return;const r=readBf();await saveSettings({...settings(),company:r.co||settings().company||'Oritic',upi:r.upi,billNote:r.note,billFmt:r.f});toast('Bill format save');closeSheet();render()},
-  async bfLogoDel(){if(!isOwner())return;await saveSettings({...settings(),billFmt:{...fmt(),logo:'',lw:0,lh:0}});toast('Logo hata diya');A.bfOpen()},
+  bfOpen(){if(!isAdmin())return toast('Sirf owner (ya poore access wala) kar sakta hai');openSheet('Bill ka format',bfHtml());$('#sheet .panel').classList.add('wide')},
+  async bfSave(){if(!isAdmin())return;const r=readBf();await saveSettings({...settings(),company:r.co||settings().company||'Oritic',upi:r.upi,billNote:r.note,billFmt:r.f});toast('Bill format save');closeSheet();render()},
+  async bfLogoDel(){if(!isAdmin())return;await saveSettings({...settings(),billFmt:{...fmt(),logo:'',lw:0,lh:0}});toast('Logo hata diya');A.bfOpen()},
   async bfSample(d,el){if(!isOwner())return;const r=readBf();const old=settings();
     const c=Object.values(S.customers).map(x=>billFor(x,S.month||todayISO().slice(0,7),S.period||'full')).find(b=>b.rows.length)||(Object.values(S.customers)[0]&&billFor(Object.values(S.customers)[0],todayISO().slice(0,7),'full'));if(!c)return toast('Pehle koi customer jodo');
     busy(el,true);try{S.settings={...old,company:r.co||old.company,upi:r.upi,billNote:r.note,billFmt:r.f};const blob=await makePdf([c]);window.open(URL.createObjectURL(blob),'_blank')||saveFile('namoona-bill.pdf',blob)}catch(err){toast(err.message||String(err))}finally{S.settings=old;busy(el,false)}},
@@ -114,10 +114,10 @@ Object.assign(A,{
 });
 
 /* ---------- hooks: Bills page, bill sheet, Settings ---------- */
-const _vb=vBills;vBills=function(){const o=_vb();if(!isOwner())return o;const btns=`<button class="btn o" data-act="pdfAll">📄 PDF (sab bills)</button><button class="btn o" data-act="bfOpen">⚙ Bill format</button>`;
+const _vb=vBills;vBills=function(){const o=_vb();if(!isOwner())return o;const btns=`<button class="btn o" data-act="pdfAll">📄 PDF (sab bills)</button>${isAdmin()?'<button class="btn o" data-act="bfOpen">⚙ Bill format</button>':''}`;
   return {...o,html:o.html.includes('data-act="waQueue"')?o.html.replace('<button class="btn o" data-act="waQueue">',btns+'<button class="btn o" data-act="waQueue">'):o.html.replace('<div class="stack">','<div class="stack"><div class="row wrap">'+btns+'</div>')}};
 const _sb=sheetBill;sheetBill=function(cid){_sb(cid);const cp=document.querySelector('#shBody [data-act="copy"]');if(!cp)return;
   const canShare=!!(navigator.canShare&&window.File);cp.parentElement.insertAdjacentHTML('beforeend',`<button class="btn o" data-act="pdfOne" data-id="${esc(cid)}">📄 PDF</button>${canShare?`<button class="btn o" data-act="pdfOne" data-id="${esc(cid)}" data-share="1">PDF bhejo</button>`:''}`)};
-const _vs=vSettings;vSettings=function(){const o=_vs();if(!isOwner())return o;
+const _vs=vSettings;vSettings=function(){if(isOwner()&&!isAdmin())return {html:'<div class="empty">Settings sirf owner (ya jise "Poora access" diya ho) ke liye hai.</div>'};const o=_vs();if(!isOwner())return o;
   return {...o,html:o.html+`<div class="card" style="margin-top:12px"><div class="row sp wrap"><div><h3>Bill ka format (PDF)</h3><div class="small muted" style="margin-top:4px">Logo, address, GSTIN, UPI QR, page size, aur bill me kya dikhe.</div></div><button class="btn o" data-act="bfOpen">⚙ Bill format kholo</button></div></div>`}};
 })();

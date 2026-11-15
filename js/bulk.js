@@ -703,9 +703,9 @@ Object.assign(A,{
     if(bad){render();return toast(bad+' line me customer ya amount sahi nahi (laal)')}
     const v=S.bp.filter(r=>r.cid&&+r.amt>0);if(!v.length)return toast('Koi payment nahi likha');
     const tot=sum(v,r=>r.amt);
-    const ok=await confirmBox({title:`${v.length} payments · ${inr(tot)} save karein?`,html:v.slice(0,20).map(r=>`<div class="chg"><b>${esc(S.customers[r.cid].name)}</b> · ${inr(+r.amt)} · ${r.mode==='cash'?'Cash':'UPI'} · ${esc(rcvLabel(r.via||(isOwner()?'Owner':S.me)))} · ${fmtShort(r.date||todayISO())}${r.note?' · '+esc(r.note):''}</div>`).join('')+(v.length>20?`<div class="small muted">+ ${v.length-20} aur</div>`:''),yes:'Haan, save'});if(!ok)return;
+    const ok=await confirmBox({title:`${v.length} payments · ${inr(tot)} save karein?`,html:v.slice(0,20).map(r=>`<div class="chg"><b>${esc(S.customers[r.cid].name)}</b> · ${inr(+r.amt)} · ${r.mode==='cash'?'Cash':'UPI'} · ${esc(rcvLabel(r.via||(S.me||'Owner')))} · ${fmtShort(r.date||todayISO())}${r.note?' · '+esc(r.note):''}</div>`).join('')+(v.length>20?`<div class="small muted">+ ${v.length-20} aur</div>`:''),yes:'Haan, save'});if(!ok)return;
     S.bp=[];for(let k=0;k<5;k++)S.bp.push(bpBlank());
-    for(const r of v)await savePayment({id:uid(),cid:r.cid,amt:+r.amt,mode:r.mode,date:r.date||todayISO(),note:String(r.note||'').trim(),by:S.me||'',via:r.via||(isOwner()?'Owner':S.me)||'',t:Date.now(),proof:false});
+    for(const r of v)await savePayment({id:uid(),cid:r.cid,amt:+r.amt,mode:r.mode,date:r.date||todayISO(),note:String(r.note||'').trim(),by:S.me||'',via:r.via||(S.me||'Owner')||'',t:Date.now(),proof:false});
     render();toast(v.length+' payments save · '+inr(tot))}
 });
 

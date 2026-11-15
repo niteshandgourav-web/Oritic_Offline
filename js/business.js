@@ -88,7 +88,7 @@ function cashWrite(id,doc){if(!canWrite()){toast('Aapko write permission nahi ha
 const cbLabel=x=>x.type==='handover'?pl(x.from)+' → '+pl(x.to):x.type==='bank'?pl(x.from)+' → Bank':x.type==='suppay'?pl(x.from)+' → Supplier '+x.to+' ('+({cash:'Cash',upi:'UPI',bank:'Bank'}[x.mode]||'')+')':'Sudhaar · '+pl(x.to);
 const cbStatus=x=>x.status==='pending'?'<span class="badge y">Confirm baaki</span>':x.status==='rejected'?'<span class="badge r">Radd</span>':'<span class="badge g">Pakka</span>';
 
-function handForm(from){const P=persons(),H=cashAll();const me=isOwner()?(from||P.find(p=>isBoy(p))||'Owner'):S.me;const to0=me==='Owner'?(staffL()[0]||P.find(p=>p!=='Owner')||''):'Owner';
+function handForm(from){const P=persons(),H=cashAll();const me=isOwner()?(from||P.find(p=>isBoy(p))||'Owner'):S.me;const to0=me==='Owner'?(staffL()[0]||P.find(p=>p!=='Owner')||''):(isOwner()?(S.me||'Owner'):'Owner');
   const opt=sel=>P.map(p=>`<option value="${esc(p)}" ${p===sel?'selected':''}>${esc(pl(p))} · haath me ${inr(H[p]||0)}</option>`).join('');
   openSheet('Cash handover',`<div class="stack"><div class="small muted">Cash ek haath se doosre haath me gaya, uski entry. ${isOwner()?'Office ki entry seedha pakki hoti hai.':'Office "Mila ✓" dabayega tab pakka hoga. Tab tak ye cash aapke paas hi gina jayega.'}</div>
     <div class="grid g2"><div class="field"><label class="f">Kisne diya</label><select class="input" id="hoF" ${isOwner()?'':'disabled'}>${opt(me)}</select></div><div class="field"><label class="f">Kisko diya</label><select class="input" id="hoT">${opt(to0)}</select></div></div>
@@ -142,7 +142,7 @@ function vTeam(){const H=cashAll(),today=todayISO(),m=today.slice(0,7),[mf,mt]=p
   const rec=Object.values(S.cash).sort((a,b)=>(b.t||0)-(a.t||0)).slice(0,15);
   const html=`<div class="stack">
    <div class="row sp wrap"><div class="small muted" style="max-width:640px">Cash kiske haath me hai, kisne office ko diya, bank me kitna gaya. UPI seedha company ke account me jata hai, isliye kisi ke haath me nahi gina jata.</div>
-    <div class="row wrap"><button class="btn o" data-act="tmNew">+ Naya member</button><button class="btn o" data-act="bsOpen">📄 Boy sheets</button><button class="btn p" data-act="hoForm">+ Cash handover</button><button class="btn" data-act="bankForm">+ Bank me jama</button><button class="btn o" data-act="cadjForm">Sudhaar</button></div></div>
+    <div class="row wrap">${isAdmin()?'<button class="btn o" data-act="tmNew">+ Naya member</button>':''}<button class="btn o" data-act="bsOpen">📄 Boy sheets</button><button class="btn p" data-act="hoForm">+ Cash handover</button><button class="btn" data-act="bankForm">+ Bank me jama</button><button class="btn o" data-act="cadjForm">Sudhaar</button></div></div>
    <div class="kpi"><div class="card"><div class="l">Sabke haath me cash</div><div class="v">${inr(sum(Object.values(H),v=>v))}</div><div class="s">${cashFrom()?fmtShort(cashFrom())+' se gina':'shuru se gina'}</div></div>
     <div class="card"><div class="l">Handover confirm baaki</div><div class="v" style="color:${pend.length?'var(--warn)':'inherit'}">${pend.length}</div><div class="s">${inr(sum(pend,x=>x.amt))}</div></div>
     <div class="card"><div class="l">Aaj cash aaya</div><div class="v">${inr(sum(tp.filter(x=>x.mode==='cash'),x=>x.amt))}</div><div class="s">customers se</div></div>
@@ -265,7 +265,7 @@ function pcHisab(p){const m=S.pc.m,H=payCalc(p,m);const r=H.parts.filter(x=>x[1]
    <tr class="tot"><td>Kul bana</td><td></td><td class="n">${inr(H.total)}</td></tr>
    <tr><td>Diya (salary / advance / incentive)</td><td class="small muted">${H.paidL.length} entries · Kharcha se</td><td class="n">− ${inr(H.paid)}</td></tr>
    <tr class="tot"><td>${b>=0?'Dena baaki':'Zyada de diya'}</td><td></td><td class="n" style="color:${b>0.5?'var(--danger)':'inherit'}">${inr(Math.abs(b))}</td></tr></tbody></table></div>
-   ${isOwner()?`<div class="ac-card"><h3>Sudhaar (sirf ${fmtMonth(m)})</h3><div class="small muted" style="margin:4px 0 8px">Hisab se alag kuch jodna ya ghatana: bonus (+) ya chhutti / nuksan (−). Khaali ya 0 = hatao.</div>
+   ${isAdmin()?`<div class="ac-card"><h3>Sudhaar (sirf ${fmtMonth(m)})</h3><div class="small muted" style="margin:4px 0 8px">Hisab se alag kuch jodna ya ghatana: bonus (+) ya chhutti / nuksan (−). Khaali ya 0 = hatao.</div>
     <div class="frm"><div class="field"><label class="f">₹ (+ ya −)</label><input class="input" id="haA" type="number" inputmode="decimal" value="${H.adj?esc(H.adj.amt):''}"></div><div class="field grow"><label class="f">Kyun</label><input class="input" id="haN" value="${H.adj?esc(H.adj.note||''):''}" placeholder="e.g. Diwali bonus / 2 din chhutti"></div><div class="field" style="align-self:flex-end"><button class="btn p" data-act="hisabAdj">Save</button></div></div></div>
     <div class="row wrap"><button class="btn sm p" data-act="pcPay">Salary / advance do</button></div>`:''}`}
 
@@ -275,7 +275,8 @@ function memberFields(p,P,pin){const boy=p?isBoyP(p):true;const o=(mp,v)=>Object
    <div class="field"><label class="f">Kaam</label><select class="input" id="tmRole"><option value="boy" ${boy?'selected':''}>Delivery boy</option><option value="office" ${boy?'':'selected'}>Office</option></select></div>
    <div class="field"><label class="f">Phone</label><input class="input" id="tmPhone" inputmode="tel" value="${esc(P.phone||'')}"></div>
    <div class="field"><label class="f">Joining date</label><input class="input" id="tmJoin" type="date" value="${esc(P.join||'')}" max="${todayISO()}"></div>
-   <div class="field"><label class="f">Login PIN (sirf boy)</label><input class="input" id="tmPin" inputmode="numeric" maxlength="6" value="${esc(pin||'')}" placeholder="4-6 digit" autocomplete="off"></div>
+   <div class="field"><label class="f">Login PIN</label><input class="input" id="tmPin" inputmode="numeric" maxlength="6" value="${esc(pin||'')}" placeholder="4-6 digit" autocomplete="off"></div>
+   <label class="field" style="flex-direction:row;gap:8px;align-items:center;align-self:flex-end;min-height:40px"><input type="checkbox" id="tmFull" ${P.full?'checked':''}> Poora access (office: Settings, team, PIN)</label>
    <div class="field"><label class="f">Gaadi</label><select class="input" id="tmVeh"><option value="">—</option>${o(VEH_L,P.vehicle)}</select></div>
    <div class="field"><label class="f">Fuel</label><select class="input" id="tmFuel"><option value="">—</option>${o(FUEL_L,P.fuel)}</select></div>
    <div class="field"><label class="f">Gaadi number</label><input class="input" id="tmVno" value="${esc(P.vno||'')}"></div>
@@ -283,26 +284,28 @@ function memberFields(p,P,pin){const boy=p?isBoyP(p):true;const o=(mp,v)=>Object
    <h3 style="margin-top:14px">Salary / incentive ke niyam</h3><div class="small muted" style="margin:2px 0 8px">Jo lagu nahi wo khaali chhodo. Apni gaadi wale ka per KM zyada rakho, company ki gaadi wale ka kam ya 0. Do chakkar (jaise pehle tempo se gaanv se doodh, phir delivery) ho to "Har chakkar" me rate daalo aur Meter me trips likho.</div>
    <div class="frm">${INC_F.map(([k,l,u])=>`<div class="field"><label class="f">${l} (${u})</label><input class="input" type="number" inputmode="decimal" min="0" data-inc="${k}" value="${inc[k]!==undefined&&inc[k]!==''?esc(inc[k]):''}" ${k==='perKm'?`placeholder="khaali = ₹${L(settings().kmRate??2)} (Settings)"`:''}></div>`).join('')}</div>`}
 function readMember(){const v=id=>(($('#'+id)||{}).value||'').trim();const inc={};document.querySelectorAll('[data-inc]').forEach(i=>{if(i.value!=='')inc[i.dataset.inc]=Math.max(0,+i.value||0)});
-  return {role:v('tmRole')||'boy',phone:v('tmPhone'),join:v('tmJoin'),pin:v('tmPin'),vehicle:v('tmVeh'),fuel:v('tmFuel'),vno:v('tmVno'),note:v('tmNote'),inc}}
+  return {role:v('tmRole')||'boy',full:!!(($('#tmFull')||{}).checked)&&v('tmRole')==='office',phone:v('tmPhone'),join:v('tmJoin'),pin:v('tmPin'),vehicle:v('tmVeh'),fuel:v('tmFuel'),vno:v('tmVno'),note:v('tmNote'),inc}}
 async function saveMember(name,M,activate){const st=settings();let B=[...boys()],F=[...staffL()];const T={...(st.team||{})};const old=T[name]||{};
   if(M.role==='boy'&&M.pin&&!/^[0-9]{4,6}$/.test(M.pin)){toast('PIN 4-6 digit ka ho');return false}
   const pins={owner:'1234',...(st.pins||{})};pins.boys={...(pins.boys||{})};
-  if(activate){if(M.role==='boy'){if(!B.includes(name))B.push(name);F=F.filter(x=>x!==name);pins.boys[name]=M.pin||pins.boys[name]||'0000'}else{if(!F.includes(name))F.push(name);B=B.filter(x=>x!==name);delete pins.boys[name]}}
+  pins.staff={...(pins.staff||{})};
+  if(activate){if(M.role==='boy'){if(!B.includes(name))B.push(name);F=F.filter(x=>x!==name);pins.boys[name]=M.pin||pins.boys[name]||'0000';delete pins.staff[name]}else{if(!F.includes(name))F.push(name);B=B.filter(x=>x!==name);delete pins.boys[name];if(M.pin)pins.staff[name]=M.pin}}
   const {pin,...rest}=M;T[name]={...old,...rest,left:activate?'':(old.left||'')};
   await saveSettings({...st,boys:B,staff:F,pins,team:T});return true}
 
-function pcProf(p){const P=prof(p),boy=isBoyP(p),act=isActiveP(p);const pin=((settings().pins||{}).boys||{})[p]||'';const nC=activeCusts(p);
+function pcProf(p){const P=prof(p),boy=isBoyP(p),act=isActiveP(p);const pp=settings().pins||{};const pin=(boy?(pp.boys||{})[p]:(pp.staff||{})[p])||'';const nC=activeCusts(p);
   const view=`<div class="ac-card"><h3>Details</h3><table class="ldg" style="margin-top:6px"><tbody>
-    <tr><td>Kaam</td><td>${boy?'Delivery boy':'Office'}${act?'':' · <b>kaam chhod diya</b>'+(P.left?' ('+fmtDate(P.left)+')':'')}</td></tr>
+    <tr><td>Kaam</td><td>${boy?'Delivery boy':'Office'+(P.full?' · poora access':'')}${act?'':' · <b>kaam chhod diya</b>'+(P.left?' ('+fmtDate(P.left)+')':'')}</td></tr>
+    ${act?`<tr><td>Login</td><td>${pin?'PIN set hai':'<b style="color:var(--danger)">PIN nahi, login nahi kar payega</b>'}</td></tr>`:''}
     <tr><td>Phone</td><td>${P.phone?`<a href="tel:${esc(P.phone)}">${esc(P.phone)}</a>`:'—'}</td></tr>
     <tr><td>Joining</td><td>${P.join?esc(fmtDate(P.join))+' · '+esc(expTxt(P.join)||'aaj se'):'— (joining date daalo to kitne samay se kaam kar raha hai dikhega)'}</td></tr>
     ${boy?`<tr><td>Customers</td><td>${nC} active</td></tr><tr><td>Gaadi</td><td>${P.vehicle?esc(VEH_L[P.vehicle]):'—'}${P.fuel?' · '+esc(FUEL_L[P.fuel]):''}${P.vno?' · '+esc(P.vno):''}</td></tr>`:''}
     ${P.note?`<tr><td>Note</td><td>${esc(P.note)}</td></tr>`:''}</tbody></table></div>
    <div class="ac-card"><h3>Salary / incentive ke niyam</h3><table class="ldg" style="margin-top:6px"><tbody>${INC_F.map(([k,l,u])=>`<tr><td>${l}</td><td class="n">${P.inc[k]!==undefined&&P.inc[k]!==''?'₹'+L(P.inc[k]):k==='perKm'&&boy?`<span class="muted">₹${L(settings().kmRate??2)} (Settings ka)</span>`:'<span class="muted">—</span>'}</td><td class="small muted">${u}</td></tr>`).join('')}</tbody></table></div>`;
-  if(!isOwner())return view;
+  if(!isAdmin())return view;
   return view+`<div class="ac-card"><h3>Profile badlo</h3><div style="margin-top:8px">${memberFields(p,P,pin)}</div><div class="row wrap" style="margin-top:12px"><button class="btn p" data-act="tmProfSave" data-p="${esc(p)}">Save profile</button>${act?`<button class="btn d" data-act="tmLeave" data-p="${esc(p)}">Kaam chhod diya</button>`:`<button class="btn o" data-act="tmBack" data-p="${esc(p)}">Wapas kaam pe</button>`}</div></div>`}
 
-function enFormHtml(p){const P=p?prof(p):{};const bl=[...new Set([...boys(),...(p?[p]:[])])];const f=P.fuel&&P.fuel!=='cycle'?P.fuel:'petrol';const me=isOwner()?'Owner':S.me;
+function enFormHtml(p){const P=p?prof(p):{};const bl=[...new Set([...boys(),...(p?[p]:[])])];const f=P.fuel&&P.fuel!=='cycle'?P.fuel:'petrol';const me=S.me||'Owner';
   return `<div class="stack"><div class="frm">
    <div class="field"><label class="f">Kiski gaadi</label><select class="input" id="enP">${bl.map(b=>`<option ${b===p?'selected':''}>${esc(b)}</option>`).join('')}</select></div>
    <div class="field"><label class="f">Date</label><input class="input" type="date" id="enD" value="${S.route==='odo'&&S.odod?S.odod:todayISO()}" max="${todayISO()}"></div>
@@ -317,22 +320,22 @@ function enFormHtml(p){const P=p?prof(p):{};const bl=[...new Set([...boys(),...(
 document.addEventListener('change',e=>{const el=e.target;if(el.id==='enF'){const l=$('#enUL');if(l)l.textContent=el.value==='ev'?'Unit (kWh)':el.value==='cng'?'kg':'Litre'}});
 
 Object.assign(A,{
-  tmNew(){if(!isOwner())return toast('Sirf owner kar sakta hai');openSheet('Naya team member',`<div class="stack">${memberFields('',{inc:{}},'')}<button class="btn p block" data-act="tmNewSave">Save member</button></div>`);$('#sheet .panel').classList.add('wide');setTimeout(()=>{const i=$('#tmName');if(i)i.focus()},40)},
-  async tmNewSave(){if(!isOwner())return;const name=(($('#tmName')||{}).value||'').trim().replace(/\s+/g,' ');if(!name)return toast('Naam likho');
+  tmNew(){if(!isAdmin())return toast('Sirf owner (ya poore access wala) kar sakta hai');openSheet('Naya team member',`<div class="stack">${memberFields('',{inc:{}},'')}<button class="btn p block" data-act="tmNewSave">Save member</button></div>`);$('#sheet .panel').classList.add('wide');setTimeout(()=>{const i=$('#tmName');if(i)i.focus()},40)},
+  async tmNewSave(){if(!isAdmin())return;const name=(($('#tmName')||{}).value||'').trim().replace(/\s+/g,' ');if(!name)return toast('Naam likho');
     const lo=name.toLowerCase();if(lo==='owner'||persons().some(x=>x.toLowerCase()===lo)||Object.keys(teamAll()).some(x=>x.toLowerCase()===lo))return toast('Ye naam pehle se hai. Purana member ho to "Purane member" se wapas lao.');
     const M=readMember();if(M.role==='boy'&&!M.pin)return toast('Boy ka login PIN likho (4-6 digit)');
     if(await saveMember(name,M,true)){closeSheet();toast(name+' jud gaya');render()}},
-  async tmProfSave(d){if(!isOwner())return;const p=d.p;const M=readMember();const nC=activeCusts(p);
+  async tmProfSave(d){if(!isAdmin())return;const p=d.p;const M=readMember();const nC=activeCusts(p);
     if(M.role!=='boy'&&isBoyP(p)&&nC)return toast(`${p} ke ${nC} active customer hain. Office banane se pehle unhe dusre boy ko do.`);
     if(await saveMember(p,M,isActiveP(p))){toast('Profile save');pcDraw(false)}},
-  async tmLeave(d){if(!isOwner())return;const p=d.p;const nC=activeCusts(p);if(nC)return toast(`${p} ke ${nC} active customer hain. Pehle unhe dusre boy ko do (Customers → grid → boy badlo).`);const h=cashInHand(p);
+  async tmLeave(d){if(!isAdmin())return;if(d.p===S.me)return toast('Apne aap ko nahi hata sakte');const p=d.p;const nC=activeCusts(p);if(nC)return toast(`${p} ke ${nC} active customer hain. Pehle unhe dusre boy ko do (Customers → grid → boy badlo).`);const h=cashInHand(p);
     if(!await confirmBox({title:`${esc(p)} ne kaam chhod diya?`,html:`Login band ho jayega aur naam list se hat jayega. Purana hisab (cash, delivery, salary) waise hi rahega.${Math.abs(h)>0.5?`<div style="margin-top:8px;color:var(--danger)"><b>Abhi haath me cash: ${inr(h)}</b>. Pehle handover le lo.</div>`:''}`,yes:'Haan, hatao'}))return;
-    const st=settings();const T={...(st.team||{})};T[p]={...(T[p]||{}),role:isBoyP(p)?'boy':'office',left:todayISO()};const pins={...(st.pins||{}),boys:{...((st.pins||{}).boys||{})}};delete pins.boys[p];
+    const st=settings();const T={...(st.team||{})};T[p]={...(T[p]||{}),role:isBoyP(p)?'boy':'office',left:todayISO()};const pins={...(st.pins||{}),boys:{...((st.pins||{}).boys||{})},staff:{...((st.pins||{}).staff||{})}};delete pins.boys[p];delete pins.staff[p];
     await saveSettings({...st,boys:boys().filter(x=>x!==p),staff:staffL().filter(x=>x!==p),pins,team:T});toast(p+' list se hat gaya');pcDraw(false)},
-  async tmBack(d){if(!isOwner())return;const p=d.p;const P=prof(p);const role=P.role||'boy';
+  async tmBack(d){if(!isAdmin())return;const p=d.p;const P=prof(p);const role=P.role||'boy';
     if(await saveMember(p,{...P,role,pin:''},true)){toast(p+' wapas jud gaya'+(role==='boy'?' · PIN 0000 hai, Profile me badlo':''));pcDraw(false)}},
   pcDv(d){S.pc.dv=d.v;pcDraw(false)},
-  async hisabAdj(){const p=S.pc.id;if(!p||!isOwner())return;const a=$('#haA').value,n=$('#haN').value.trim();const st=settings();const T={...(st.team||{})};const P={...(T[p]||{})};const adj={...(P.adj||{})};
+  async hisabAdj(){const p=S.pc.id;if(!p||!isAdmin())return;const a=$('#haA').value,n=$('#haN').value.trim();const st=settings();const T={...(st.team||{})};const P={...(T[p]||{})};const adj={...(P.adj||{})};
     if(a===''||+a===0)delete adj[S.pc.m];else adj[S.pc.m]={amt:+a,note:n,by:S.me||'',t:Date.now()};P.adj=adj;if(!P.role)P.role=isBoyP(p)?'boy':'office';T[p]=P;await saveSettings({...st,team:T});toast('Sudhaar save');pcDraw(false)},
   enForm(d){if(!canWrite())return toast('Aapko write permission nahi hai');openSheet('Petrol / charging',enFormHtml(d.p||''));setTimeout(()=>{const i=$('#enA');if(i)i.focus()},40)},
   enSave(){if(!canWrite())return toast('Aapko write permission nahi hai');const amt=+$('#enA').value;if(!(amt>0))return toast('₹ amount likho');const veh=$('#enP').value;if(!veh)return toast('Gaadi kiski hai, chuno');
@@ -369,7 +372,7 @@ const lastPur=item=>{const k=norm(item);if(!k)return null;return Object.values(S
 function kxForm(){const K=S.pk,pre=K.pre||{};const P=persons();
   const items=[...new Set([...MILK_ITEMS,...products().filter(p=>p.on!==false).map(p=>p.n),...Object.values(S.purchases).filter(p=>kindOf(p)==='maal').map(p=>p.item).filter(Boolean)])];
   const modeSel=u=>`<div class="field"><label class="f">Paisa kaise diya</label><select class="input" id="kxM"><option value="cash">Cash</option><option value="upi">UPI</option><option value="bank">Bank transfer</option>${u?'<option value="udhaar">Udhaar (baad me denge)</option>':''}</select></div>`;
-  const bySel=`<div class="field"><label class="f">Kisne diya (cash ho to uske haath se ghatega)</label><select class="input" id="kxP">${P.map(p=>`<option value="${esc(p)}">${esc(pl(p))}</option>`).join('')}</select></div>`;
+  const bySel=`<div class="field"><label class="f">Kisne diya (cash ho to uske haath se ghatega)</label><select class="input" id="kxP">${P.map(p=>`<option value="${esc(p)}" ${p===(S.me||'Owner')?'selected':''}>${esc(pl(p))}</option>`).join('')}</select></div>`;
   const supIn=`<div class="field"><label class="f">Supplier${K.kind==='suppay'?' *':''}</label><input class="input" id="kxS" list="kxSl" placeholder="e.g. Sharma Dairy" value="${esc(pre.supplier||'')}" autocomplete="off"><datalist id="kxSl">${suppliers().map(s=>`<option value="${esc(s.n)}">`).join('')}</datalist>${K.kind==='suppay'?`<div class="small muted" id="kxSb" style="margin-top:4px">${pre.supplier?'Abhi dena baki: '+inr(supBal(pre.supplier)):''}</div>`:''}</div>`;
   const note=`<div class="field w2"><label class="f">Note</label><input class="input" id="kxN" placeholder="optional"></div>`;
   let f;
