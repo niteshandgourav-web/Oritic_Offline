@@ -69,7 +69,7 @@ const fullRates=c=>({...ratesOf(c),paneer:kgRate(c,'paneer'),ghee:kgRate(c,'ghee
 function rateOn(c,date){const Lg=logOf(c);let e=null;for(const x of Lg)if(x.from<=date)e=x;if(e)return {...e.rates};if(Lg.length)return {...Lg[0].prev};return fullRates(c)}
 window.rateOn=rateOn;
 /* row ko us din ke rate se price karo (sirf jinke paas rate history hai) */
-window.priceRow=(c,date,row)=>{if(!c||!row||!logOf(c).length)return;const rt=rateOn(c,date);row.r={...(row.r||{}),...rt};
+window.priceRow=(c,date,row)=>{if(!c||!row||row.rl||!logOf(c).length)return;const rt=rateOn(c,date);row.r={...(row.r||{}),...rt};
   if(Array.isArray(row.x))row.x=row.x.map(e=>(e.k==='paneer'||e.k==='ghee')&&+rt[e.k]?{...e,rate:+rt[e.k],a:Math.round((+e.u||0)*rt[e.k]*100)/100}:e);
   if(row.s==='d')row.a=calcAmount(row.q||{},row.x||[],row.r)};
 const rateChg=x=>RK.filter(k=>+x.prev[k]!==+x.rates[k]).map(k=>`${PN[k]} ₹${L(+x.prev[k]||0)} → ₹${L(+x.rates[k]||0)}`).join(', ');
@@ -82,9 +82,14 @@ const ADJ_L={discount:'Discount',charge:'Extra charge',writeoff:'Write-off (baki
 const adjPlus=t=>t==='charge'||t==='refund';
 function rowPart(r){const P=PRODUCTS.filter(p=>+(r.q&&r.q[p.k])>0).map(p=>`${L(r.q[p.k])}L ${p.k==='desi'?'Gir Cow':p.sh} @₹${L(+(r.r&&r.r[p.k])||0)}`);
   (r.x||[]).forEach(e=>P.push(e.n+(e.a?' ₹'+L(e.a):'')));const b=brText(r);return P.join(' + ')+(b?' · wapas '+b:'')+(r.n?' · '+r.n:'')}
+/* khata me ek product = ek line. Rounding ka fark pehli price wali line me jata hai */
+function rowLines(r){const Ls=PRODUCTS.filter(p=>+(r.q&&r.q[p.k])>0).map(p=>{const q=+r.q[p.k],rt=+(r.r&&r.r[p.k])||0;return {t:`${p.k==='desi'?'Gir Cow milk':p.l} · ${L(q)} L × ₹${L(rt)}`,a:q*rt}});
+  (r.x||[]).forEach(e=>{const a=+e.a||0;Ls.push({t:e.n+(a&&+e.rate&&+e.qty&&+e.qty!==1?' @ ₹'+L(e.rate):''),a,z:!a&&!e.free,fr:!a&&!!e.free})});
+  if(!Ls.length)Ls.push({t:'Delivered',a:0});const b=brText(r);Ls[Ls.length-1].t+=(b?' · wapas '+b:'')+(r.n?' · '+r.n:'');
+  const fix=(+r.a||0)-Ls.reduce((s,x)=>s+x.a,0);if(Math.abs(fix)>0.004){const i=Ls.findIndex(x=>x.a>0);Ls[i<0?0:i].a+=fix}return Ls}
 function khataEntries(c,from,to){const E=[];
   for(const d in S.days){if(d<from||d>to)continue;const r=S.days[d].rows&&S.days[d].rows[c.id];if(!r)continue;
-    if(r.s==='d')E.push({date:d,o:1,part:rowPart(r),dr:+r.a||0,cls:''});else if(r.s==='k')E.push({date:d,o:1,part:'Skip'+(r.n?' · '+r.n:''),cls:'skip'})}
+    if(r.s==='d'){const ed=r.ed&&r.ed.length?1:0;rowLines(r).forEach((x,i)=>E.push({date:d,o:1,part:x.t,dr:x.a,cls:i?'sub':'',ee:1,first:!i,z:x.z,fr:x.fr,ed:!i&&ed}))}else if(r.s==='k')E.push({date:d,o:1,part:'Skip'+(r.n?' · '+r.n:''),cls:'skip',ee:1})}
   adjOf(c.id,from,to).forEach(a=>E.push({date:a.date,o:adjPlus(a.type)?2:4,part:ADJ_L[a.type]+(a.type==='refund'?' · '+(a.mode==='cash'?'Cash':'UPI')+(a.via?' · '+rcvLabel(a.via)+' ne diya':''):'')+(a.note?' · '+a.note:'')+(a.by?' · '+a.by:''),dr:adjPlus(a.type)?+a.amt||0:0,cr:!adjPlus(a.type)?+a.amt||0:0,cls:adjPlus(a.type)?'':'cr'}));
   paymentsOf(c.id,from,to).forEach(p=>E.push({date:p.date,o:3,part:`Payment · ${modeL(p)}${viaOf(p)?' · '+rcvLabel(viaOf(p)):''}${p.note?' · '+p.note:''}`,cr:+p.amt||0,cls:'cr'}));
   logOf(c).forEach(x=>{if(x.from<from||x.from>to)return;E.push({date:x.from,o:0,part:'Rate badla: '+rateChg(x)+(x.why?' ('+x.why+')':''),cls:'info'})});
@@ -136,10 +141,10 @@ function perBar(){const a=S.ac;return `<div class="ac-bar ac-noprint"><input typ
 
 /* ---------- tabs ---------- */
 function khataData(c){const [from,to]=acRange();const opening=balanceUpto(c,addDays(from,-1));const E=ledger(opening,khataEntries(c,from,to));const dr=sum(E,e=>e.dr),cr=sum(E,e=>e.cr);return {from,to,opening,E,dr,cr,closing:opening+dr-cr}}
-function tabKhata(c){const K=khataData(c);const dw=d=>DOW[new Date(d+'T12:00:00').getDay()];
-  return perBar()+`<div class="ac-card np"><table class="ldg"><thead><tr><th>Date</th><th>Particulars</th><th class="n">Debit (bill)</th><th class="n">Credit (jama)</th><th class="n">Balance</th></tr></thead><tbody>
+function tabKhata(c){const K=khataData(c);const own=isOwner()&&!!window.entryEdit;const dw=d=>DOW[new Date(d+'T12:00:00').getDay()];
+  return perBar()+(own?`<div class="ee-kbar"><span class="small muted">Kisi line pe click karo → us din ki entry theek karo.</span><input type="date" id="eeKD" max="${todayISO()}" aria-label="Date"><button class="btn sm o" data-act="eeOpenDate" data-id="${c.id}">Is date ki entry jodo / theek karo</button></div>`:'')+`<div class="ac-card np"><table class="ldg"><thead><tr><th>Date</th><th>Particulars</th><th class="n">Debit (bill)</th><th class="n">Credit (jama)</th><th class="n">Balance</th></tr></thead><tbody>
    <tr class="ob"><td class="dt">${S.ac.per==='all'?'':fmtShort(K.from)}</td><td>${S.ac.per==='all'?'Opening (purana baki)':'Opening balance (pichla baki)'}</td><td></td><td></td><td class="n">${inr(K.opening)}</td></tr>
-   ${K.E.map(e=>`<tr class="${e.cls}"><td class="dt">${fmtShort(e.date)} <span class="small muted">${dw(e.date)}</span></td><td>${esc(e.part)}</td><td class="n">${e.dr?inr(e.dr):''}</td><td class="n c">${e.cr?inr(e.cr):''}</td><td class="n bal">${e.dr||e.cr?inr(e.bal):''}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">Is period me koi entry nahi</td></tr>'}
+   ${K.E.map(e=>`<tr class="${e.cls}${e.ee&&own?' eerow':''}"${e.ee&&own?` data-act="eeOpen" data-id="${c.id}" data-date="${e.date}" title="Click: is din ki entry theek karo"`:''}><td class="dt">${e.first===false?'':fmtShort(e.date)+' <span class="small muted">'+dw(e.date)+'</span>'}</td><td>${esc(e.part)}${e.z?' <span class="badge r">price nahi</span>':''}${e.fr?' <span class="badge n">free</span>':''}${e.ed?' <span class="badge n" title="Ye entry baad me theek ki gayi">✎ sudhari</span>':''}</td><td class="n">${e.dr?inr(e.dr):''}</td><td class="n c">${e.cr?inr(e.cr):''}</td><td class="n bal">${e.dr||e.cr?inr(e.bal):''}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">Is period me koi entry nahi</td></tr>'}
    <tr class="tot"><td></td><td>Total · closing balance</td><td class="n">${inr(K.dr)}</td><td class="n">${inr(K.cr)}</td><td class="n" style="color:${K.closing>0.5?'var(--danger)':'var(--accent)'}">${inr(K.closing)}</td></tr></tbody></table></div>
    <div class="small muted">Debit = doodh / product ka bill aur extra charge. Credit = payment, discount, write-off. Balance plus me = customer se lena hai.</div>`}
 function tabProducts(c){const [from,to]=acRange();const rows=deliveredRows(c.id,from,to);const P={},X={};
