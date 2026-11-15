@@ -142,7 +142,7 @@ function vTeam(){const H=cashAll(),today=todayISO(),m=today.slice(0,7),[mf,mt]=p
   const rec=Object.values(S.cash).sort((a,b)=>(b.t||0)-(a.t||0)).slice(0,15);
   const html=`<div class="stack">
    <div class="row sp wrap"><div class="small muted" style="max-width:640px">Cash kiske haath me hai, kisne office ko diya, bank me kitna gaya. UPI seedha company ke account me jata hai, isliye kisi ke haath me nahi gina jata.</div>
-    <div class="row wrap"><button class="btn o" data-act="tmNew">+ Naya member</button><button class="btn p" data-act="hoForm">+ Cash handover</button><button class="btn" data-act="bankForm">+ Bank me jama</button><button class="btn o" data-act="cadjForm">Sudhaar</button></div></div>
+    <div class="row wrap"><button class="btn o" data-act="tmNew">+ Naya member</button><button class="btn o" data-act="bsOpen">📄 Boy sheets</button><button class="btn p" data-act="hoForm">+ Cash handover</button><button class="btn" data-act="bankForm">+ Bank me jama</button><button class="btn o" data-act="cadjForm">Sudhaar</button></div></div>
    <div class="kpi"><div class="card"><div class="l">Sabke haath me cash</div><div class="v">${inr(sum(Object.values(H),v=>v))}</div><div class="s">${cashFrom()?fmtShort(cashFrom())+' se gina':'shuru se gina'}</div></div>
     <div class="card"><div class="l">Handover confirm baaki</div><div class="v" style="color:${pend.length?'var(--warn)':'inherit'}">${pend.length}</div><div class="s">${inr(sum(pend,x=>x.amt))}</div></div>
     <div class="card"><div class="l">Aaj cash aaya</div><div class="v">${inr(sum(tp.filter(x=>x.mode==='cash'),x=>x.amt))}</div><div class="s">customers se</div></div>
@@ -403,7 +403,9 @@ function kxDay(){const d=S.purd;const dayP=Object.values(S.purchases).filter(p=>
 function monthNums(m){const [mf,mt]=periodRange(m,'full');const P=Object.values(S.purchases||{}).filter(p=>p.date>=mf&&p.date<=mt);const maalL=P.filter(p=>kindOf(p)==='maal'),khL=P.filter(p=>kindOf(p)==='kharcha');
   let sale=0;for(const d in S.days){if(d<mf||d>mt)continue;for(const r of Object.values(S.days[d].rows||{}))if(r.s==='d')sale+=+r.a||0}
   const coll=sum(Object.values(S.payments).filter(p=>p.date>=mf&&p.date<=mt),p=>p.amt);const maal=sum(maalL,p=>p.amt),kh=sum(khL,p=>p.amt);
-  return {P,maalL,khL,sale,coll,maal,kh,profit:sale-maal-kh}}
+  /* customer discount / write-off kamai ghatate hain, extra charge badhata hai. Paisa wapas (refund) kamai nahi, sirf advance lautana hai */
+  const AJ=Object.values(S.adjust||{}).filter(a=>a.date>=mf&&a.date<=mt&&S.customers[a.cid]);const disc=sum(AJ.filter(a=>a.type==='discount'||a.type==='writeoff'),a=>a.amt),chg=sum(AJ.filter(a=>a.type==='charge'),a=>a.amt);
+  return {P,maalL,khL,sale,coll,maal,kh,disc,chg,profit:sale+chg-disc-maal-kh}}
 function kxMonth(){const m=S.purd.slice(0,7);const N=monthNums(m);
   const byCat={};N.khL.forEach(p=>{const k=p.cat||'Other';byCat[k]=(byCat[k]||0)+(+p.amt||0)});
   const byItem={};N.maalL.forEach(p=>{const k=p.item||'—';const g=byItem[k]||(byItem[k]={q:0,a:0,u:p.unit||''});g.q+=+p.qty||0;g.a+=+p.amt||0});
@@ -411,7 +413,8 @@ function kxMonth(){const m=S.purd.slice(0,7);const N=monthNums(m);
   const tb=(o,f)=>Object.entries(o).sort((a,b)=>f(b[1])-f(a[1]));
   return `<div class="kpi"><div class="card"><div class="l">${fmtMonth(m)} sale</div><div class="v">${inr(N.sale)}</div><div class="s">delivered maal ka bill</div></div>
     <div class="card"><div class="l">Maal khareeda</div><div class="v">${inr(N.maal)}</div></div><div class="card"><div class="l">Kharcha</div><div class="v">${inr(N.kh)}</div></div>
-    <div class="card"><div class="l">Bachat (andaza)</div><div class="v" style="color:${N.profit<0?'var(--danger)':'var(--accent)'}">${inr(N.profit)}</div><div class="s">sale − maal − kharcha</div></div>
+    <div class="card"><div class="l">Bachat (andaza)</div><div class="v" style="color:${N.profit<0?'var(--danger)':'var(--accent)'}">${inr(N.profit)}</div><div class="s">sale${N.chg?' + charge':''}${N.disc?' − discount':''} − maal − kharcha</div></div>
+    ${N.disc||N.chg?`<div class="card"><div class="l">Discount / write-off</div><div class="v">${inr(N.disc)}</div><div class="s">${N.chg?'extra charge +'+inr(N.chg):'customers ko chhoot'}</div></div>`:''}
     <div class="card"><div class="l">Paisa aaya (collection)</div><div class="v">${inr(N.coll)}</div><div class="s">cash + UPI</div></div></div>
    <div class="small muted">Bachat andaza hai: isme udhaar pe gaya maal bhi sale me gina hai (paisa abhi aana baki ho sakta hai), aur bacha hua stock nahi gina.</div>
    <div class="grid g2 tight"><div class="card"><h3>Kharcha · category se</h3><div style="margin-top:6px">${tb(byCat,v=>v).map(([k,v])=>`<div class="mini"><span>${esc(k)}</span><b>${inr(v)}</b></div>`).join('')||'<div class="small muted">Is mahine koi kharcha nahi likha</div>'}</div></div>
@@ -462,7 +465,7 @@ Object.assign(A,{
     openSheet('Supplier khata · '+n,`<div class="stack"><div class="row sp wrap"><div>${s.ph?`<span class="small muted">${esc(s.ph)}</span>`:''}<div style="font-size:20px;font-weight:800;color:${supBal(n)>0.5?'var(--danger)':'var(--accent)'}">Dena baki: ${inr(supBal(n))}</div></div><button class="btn p" data-act="supPay" data-n="${esc(n)}">Payment karo</button></div>
       <div class="scroll"><table class="ldg"><thead><tr><th>Date</th><th>Kya</th><th class="n">Udhaar maal</th><th class="n">Payment</th><th class="n">Dena baki</th></tr></thead><tbody>${Lg.map(e=>`<tr class="${e.cls||''}"><td class="dt">${fmtShort(e.date)} ${e.date.slice(2,4)}</td><td>${esc(e.part)}</td><td class="n">${e.dr?inr(e.dr):''}</td><td class="n c">${e.cr?inr(e.cr):''}</td><td class="n bal">${e.dr||e.cr?inr(e.bal):''}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">Abhi koi entry nahi</td></tr>'}</tbody></table></div></div>`);$('#sheet .panel').classList.add('wide')},
   kxXlsx(){const m=S.purd.slice(0,7);const N=monthNums(m);xlsxSave(`oritic-kharcha-${m}.xlsx`,[['Entries',N.P.sort((a,b)=>a.date.localeCompare(b.date)||(a.t||0)-(b.t||0)).map(p=>({'Date':p.date,'Type':kindOf(p)==='kharcha'?'Kharcha':'Maal','Category':p.cat||'','Item':p.item||'','Qty':+p.qty||'','Unit':p.unit||'','Rate':+p.rate||'','Amount ₹':+p.amt||0,'Supplier':p.supplier||'','Kisko':p.person?pl(p.person):'','Mode':modeTxt(p.mode),'Kisne diya':p.paidBy?pl(p.paidBy):'','Note':p.note||''})),[11,9,16,24,7,6,7,10,18,14,8,14,24]],
-    ['Summary',[['Mahina',fmtMonth(m)],['Sale (delivered)',Math.round(N.sale)],['Maal khareeda',Math.round(N.maal)],['Kharcha',Math.round(N.kh)],['Bachat (andaza)',Math.round(N.profit)],['Collection',Math.round(N.coll)]],[22,14]]])}
+    ['Summary',[['Mahina',fmtMonth(m)],['Sale (delivered)',Math.round(N.sale)],['Maal khareeda',Math.round(N.maal)],['Kharcha',Math.round(N.kh)],['Discount / write-off',Math.round(N.disc)],['Extra charge',Math.round(N.chg)],['Bachat (andaza)',Math.round(N.profit)],['Collection',Math.round(N.coll)]],[22,14]]])}
 });
 
 /* =====================================================================
@@ -629,7 +632,7 @@ vHome=function(){const o=_vh();if(!isOwner()||!Object.keys(S.customers).length)r
     <div class="kpi"><div class="card"><div class="l">${fmtMonth(m)} sale</div><div class="v">${inr(N.sale)}</div><div class="s">delivered ka bill</div></div>
      <div class="card"><div class="l">Paisa aaya</div><div class="v">${inr(N.coll)}</div><div class="s">cash + UPI</div></div>
      <div class="card"><div class="l">Maal + kharcha</div><div class="v">${inr(N.maal+N.kh)}</div><div class="s">maal ${inr(N.maal)} · kharcha ${inr(N.kh)}</div></div>
-     <div class="card"><div class="l">Bachat (andaza)</div><div class="v" style="color:${N.profit<0?'var(--danger)':'var(--accent)'}">${inr(N.profit)}</div><div class="s">sale − maal − kharcha</div></div>
+     <div class="card"><div class="l">Bachat (andaza)</div><div class="v" style="color:${N.profit<0?'var(--danger)':'var(--accent)'}">${inr(N.profit)}</div><div class="s">sale${N.chg?' + charge':''}${N.disc?' − discount':''} − maal − kharcha</div></div>
      <button class="card" data-act="go" data-r="dues" style="text-align:left"><div class="l">Customers se lena</div><div class="v" style="color:var(--danger)">${inr(totBal)}</div><div class="s">Vasooli kholo ›</div></button></div>
     <div class="grid g2 tight"><div class="card"><div class="row sp"><h3>Cash kiske paas</h3><button class="btn xs" data-act="go" data-r="team">Team & cash</button></div><div style="margin-top:6px">${Object.keys(H).filter(p=>Math.abs(H[p])>0.5||persons().includes(p)).map(p=>`<div class="mini"><span>${esc(pl(p))}</span><b style="color:${clim>0&&H[p]>clim?'var(--danger)':'inherit'}">${inr(H[p])}</b></div>`).join('')}</div></div>
      <div class="card"><div class="row sp"><h3>Bottles customers ke paas · ${TT.t}</h3><button class="btn xs" data-act="go" data-r="bottles">Bottles</button></div><div style="margin-top:8px">${botMatrix(TT.T)}</div></div></div></div>`;

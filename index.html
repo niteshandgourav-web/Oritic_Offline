@@ -296,6 +296,12 @@ label.f{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-b
 .rtitem.rtbefore::before,.rtitem.rtafter::after{content:"";position:absolute;left:8px;right:8px;height:3px;border-radius:3px;background:var(--accent);z-index:2}
 .rtitem.rtbefore::before{top:-2px}.rtitem.rtafter::after{bottom:-2px}
 .rtitem.flash{background:var(--accent-soft)}
+.rtname{cursor:pointer;border-radius:8px}.rtname:hover .t{text-decoration:underline}
+.rtacts{display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px 10px 10px;background:var(--surface2);border-radius:0 0 12px 12px}
+.rtpick{position:sticky;top:-16px;z-index:3;display:flex;gap:10px;align-items:center;padding:10px 12px;margin-bottom:8px;border-radius:12px;background:var(--accent-soft);color:var(--accent-ink);font-size:14px;line-height:1.4}
+.rtpickrow{cursor:pointer}.rtpickrow:hover{background:var(--surface2)}.rtpickrow.rtme{opacity:.55;cursor:default}
+.rtn{width:34px;flex:none;text-align:center;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
+@media(max-width:899px){.rtitem{padding:6px 8px;gap:6px}.rtitem .btn.xs{min-width:40px;min-height:40px;font-size:16px}.rtpos{width:44px;height:40px}.rth{width:30px}}
 .rtbar{position:sticky;bottom:-16px;background:var(--surface);padding:10px 0 4px;margin-top:10px;display:flex;gap:8px;align-items:center;border-top:1px solid var(--line2)}
 .cpos{display:inline-grid;place-items:center;min-width:28px;height:24px;padding:0 6px;border-radius:7px;background:var(--surface2);font-weight:800;font-size:12px;color:var(--muted);flex:none}
 .wdays{display:flex;gap:4px;flex-wrap:wrap}
@@ -1385,26 +1391,30 @@ function vOdoOwner(){const date=S.odod;loadOdo(date);purgeOld();const o=S.odo[da
 /* --- Route order (delivery boy) --- */
 /* --- Customer order (route) — sab ke liye ek shared order, boy-wise --- */
 function rtDefaultBoy(pref){if(!isOwner())return S.me;const bl=boys();if(pref&&pref!=='all'&&bl.includes(pref))return pref;return bl[0]||''}
-function sheetRoute(boy){boy=rtDefaultBoy(boy);S.rtBoy=boy;S.rtq='';S.rtWarn=false;
+function sheetRoute(boy){boy=rtDefaultBoy(boy);S.rtBoy=boy;S.rtq='';S.rtWarn=false;S.rtPick=null;S.rtSel=null;
   S.rt=Object.values(S.customers).filter(c=>c.boy===boy).sort((a,b)=>((a.seq??9999)-(b.seq??9999))||a.name.localeCompare(b.name)).map(c=>c.id);
   S.rt0=S.rt.slice();drawRoute()}
 function rtDirty(){return S.rt.filter((id,i)=>S.rt0[i]!==id).length}
-function drawRoute(flashId){const body=$('#shBody');const sc=body&&!body.closest('.sheet').hidden?body.scrollTop:0;const q=(S.rtq||'').trim().toLowerCase();const dirty=rtDirty();
+function drawRoute(flashId){const body=$('#shBody');const sc=body&&!body.closest('.sheet').hidden?body.scrollTop:0;const q=(S.rtq||'').trim().toLowerCase();const dirty=rtDirty();const pick=S.rtPick&&S.rt.includes(S.rtPick)?S.rtPick:null;
   openSheet('Customer order'+(S.rtBoy?' · '+S.rtBoy:''),`
   ${isOwner()?`<div style="margin-bottom:10px">${chips(boys().map(b=>({v:b,l:b})),S.rtBoy,'rtBoy')}</div>`:''}
-  <div class="small muted" style="margin-bottom:8px">Jo ghar pehle aata hai use upar rakho. <b>⠿</b> pakad ke khiskao, ↑ ↓ dabao, ya number pe tap karke nayi position likho. Ye order sabko dikhega: Aaj, Kal, Customers aur Excel me.</div>
+  ${pick?`<div class="rtpick"><div class="grow"><b>${esc(S.customers[pick].name)}</b> ko kiske ${S.rtPickMode==='before'?'pehle':'baad'} rakhna hai? Neeche us customer pe tap karo (upar search se dhoond bhi sakte ho).</div><button class="btn sm o" data-act="rtPickCancel">Cancel</button></div>`
+   :`<div class="small muted" style="margin-bottom:8px">Jo ghar pehle aata hai use upar rakho. Naam pe tap karo: <b>Sabse upar</b>, <b>Sabse neeche</b>, <b>Kisi ke baad rakho</b>. Ya <b>⠿</b> pakad ke khiskao, ↑ ↓ dabao, number pe tap karke nayi position likho. Ye order sabko dikhega: Aaj list, Delivery sheet, Customers aur Excel me. Apne aap kuch nahi badalta.</div>`}
   <div class="search" style="margin-bottom:8px">${ICONS.search}<input class="input" id="rtq" placeholder="Customer dhoondo…" value="${esc(S.rtq||'')}" data-act="rtq"></div>
   <div class="list" id="rtList">${S.rt.map((id,i)=>{const c=S.customers[id];if(!c)return '';const hide=q&&!(c.name+' '+(c.phone||'')+' '+(c.area||'')+' '+(c.address||'')).toLowerCase().includes(q);
+    const addr=esc([c.house,c.address,c.area,c.landmark].filter(Boolean).join(', ')||'—'),nm=`<div class="t">${esc(c.name)} ${c.status!=='active'?'<span class="badge y">Paused</span>':''}</div><div class="s">${addr}</div>`;
+    if(pick)return `<div class="item rtitem rtpickrow ${id===pick?'rtme':''}" data-rt="${i}" data-cid="${id}" ${hide?'hidden':''} ${id===pick?'':`data-act="rtPickTo" data-i="${i}" role="button" tabindex="0"`}><span class="rtn">${i+1}</span><div class="grow" style="min-width:0">${nm}</div>${id===pick?'<span class="badge b">Ye</span>':`<span class="small muted" style="white-space:nowrap">${S.rtPickMode==='before'?'iske pehle':'iske baad'} ›</span>`}</div>`;
     return `<div class="item rtitem ${S.rt0[i]!==id?'moved':''} ${flashId===id?'flash':''}" data-rt="${i}" data-cid="${id}" ${hide?'hidden':''}>
       <span class="rth" aria-label="Pakad ke khiskao">⠿</span>
       <input class="rtpos" type="number" inputmode="numeric" min="1" max="${S.rt.length}" value="${i+1}" data-act="rtPos" data-i="${i}" aria-label="Position">
-      <div class="grow" style="min-width:0"><div class="t">${esc(c.name)} ${c.status!=='active'?'<span class="badge y">Paused</span>':''}</div><div class="s">${esc([c.house,c.address,c.area].filter(Boolean).join(', ')||'—')}</div></div>
-      <button class="btn xs o" data-act="rtMv" data-i="${i}" data-n="-1" ${i?'':'disabled'} aria-label="Upar">↑</button><button class="btn xs o" data-act="rtMv" data-i="${i}" data-n="1" ${i<S.rt.length-1?'':'disabled'} aria-label="Neeche">↓</button></div>`}).join('')||emptyBox('Is boy ke koi customer nahi')}</div>
-  <div class="rtbar"><div class="grow small ${dirty?'':'muted'}">${dirty?`<b>${dirty}</b> customer ki jagah badli, save baaki`:'Koi badlav nahi'}</div>
+      <div class="grow rtname" style="min-width:0" data-act="rtSel" data-id="${id}" role="button" tabindex="0" aria-expanded="${S.rtSel===id}">${nm}</div>
+      <button class="btn xs o" data-act="rtMv" data-i="${i}" data-n="-1" ${i?'':'disabled'} aria-label="Upar">↑</button><button class="btn xs o" data-act="rtMv" data-i="${i}" data-n="1" ${i<S.rt.length-1?'':'disabled'} aria-label="Neeche">↓</button></div>
+      ${S.rtSel===id&&!hide?`<div class="rtacts"><button class="btn sm o" data-act="rtTo" data-i="${i}" data-to="top" ${i?'':'disabled'}>⤒ Sabse upar</button><button class="btn sm o" data-act="rtTo" data-i="${i}" data-to="bottom" ${i<S.rt.length-1?'':'disabled'}>⤓ Sabse neeche</button><button class="btn sm p" data-act="rtPickStart" data-id="${id}" data-m="after">Kisi ke baad rakho…</button><button class="btn sm o" data-act="rtPickStart" data-id="${id}" data-m="before">Kisi se pehle…</button></div>`:''}`}).join('')||emptyBox('Is boy ke koi customer nahi')}</div>
+  <div class="rtbar" ${pick?'hidden':''}><div class="grow small ${dirty?'':'muted'}">${dirty?`<b>${dirty}</b> customer ki jagah badli, save baaki`:'Koi badlav nahi'}</div>
    ${dirty?'<button class="btn o" data-act="rtReset">Reset</button>':''}<button class="btn p" data-act="rtSave" ${dirty?'':'disabled'}>Save karo</button></div>`);
   const nb=$('#shBody');nb.scrollTop=sc;
   if(flashId){const el=nb.querySelector(`[data-cid="${flashId}"]`);if(el){const r=el.getBoundingClientRect(),br=nb.getBoundingClientRect();if(r.top<br.top||r.bottom>br.bottom-60)el.scrollIntoView({block:'center'});setTimeout(()=>el.classList.remove('flash'),700)}}}
-function rtMove(from,to){to=Math.max(0,Math.min(S.rt.length-1,to));if(from===to)return;const [m]=S.rt.splice(from,1);S.rt.splice(to,0,m);drawRoute(m)}
+function rtMove(from,to){S.rtSel=null;to=Math.max(0,Math.min(S.rt.length-1,to));if(from===to){drawRoute();return}const [m]=S.rt.splice(from,1);S.rt.splice(to,0,m);drawRoute(m)}
 /* drag: mouse + touch dono (pointer events) */
 let RD=null;
 document.addEventListener('pointerdown',e=>{const h=e.target.closest&&e.target.closest('.rth');if(!h)return;const it=h.closest('[data-rt]');if(!it)return;e.preventDefault();
@@ -1417,6 +1427,9 @@ function rdMark(){const items=[...document.querySelectorAll('#rtList [data-rt]')
   if(ins!==RD.from&&ins!==RD.from+1)mark.classList.add(cls)}
 function rdEnd(){if(!RD)return;cancelAnimationFrame(RD.raf);const {from,ins}=RD;RD=null;if(ins===null||ins===from||ins===from+1){drawRoute();return}rtMove(from,ins>from?ins-1:ins)}
 document.addEventListener('pointerup',rdEnd);document.addEventListener('pointercancel',rdEnd);
+const rtUnsaved=()=>!$('#sheet').hidden&&/^Customer order/.test($('#shTitle').textContent||'')&&S.rt&&S.rt0&&rtDirty()>0;
+const _closeSheetRaw=closeSheet;
+closeSheet=function(){if(rtUnsaved()&&window.confirmBox){confirmBox({title:'Order save nahi hua',html:`${rtDirty()} customer ki jagah badli hai. Bina save kiye band karein?`,yes:'Haan, band karo',no:'Wapas jao',danger:true}).then(ok=>{if(ok){S.rt0=S.rt.slice();_closeSheetRaw()}});return}return _closeSheetRaw()};
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset&&e.target.dataset.act==='rtPos'){e.preventDefault();e.target.blur()}});
 document.addEventListener('change',e=>{const el=e.target;if(!el.dataset||el.dataset.act!=='rtPos')return;const v=Math.round(+el.value);if(!v){el.value=+el.dataset.i+1;return}rtMove(+el.dataset.i,v-1)});
 document.addEventListener('input',e=>{const el=e.target;if(el.id!=='rtq')return;S.rtq=el.value;const q=el.value.trim().toLowerCase();
@@ -1510,11 +1523,16 @@ Object.assign(A,{
     queue('km:'+id,()=>S.db.doc('kms/'+id).set(doc)).then(()=>toast(b+': '+L(km)+' km · incentive '+inr(doc.inc)))},
   routeOrder(d){sheetRoute(d.b)},
   rtMv(d){rtMove(+d.i,+d.i+(+d.n))},
+  rtSel(d){S.rtSel=S.rtSel===d.id?null:d.id;drawRoute()},
+  rtTo(d){rtMove(+d.i,d.to==='top'?0:S.rt.length-1)},
+  rtPickStart(d){S.rtPick=d.id;S.rtPickMode=d.m==='before'?'before':'after';S.rtSel=null;drawRoute()},
+  rtPickCancel(){const id=S.rtPick;S.rtPick=null;drawRoute(id)},
+  rtPickTo(d){const from=S.rt.indexOf(S.rtPick);if(from<0){S.rtPick=null;return drawRoute()}const t=+d.i;let to=S.rtPickMode==='before'?t:t+1;if(from<to)to--;S.rtPick=null;S.rtq='';rtMove(from,to)},
   rtReset(){S.rt=S.rt0.slice();drawRoute()},
-  rtBoy(d){if(d.v===S.rtBoy)return;if(rtDirty()&&!S.rtWarn){S.rtWarn=true;return toast('Badlav save nahi hue. Bina save kiye jaana hai to dobara tap karo')}sheetRoute(d.v)},
+  async rtBoy(d){if(d.v===S.rtBoy)return;if(rtDirty()&&!await confirmBox({title:'Order save nahi hua',html:`${esc(S.rtBoy)} ke ${rtDirty()} customer ki jagah badli hai. Bina save kiye ${esc(d.v)} pe jaayein?`,yes:'Haan, jao',no:'Wapas jao',danger:true}))return;sheetRoute(d.v)},
   rtSave(){if(!canWrite())return toast('Aapko write permission nahi hai');if(!isOwner()&&S.rtBoy!==S.me)return toast('Sirf apna order badal sakte ho');
     const b=S.db.batch();let n=0;S.rt.forEach((id,i)=>{const seq=(i+1)*10;if(S.customers[id].seq===seq)return;S.customers[id]={...S.customers[id],seq};b.set(S.db.doc('customers/'+id),{seq},{merge:true});n++});
-    if(n)b.commit().then(()=>toast('Order save ho gaya, sabko dikhega')).catch(e=>toast('Save nahi hua: '+(e&&e.message||e)));else toast('Order save');closeSheet();render()},
+    if(n)b.commit().then(()=>toast('Order save ho gaya, sabko dikhega')).catch(e=>toast('Save nahi hua: '+(e&&e.message||e)));else toast('Order save');S.rt0=S.rt.slice();closeSheet();render()},
   dSave(d){const c=S.customers[d.id];if(!c)return;const r=rowOf(S.date,d.id);const {q,x}=rowItems(c,r);
     const row=keepPl(makeRow(c,d.s,q,d.s==='k'?[]:x,r&&r.n,S.me),r);const br=readBr('dBr');if(br)Object.assign(row,br);
     writeRows(S.date,{[d.id]:row});closeSheet();toast(d.s==='d'?c.name+': delivered':d.s==='k'?c.name+': skip':'Wapas pending')},
@@ -1585,5 +1603,6 @@ window.addEventListener('DOMContentLoaded',async()=>{
 <script src="js/bulk.js"></script>
 <script src="js/account.js"></script>
 <script src="js/business.js"></script>
+<script src="js/boysheet.js"></script>
 <script src="js/guide.js"></script>
 </body></html>

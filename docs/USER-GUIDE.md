@@ -38,9 +38,10 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 5. "Wapas" column me likho kitni ½L aur 1L khali bottle wapas aayi.
 6. Shahad, dahi, gur jaise product: "+ Product jodo" se. Jo product roz jaate hain unka apna column bana lo (⋯ Aur → ⚙ Columns → Product ka apna column), phir bas quantity likhni hai.
 7. Kai customers ek saath: line ke aage ka checkbox tick karo (Shift + click = poori range). Neeche kaali patti aayegi: Confirm, ✓ Diya, Skip, quantity, product, comment sab ek saath.
-8. ⋯ Aur → ⚙ Columns: kaunsa column pehle, kaunsa baad me, kaunsa chhupana hai. ↑ ↓ se aage-peeche karo. "Customer ka baki" column bhi yahin se on hota hai.
-9. "Loading sheet": har boy ko Cow / Buffalo / Gir ki kitni ½L aur 1L bottle aur kaunsa saamaan load karna hai. Copy karke WhatsApp ya Print.
-10. ⋯ me: route ka order badlo, Auto-fill dobara, chhote rows (compact).
+8. ⋯ Aur → 📄 Boy sheets: har boy ki alag Excel file, uske route kram me. ⚙ Columns se tay karo kaunse column aur kis kram me. (Team & cash page pe bhi ye button hai.)
+9. ⋯ Aur → ⚙ Columns: kaunsa column pehle, kaunsa baad me, kaunsa chhupana hai. ↑ ↓ se aage-peeche karo. "Customer ka baki" column bhi yahin se on hota hai.
+10. "Loading sheet": har boy ko Cow / Buffalo / Gir ki kitni ½L aur 1L bottle aur kaunsa saamaan load karna hai. Copy karke WhatsApp ya Print.
+11. ⋯ me: route ka order badlo, Auto-fill dobara, chhote rows (compact).
 
 > Dhyan: Pichli date pe kuch bhi badloge to popup poochhega aur badlav ka record ban jayega (Settings → Pichli date ke badlav).
 >
@@ -56,8 +57,11 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 2. Ghar pe doodh diya to ✓, nahi diya to Skip. Naam pe tap karo to address, map, call, instructions aur "kitni bottle wapas li" dikhta hai.
 3. Customer ne paisa diya to usi screen se "Receive payment".
 4. Customer ne kuch kaha (kal 2L chahiye) to "Comment bhejo". Office ko Delivery sheet me dikh jayega.
+5. "⇅ Order badlo": apne gharon ka kram (route) khud set karo. Naam pe tap karo → Sabse upar / Sabse neeche / Kisi ke baad rakho (phir us ghar pe tap karo). Ya ⠿ pakad ke khiskao, ↑ ↓. Aakhir me "Save karo". Paas-paas ke ghar saath rakho, taaki ek ke yahan jao to dusre ka order bhi dikh jaye.
 
 > Dhyan: Office bhi yahi list dekh sakta hai, par office ke liye Delivery sheet zyada tez hai.
+>
+> Dhyan: Owner / office kisi bhi boy ka order badal sakte hain: Delivery sheet → ⋯ Aur → Customer ka order, ya Boy sheets → ⇅ Order. Kram apne aap kabhi nahi badalta.
 
 ## 5. Customers (list, grid, Excel import)
 
