@@ -87,3 +87,7 @@ Object.assign(A,{
     saveSettings({...settings(),boyCols:L0.map(c=>({k:c.k,on:c.on}))}).then(()=>{toast('Columns save');S.bs.edit=null;drawBs()})}
 });
 })();
+/* Test link: ?demo = local mode me khaali browser me demo data apne aap bhar do */
+(()=>{if(window.ORITIC_MODE!=='local'||!/[?&]demo\b/.test(location.search))return;let n=0;
+  const t=setInterval(()=>{if(++n>40)return clearInterval(t);if(!S.ready)return;clearInterval(t);if(Object.keys(S.customers||{}).length)return;
+    const b=document.createElement('button');b.dataset.act='demoLoad';b.hidden=true;document.body.appendChild(b);S.role=S.role||'owner';S.me=S.me||'Owner';b.click();S.role=null;S.me=''},250)})();
