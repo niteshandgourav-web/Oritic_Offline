@@ -121,7 +121,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 
 > Dhyan: Start date aage ki hai to tab tak customer sheet me nahi aayega.
 >
-> Dhyan: Trial customer ho to Note me "trial" likh do, boy ko dikhega.
+> Dhyan: Trial offer: "kitne din sasta" me din (jaise 3) aur "kitna % sasta" likho. Un dino doodh sasta lagega. Trial khatam hote hi customer sheet se hat jata hai aur Dashboard pe peeli patti aati hai: phone karke poochho, phir "Continue" (normal rate pe chalu) ya "Band" dabao.
 
 ## 9. Galti pakdo (galat entries dhoondna)
 

@@ -35,7 +35,7 @@ if(typeof NAVG!=='undefined'){NAVG[0][1].splice(1,0,'neworder');NAVG[1][1].push(
 window.EXTRA_VIEWS={...(window.EXTRA_VIEWS||{}),neworder:()=>vNew(),galti:()=>vGalti()};
 
 /* ================= 1. Naya order ================= */
-const blank=()=>({id:'',phone:'',name:'',area:'',address:'',landmark:'',map:'',boy:boys()[0]||'',sched:'daily',since:addDays(todayISO(),1),q:{},r:{},x:{},xr:{},pq:'',notes:'',dt:'',dv:'',saved:null});
+const blank=()=>({id:'',phone:'',name:'',area:'',address:'',landmark:'',map:'',boy:boys()[0]||'',sched:'daily',since:addDays(todayISO(),1),q:{},r:{},x:{},xr:{},pq:'',notes:'',dt:'',dv:'',td:'',tp:'',saved:null});
 let N=null;
 const rateFor=k=>{const o=N.id&&S.customers[N.id];if(o)return +ratesOf(o)[k]||0;return num(N.r[k])||+defRates()[k]||0};
 function foundHtml(){const ph=cleanPhone(N.phone);if(!ph)return '';if(ph.length<10)return '<div class="small muted" style="margin-top:6px">Mobile 10 digit ka likho</div>';
@@ -45,7 +45,8 @@ function foundHtml(){const ph=cleanPhone(N.phone);if(!ph)return '';if(ph.length<
 const xRate=p=>N.xr[p.id]!=null&&N.xr[p.id]!==''?num(N.xr[p.id]):(+p.a||0);
 function dayValue(){let a=0;PRODUCTS.forEach(p=>a+=(+N.q[p.k]||0)*rateFor(p.k));products().forEach(p=>a+=(+N.x[p.id]||0)*xRate(p));return r2(a)}
 function sumHtml(){const d=dayValue();const days=N.sched==='alternate'?15:30;const m=d*days;const dv=num(N.dv);const disc=N.dt==='pct'?Math.round(m*dv/100):N.dt==='amt'?Math.min(dv,m):0;
-  return `<span>Ek din ka bill<br><b>${inr(d)}</b></span><span style="text-align:right"><small>Mahine ka andaza (${days} din)</small><br><b>${inr(m-disc)}</b>${disc?` <small>(discount ${inr(disc)})</small>`:''}</span>`}
+  const td=Math.round(num(N.td)),tp=num(N.tp);const tr=!N.id&&td>0&&tp>0&&tp<100?`<span style="flex-basis:100%"><small>Trial ke ${td} din: doodh ${L(tp)}% sasta, phir normal rate. ${fmtShort(addDays(N.since||todayISO(),td-1))} ke baad panel yaad dilayega ki customer se poochho.</small></span>`:'';
+  return tr+`<span>Ek din ka bill<br><b>${inr(d)}</b></span><span style="text-align:right"><small>Mahine ka andaza (${days} din)</small><br><b>${inr(m-disc)}</b>${disc?` <small>(discount ${inr(disc)})</small>`:''}</span>`}
 function vNew(){if(!N)N=blank();const dr=defRates();const pm=products().filter(p=>p.on!==false);const old=N.id&&S.customers[N.id];
   const areas=[...new Set(Object.values(S.customers).map(c=>c.area).filter(Boolean))].sort();
   const F=(l,f,type,ph,x)=>`<div class="field"><label class="f">${l}</label><input class="input" data-no="${f}" type="${type||'text'}" value="${esc(N[f])}" placeholder="${ph||''}" ${x||''}></div>`;
@@ -75,7 +76,7 @@ function vNew(){if(!N)N=blank();const dr=defRates();const pm=products().filter(p
      <div class="field"><label class="f">Kaise</label><select class="input" data-no="sched"><option value="daily" ${N.sched==='daily'?'selected':''}>Roz</option><option value="alternate" ${N.sched==='alternate'?'selected':''}>Ek din chhod ke</option></select></div>
      <div class="field"><label class="f">Delivery boy</label><select class="input" data-no="boy">${boys().map(b=>`<option ${N.boy===b?'selected':''}>${esc(b)}</option>`).join('')}</select></div>
      <div class="field"><label class="f">Mahine ka discount</label><select class="input" data-no="dt"><option value="" ${!N.dt?'selected':''}>Koi nahi</option><option value="pct" ${N.dt==='pct'?'selected':''}>% (bill ka)</option><option value="amt" ${N.dt==='amt'?'selected':''}>₹ fix har mahine</option></select></div>
-     ${F('Discount kitna','dv','number','e.g. 5','inputmode="decimal" min="0"')}${F('Note (boy ko dikhega)','notes','text','e.g. gate pe rakhna, trial customer')}</div></div>
+     ${F('Discount kitna','dv','number','e.g. 5','inputmode="decimal" min="0"')}${old?'':F('Trial offer: kitne din sasta','td','number','e.g. 3 (khali = trial nahi)','inputmode="numeric" min="0"')+F('Trial me doodh kitna % sasta','tp','number','e.g. 20','inputmode="decimal" min="0"')}${F('Note (boy ko dikhega)','notes','text','e.g. gate pe rakhna, trial customer')}</div></div>
    <div class="of-sum" id="noSum">${sumHtml()}</div>
    <button type="button" class="btn p block" data-act="noSave">${old?'Order badlo (save)':'Customer + order save karo'}</button>
    <button type="button" class="btn o block" data-act="noClear" style="margin-top:8px">Form khali karo</button>`}}
@@ -160,9 +161,12 @@ Object.assign(A,{
     if(old){body={...old,...base};if(old.status!=='active')body.resumedAt=today}
     else{const rates={...defRates()};PRODUCTS.forEach(p=>{const v=num(N.r[p.k]);if(v>0)rates[p.k]=v});
       const seq=Math.max(0,...Object.values(S.customers).filter(c=>c.boy===N.boy).map(c=>+c.seq||0))+10;
-      body={...base,house:'',wdays:[],rates,openingDue:0,bottles:0,since:N.since,createdAt:today,seq}}
+      body={...base,house:'',wdays:[],rates,openingDue:0,bottles:0,since:N.since,createdAt:today,seq};
+      /* trial: kuch din sasta rate, phir chhutti jab tak office "Continue" ya "Band" na dabaye */
+      const td=Math.round(num(N.td)),tp=num(N.tp);if(td>0&&tp>0){if(tp>=100)return toast('Trial discount 100% se kam rakho');const tr={};PRODUCTS.forEach(p=>tr[p.k]=Math.round(rates[p.k]*(100-tp))/100);
+        const to=addDays(N.since,td-1);body.trial={from:N.since,to,days:td,pct:tp,normal:rates};body.rates=tr;body.holds=[{from:addDays(to,1),to:'2099-12-31',note:'Trial khatam'}]}}
     /* start date aage ki hai to tab tak chhutti, taki pehle sheet me na aaye */
-    const holds=(body.holds||[]).filter(h=>h.note!=='Shuru hone se pehle');if(N.since>addDays(today,1))holds.push({from:today,to:addDays(N.since,-1),note:'Shuru hone se pehle'});body.holds=holds;
+    const holds=(body.holds||[]).filter(h=>h.note!=='Shuru hone se pehle');if(old&&old.trial){body.trial=old.trial;body.rates=old.rates}if(N.since>addDays(today,1))holds.push({from:today,to:addDays(N.since,-1),note:'Shuru hone se pehle'});body.holds=holds;
     const id=await saveCustomer(body);if(!id)return;N={...blank(),saved:{id,name,since:N.since,boy:N.boy}};render();window.scrollTo(0,0);toast(name+' save ho gaya')},
   gpTab(d){S.gp=d.v;render()},
   gpSheet(d){S.pld=d.d;S.route='sheet';render();window.scrollTo(0,0)},
@@ -178,8 +182,22 @@ Object.assign(A,{
      <button type="button" class="btn p block" data-act="mdSetSave" style="margin-top:6px">Save</button>`)},
   mdSetSave(){const id=S.ac&&S.ac.id;if(!id)return;const t=$('#mdT').value,v=num($('#mdV').value);if(t&&!v)return toast('Kitna discount, likho');if(t==='pct'&&v>50)return toast('Discount 50% se zyada nahi ho sakta');
     saveCustField(id,{disc:t?{t,v}:null});closeSheet();render();toast(t?'Discount set: '+discText({t,v}):'Discount hata diya')},
+  trOpen(){trSheet()},
+  async trEnd(d){const c=S.customers[d.id];if(!c||!c.trial)return;if(!isOwner())return toast('Sirf owner / office kar sakta hai');const go=d.go==='1';
+    const body={...c,rates:{...c.rates,...c.trial.normal},holds:(c.holds||[]).filter(h=>h.note!=='Trial khatam'),trial:null,trialWas:{...c.trial,ended:todayISO(),kept:go,by:S.me||''}};if(!go)body.status='paused';
+    await saveCustomer(body);toast(c.name+(go?': normal rate pe chalu':': band (Paused)'));if(trials().length)trSheet();else closeSheet()},
   asToggle(){try{localStorage.setItem('oritic.autosave',asOn()?'0':'1')}catch(_){}render();toast(asOn()?'Auto save ON: dusri line pe jaate hi save hoga':'Auto save OFF: Save button / Ctrl+S se save karo')},
 });
+
+/* ================= Trial offer ================= */
+function trials(){const t=todayISO();return Object.values(S.customers).filter(c=>c.trial&&c.trial.to).map(c=>({c,over:c.trial.to<t,last:c.trial.to===t})).sort((a,b)=>a.c.trial.to<b.c.trial.to?-1:1)}
+function trSheet(){const T=trials();openSheet('Trial customers',`<div class="small muted" style="margin-bottom:8px">Trial khatam hote hi customer Delivery sheet se hat jata hai. Phone karke poochho, phir Continue ya Band dabao.</div>
+  ${T.map(({c,over,last})=>`<div class="of-row"><span class="t"><b>${esc(c.name)}</b> ${c.phone?`· <a href="tel:${esc(c.phone)}">${esc(c.phone)}</a>`:''}<br><span class="small muted">${fmtShort(c.trial.from)} – ${fmtShort(c.trial.to)} · ${L(c.trial.pct)}% sasta</span> <span class="badge ${over?'r':last?'y':'g'}">${over?'khatam — poochho':last?'aaj aakhri din':'chal raha hai'}</span></span>
+   <span class="row" style="gap:6px"><button type="button" class="btn xs p" data-act="trEnd" data-id="${c.id}" data-go="1">Continue</button><button type="button" class="btn xs d" data-act="trEnd" data-id="${c.id}" data-go="0">Band</button></span></div>`).join('')||'<div class="muted">Koi trial customer nahi.</div>'}`)}
+const trBan=()=>{if(!isOwner())return '';const T=trials();if(!T.length)return '';const n=T.filter(x=>x.over||x.last).length;
+  return `<button type="button" class="of-ban" ${n?'style="background:var(--warn-soft);color:var(--warn);border-color:var(--warn)"':''} data-act="trOpen">🎁 ${n?`<b>${n} trial customers</b> ka trial khatam / aaj aakhri din. Poochho: continue karna hai?`:`${T.length} trial customers chal rahe hain.`} <u>Dekho</u></button>`};
+const _vH2=vHome;vHome=function(){const o=_vH2();return o&&typeof o.html==='string'?{...o,html:trBan()+o.html}:o};
+const _vN2=window.EXTRA_VIEWS.neworder;window.EXTRA_VIEWS.neworder=()=>{const o=_vN2();return {...o,html:trBan()+o.html}};
 
 /* ================= 4. Auto save (Customers grid + Delivery sheet) =================
    Jis line me abhi type ho raha hai use nahi chhedte. Line se bahar jaate hi baaki badli hui lines save.

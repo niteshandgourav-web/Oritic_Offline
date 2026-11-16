@@ -73,7 +73,8 @@ const GUIDE=[
    'Paneer, ghee jaise product roz chahiye to "Product dhoondo" me naam likho aur chip pe tap karo. Us customer ke liye alag price ho to Rate wale dabbe me likh do. Product list me nahi hai to "+ Naya product" se wahin bana lo.',
    'Kab se shuru, Roz ya ek din chhod ke, kaun sa boy, aur discount ho to wo chuno. Neeche hari patti me ek din aur mahine ka bill dikhta hai.',
    '"Customer + order save karo". Customer us date se Delivery sheet me apne aap aa jayega.'],
-  tips:['Start date aage ki hai to tab tak customer sheet me nahi aayega.','Trial customer ho to Note me "trial" likh do, boy ko dikhega.']},
+  tips:['Start date aage ki hai to tab tak customer sheet me nahi aayega.',
+   'Trial offer: "kitne din sasta" me din (jaise 3) aur "kitna % sasta" likho. Un dino doodh sasta lagega. Trial khatam hote hi customer sheet se hat jata hai aur Dashboard pe peeli patti aati hai: phone karke poochho, phir "Continue" (normal rate pe chalu) ya "Band" dabao.']},
  {id:'galti',t:'Galti pakdo (galat entries dhoondna)',where:'Menu → Galti pakdo',steps:[
    'Upar 6 button hain, har ek ke saath ginti: Product price ₹0, Doodh ka rate ajeeb, Quantity ajeeb, Purane din pending, Bina rate ke customer, Double customer.',
    'Button dabao to list khulti hai. Har line ke aage ✎ dabao to wahi entry "Entry sudharo" me khul jati hai.',
