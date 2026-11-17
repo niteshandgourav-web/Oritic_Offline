@@ -64,16 +64,37 @@ const viaOf=p=>p.via||p.by||'';
 const RK=['cow','buffalo','desi','chaach','paneer','ghee'];
 const PN={cow:'Cow',buffalo:'Buffalo',desi:'Gir Cow',chaach:'Chaach',paneer:'Paneer (kg)',ghee:'Ghee (kg)'};
 const logOf=c=>(c&&Array.isArray(c.rateLog)?c.rateLog:[]).slice().sort((a,b)=>a.from<b.from?-1:a.from>b.from?1:(a.t||0)-(b.t||0));
-window.rateNow=c=>{let e=null;for(const x of logOf(c))if(x.from<=todayISO())e=x;return e?e.rates:{}};
-const fullRates=c=>({...ratesOf(c),paneer:kgRate(c,'paneer'),ghee:kgRate(c,'ghee')});
-function rateOn(c,date){const Lg=logOf(c);let e=null;for(const x of Lg)if(x.from<=date)e=x;if(e)return {...e.rates};if(Lg.length)return {...Lg[0].prev};return fullRates(c)}
+/* ---- Default price list (settings.priceLog) + customer ka special rate ----
+ * Default rate kisi date pe = priceBase, upar se har priceLog entry jo us date ko cover kare (from..to).
+ * Customer ka rate = us date ka default, upar se uske special rate (sirf jo product alag hai).
+ * c.rates me ab sirf special rate rehte hain (jo default se alag hain). */
+const plog=()=>(Array.isArray(settings().priceLog)?settings().priceLog:[]).filter(e=>!e.undone).slice().sort((a,b)=>a.from<b.from?-1:a.from>b.from?1:(a.t||0)-(b.t||0));
+window.plog=plog;
+const kgId=k=>{const p=findProd(k==='ghee'?'Ghee':'Paneer');return p?p.id:null};window.kgId=kgId;
+function listNow0(){const st=settings(),r=st.rates||{};const o={...DEF_RATES};PRODUCTS.forEach(p=>{if(+r[p.k]>0)o[p.k]=+r[p.k]});
+  products().forEach(p=>o[p.id]=+p.a||0);['paneer','ghee'].forEach(k=>{const id=kgId(k);o[k]=+r[k]||(id?o[id]:0)||0;if(id)o[id]=o[k]});return o}
+window.listNow0=listNow0;
+function defOn(date){const st=settings();const o=st.priceBase?{...st.priceBase}:listNow0();
+  for(const e of plog())if(e.from<=date&&(!e.to||date<=e.to))Object.assign(o,e.rates||{});return o}
+window.defOn=defOn;
+window.defNow=()=>plog().length?defOn(todayISO()):{};
+const pickR=o=>{const r={};RK.forEach(k=>{if(o[k]!=null)r[k]=+o[k]});return r};
+/* special rate: sirf woh product jinka rate default se alag hai (0 = special nahi) */
+window.spClean=(r,date)=>{const d=date?defOn(date):{...defRates(),paneer:kgRate(null,'paneer'),ghee:kgRate(null,'ghee')};const o={};
+  Object.keys(r||{}).forEach(k=>{const v=+r[k];if(!(v>0))return;if(RK.includes(k)&&v===+d[k])return;o[k]=v});return o};
+function spOn(c,date){const Lg=logOf(c);let e=null;for(const x of Lg)if(x.from<=date)e=x;
+  if(e)return {...(e.sp!==undefined?e.sp:e.rates)};if(Lg.length)return {...(Lg[0].psp!==undefined?Lg[0].psp:Lg[0].prev)};return {...((c&&c.rates)||{})}}
+window.spOn=spOn;
+window.rateNow=c=>(logOf(c).length||plog().length)?rateOn(c,todayISO()):{};
+function rateOn(c,date){return pickR({...defOn(date),...spOn(c,date)})}
+const fullRates=c=>rateOn(c,todayISO());
 window.rateOn=rateOn;
-/* row ko us din ke rate se price karo (sirf jinke paas rate history hai) */
-window.priceRow=(c,date,row)=>{if(!c||!row||row.rl||!logOf(c).length)return;const rt=rateOn(c,date);row.r={...(row.r||{}),...rt};
+/* row ko us din ke rate se price karo (rate history ya price list ho to). S.noPrice = bulk price change khud rate laga raha hai */
+window.priceRow=(c,date,row)=>{if(!c||!row||row.rl||S.noPrice||(!logOf(c).length&&!plog().length))return;const rt=rateOn(c,date);row.r={...(row.r||{}),...rt};
   if(Array.isArray(row.x))row.x=row.x.map(e=>(e.k==='paneer'||e.k==='ghee')&&+rt[e.k]?{...e,rate:+rt[e.k],a:Math.round((+e.u||0)*rt[e.k]*100)/100}:e);
   if(row.s==='d')row.a=calcAmount(row.q||{},row.x||[],row.r)};
 const rateChg=x=>RK.filter(k=>+x.prev[k]!==+x.rates[k]).map(k=>`${PN[k]} ₹${L(+x.prev[k]||0)} → ₹${L(+x.rates[k]||0)}`).join(', ');
-const defFull=()=>({...defRates(),paneer:kgRate(null,'paneer'),ghee:kgRate(null,'ghee')});
+const defFull=()=>pickR(defOn(todayISO()));
 
 /* ---------- generic ledger (customer, aage boy / staff bhi) ---------- */
 function ledger(opening,entries){let bal=opening;return entries.map(e=>{if(e.dr||e.cr)bal+=(e.dr||0)-(e.cr||0);return {...e,bal}})}
@@ -161,15 +182,15 @@ function tabProducts(c){const [from,to]=acRange();const rows=deliveredRows(c.id,
    ${mb.map(x=>`<tr><td><b>${fmtMonth(x.m)}</b></td>${x.l.map(v=>`<td class="n">${v?L(v):'–'}</td>`).join('')}<td class="n">${x.b.rows.length}</td><td class="n">${inr(x.b.amount)}</td><td class="n">${inr(x.b.paid)}</td><td class="n">${inr(x.b.closing)}</td></tr>`).join('')}</tbody></table></div>`}
 function tabRates(c){const rt=fullRates(c),df=defFull();const Lg=logOf(c);const today=todayISO();
   const lastCh=k=>{for(let i=Lg.length-1;i>=0;i--){const x=Lg[i];if(x.from<=today&&+x.prev[k]!==+x.rates[k])return x}return null};
-  const up=Lg.filter(x=>x.from>today);
-  return `<div class="ac-card np"><h3>Abhi ke rate</h3><table class="ldg"><thead><tr><th>Product</th><th class="n">Default</th><th class="n">Is customer ka</th><th class="n">Farak</th><th>Kab se / kyun</th></tr></thead><tbody>
-   ${RK.map(k=>{const d=(+rt[k]||0)-(+df[k]||0);const x=lastCh(k);return `<tr><td><b>${PN[k]}</b></td><td class="n">${inr(df[k])}</td><td class="n"><b>${inr(rt[k])}</b></td><td class="n">${d?`<span class="rdiff ${d<0?'dn':'up'}">${d<0?'−':'+'}${inr(Math.abs(d))}</span>`:'–'}</td><td class="small">${x?fmtShort(x.from)+' '+x.from.slice(0,4)+(x.why?' · '+esc(x.why):''):'<span class="muted">shuru se</span>'}</td></tr>`}).join('')}</tbody></table></div>
-   <div class="ac-card" id="acRateCard"><h3>Naya rate / Discount</h3><div class="small muted" style="margin-bottom:8px">Sirf jo rate badalna hai wahi badlo. Pehle ki deliveries purane rate pe rehti hain; pichli date chunoge to poochha jayega.</div>
+  const up=Lg.filter(x=>x.from>today);const spN=spOn(c,today);const nSp=Object.keys(spN).filter(k=>RK.includes(k)).length;
+  return `<div class="ac-card np"><h3>Abhi ke rate ${nSp?'<span class="pill warn" style="margin-left:6px">Special rate</span>':'<span class="pill" style="margin-left:6px">Default rate pe</span>'}</h3><table class="ldg"><thead><tr><th>Product</th><th class="n">Default</th><th class="n">Is customer ka</th><th class="n">Farak</th><th>Kab se / kyun</th></tr></thead><tbody>
+   ${RK.map(k=>{const d=(+rt[k]||0)-(+df[k]||0);const x=lastCh(k);return `<tr><td><b>${PN[k]}</b></td><td class="n">${inr(df[k])}</td><td class="n"><b>${inr(rt[k])}</b>${k in spN?' <span class="small" style="color:var(--warn);font-weight:800">special</span>':''}</td><td class="n">${d?`<span class="rdiff ${d<0?'dn':'up'}">${d<0?'−':'+'}${inr(Math.abs(d))}</span>`:'–'}</td><td class="small">${x?fmtShort(x.from)+' '+x.from.slice(0,4)+(x.why?' · '+esc(x.why):''):'<span class="muted">shuru se</span>'}</td></tr>`}).join('')}</tbody></table></div>
+   <div class="ac-card" id="acRateCard"><h3>Naya rate / Discount</h3><div class="small muted" style="margin-bottom:8px">Sirf jo rate badalna hai wahi badlo. Default jaisa rate likhoge to wo product default ke saath chalega (Price list badlegi to ye bhi badlega). Alag rate = special, Price list badalne pe nahi badlega. Pehle ki deliveries purane rate pe rehti hain; pichli date chunoge to poochha jayega.</div>
     <div class="grid g3">${RK.map(k=>`<div class="field"><label class="f">${PN[k]} ₹</label><input class="input" type="number" inputmode="decimal" min="0" step="0.5" id="acR_${k}" value="${L(+rt[k]||0)}"></div>`).join('')}</div>
     <div class="grid g3" style="margin-top:8px"><div class="field"><label class="f">Kab se lagu</label><input class="input" type="date" id="acRF" value="${today}"></div>
      <div class="field"><label class="f">Kyun</label><select class="input" id="acRW">${['Discount (chhod raha tha)','Rate badha','Special rate','Galti sudhaar','Other'].map(x=>`<option>${x}</option>`).join('')}</select></div>
      <div class="field"><label class="f">Note</label><input class="input" id="acRN" placeholder="optional"></div></div>
-    <button class="btn p" style="margin-top:10px" data-act="acRateSave">Rate save karo</button></div>
+    <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn p" data-act="acRateSave">Rate save karo</button>${nSp?'<button class="btn o" data-act="acRateDef">Default pe wapas (special hatao)</button>':''}</div></div>
    ${up.length?`<div class="ac-card"><h3>Aane wale rate</h3>${up.map(x=>`<div class="row sp" style="padding:6px 0;border-bottom:1px solid var(--line2)"><span><b>${fmtDate(x.from)}</b> se · ${esc(rateChg(x))}${x.why?' · '+esc(x.why):''}</span><button class="btn xs o" data-act="acRateDel" data-id="${esc(x.id)}">Hatao</button></div>`).join('')}</div>`:''}
    <div class="ac-card np"><h3>Rate history</h3><table class="ldg"><thead><tr><th>Kab se</th><th>Badlav</th><th>Kyun</th><th>Kisne · kab</th></tr></thead><tbody>
     ${Lg.slice().reverse().map(x=>`<tr><td class="dt">${fmtShort(x.from)} ${x.from.slice(0,4)}</td><td>${esc(rateChg(x))}</td><td>${esc(x.why||'')}${x.note?' · '+esc(x.note):''}</td><td class="small muted">${esc(x.by||'')} · ${new Date(x.t).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">Abhi tak rate nahi badla</td></tr>'}</tbody></table></div>
@@ -253,12 +274,15 @@ Object.assign(A,{
   acHoldSave(){const c=S.customers[S.ac.id];if(!c||!isOwner())return toast('Sirf owner kar sakta hai');const from=$('#acHF').value,to=$('#acHT').value;if(!from||!to)return toast('Dono tareekh chuno');if(to<from)return toast('"Kab tak", "Kab se" ke baad honi chahiye');
     saveCustField(c.id,{holds:[...(c.holds||[]),{id:uid(),from,to,note:$('#acHN').value.trim(),by:S.me||'',t:Date.now()}]});for(const k in S.pldr)if(k.endsWith('|'+c.id))delete S.pldr[k];render();toast('Chhutti lag gayi: '+fmtShort(from)+' – '+fmtShort(to))},
   acHoldDel(d){const c=S.customers[S.ac.id];if(!c)return;saveCustField(c.id,{holds:(c.holds||[]).filter(h=>h.id!==d.id)});for(const k in S.pldr)if(k.endsWith('|'+c.id))delete S.pldr[k];render();toast('Chhutti hata di')},
+  acRateDef(){S.acToDef=true;return A.acRateSave()},
   acRateForm(){S.ac.tab='rates';acDraw(true);setTimeout(()=>{const card=$('#acRateCard');if(card)card.scrollIntoView({block:'start'});const i=$('#acR_cow');if(i){i.focus();i.select()}},40)},
   async acRateSave(){const c=S.customers[S.ac.id];if(!c||!isOwner())return toast('Sirf owner kar sakta hai');if(!canWrite())return toast('Aapko write permission nahi hai');
-    const from=$('#acRF').value;if(!from)return toast('"Kab se" date chuno');const prev=rateOn(c,from);const nr={...prev};let ch=0;
-    RK.forEach(k=>{const v=$('#acR_'+k).value;if(v==='')return;const n=+v;if(!(n>=0))return;if(n!==+prev[k]){nr[k]=n;ch++}});
-    if(!ch)return toast('Koi rate nahi badla');
-    const entry={id:uid(),from,prev,rates:nr,why:$('#acRW').value,note:$('#acRN').value.trim(),by:S.me||'',t:Date.now()};const today=todayISO();
+    const from=$('#acRF').value;if(!from)return toast('"Kab se" date chuno');const prev=rateOn(c,from);const psp=spOn(c,from);const nr={...prev};let ch=0;
+    const toDef=!!S.acToDef;S.acToDef=false;
+    RK.forEach(k=>{if(toDef){if(k in psp){nr[k]=+defOn(from)[k]||0;ch++}return}const v=$('#acR_'+k).value;if(v==='')return;const n=+v;if(!(n>=0))return;if(n!==+prev[k]){nr[k]=n;ch++}});
+    if(!ch)return toast(toDef?'Koi special rate nahi hai':'Koi rate nahi badla');
+    const df=defOn(from);const sp={};RK.forEach(k=>{if(+nr[k]>0&&+nr[k]!==+df[k])sp[k]=+nr[k]});
+    const entry={id:uid(),from,prev,rates:nr,psp:pickR(psp),sp,why:toDef?'Default pe wapas':$('#acRW').value,note:$('#acRN').value.trim(),by:S.me||'',t:Date.now()};const today=todayISO();
     const tmp={...c,rateLog:[...(c.rateLog||[]),entry]};
     const past=Object.keys(S.days).filter(d=>d>=from&&d<=today).sort().map(d=>{const r=S.days[d].rows&&S.days[d].rows[c.id];if(!r||r.s!=='d')return null;const nw=JSON.parse(JSON.stringify(r));priceRow(tmp,d,nw);return Math.abs((+nw.a||0)-(+r.a||0))>0.005?{d,r,nw}:null}).filter(Boolean);
     let reprice=false;
@@ -266,7 +290,7 @@ Object.assign(A,{
       reprice=await confirmBox({title:`${fmtDate(from)} se ab tak ${past.length} delivered din ka bill badlega`,html:`Pehle <b>${inr(o)}</b> → naye rate se <b>${inr(n)}</b>.<div style="margin-top:8px">${past.slice(0,10).map(x=>`<div class="chg">${fmtShort(x.d)} · ${inr(x.r.a)} → ${inr(x.nw.a)}</div>`).join('')}${past.length>10?`<div class="small muted">+ ${past.length-10} aur</div>`:''}</div><div class="small muted" style="margin-top:8px">"Nahi" dabaoge to ye din purane rate pe rahenge aur naya rate ${fmtShort(addDays(past[past.length-1].d,1))} se lagega.</div>`,yes:'Haan, in din ka bhi naye rate se',no:'Nahi, purane din purane rate pe'});
       if(!reprice)entry.from=addDays(past[past.length-1].d,1)}
     const log=[...(c.rateLog||[]),entry];const patch={rateLog:log};
-    if(entry.from<=today){patch.rates={...(c.rates||{})};RK.forEach(k=>{if(+nr[k]!==+prev[k])patch.rates[k]=nr[k]})}
+    if(entry.from<=today){patch.rates={...sp}}
     saveCustField(c.id,patch);
     if(reprice){for(const x of past){const before=x.r;await writeRows(x.d,{[c.id]:JSON.parse(JSON.stringify(before))});const after=rowOf(x.d,c.id);
       if(S.db){const sm=r=>({s:r.s,pl:r.pl?1:0,q:r.q||{},x:(r.x||[]).map(e=>({n:e.n,a:+e.a||0})),a:+r.a||0});S.db.doc('audit/'+x.d+'_'+uid()).set({date:x.d,cid:c.id,name:c.name,before:sm(before),after:sm(after),by:S.me||'',t:Date.now(),why:'Rate badla: '+entry.why}).catch(e=>console.error(e))}}}

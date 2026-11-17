@@ -399,7 +399,7 @@ const dim=m=>{const [y,mm]=m.split('-').map(Number);return new Date(y,mm,0).getD
 const settings=()=>S.settings||{};
 const boys=()=>{const b=settings().boys;if(Array.isArray(b)&&b.length)return b;const set=new Set();Object.values(S.customers).forEach(c=>c.boy&&set.add(c.boy));return [...set].sort()};
 const extrasPresets=()=>Array.isArray(settings().extras)?settings().extras:[];
-const defRates=()=>({...DEF_RATES,...(settings().rates||{})});
+const defRates=()=>({...DEF_RATES,...(settings().rates||{}),...(window.defNow?defNow():{})});
 /* rateNow (js/account.js): customer ki rate history me se aaj lagu rate */
 const ratesOf=c=>({...defRates(),...(c.rates||{}),...(window.rateNow?rateNow(c):{})});
 /* fix R-2: Paneer / Ghee ka rate ₹/kg: customer → Settings → Product master ("Paneer" / "Ghee"). Pehle ₹0 jata tha */
@@ -812,8 +812,8 @@ function vSettings(){
       <div class="grid g2">
         <div class="field"><label class="f">Owner PIN</label><input class="input" id="stPinOwner" type="password" autocomplete="new-password" inputmode="numeric" maxlength="6" value="${isAdmin()?esc((settings().pins||{}).owner||'1234'):''}"><button type="button" class="btn xs o" style="margin-top:6px" onclick="const i=document.getElementById('stPinOwner');i.type=i.type==='password'?'text':'password'">PIN dikhao / chhupao</button></div>
       </div></div>
-    <div class="card"><h3>Default rates (₹ / litre)</h3><div class="small muted" style="margin:4px 0 8px">Naye customer ke liye. Har customer ka apna rate uske profile me set hota hai.</div>
-      <div class="grid g4">${PRODUCTS.map(p=>`<div class="field"><label class="f">${p.sh}</label><input class="input" type="number" inputmode="decimal" id="stRate_${p.k}" value="${st.rates[p.k]}"></div>`).join('')}</div></div>
+    <div class="card"><h3>Default rates (₹ / litre)</h3><div class="small muted" style="margin:4px 0 8px">Aaj: ${PRODUCTS.map(p=>esc(p.sh)+' ₹'+L(+st.rates[p.k]||0)).join(' · ')}. Rate ab <b>Price list</b> me badalte hain (kab se, kab tak, purani entries bhi).</div>
+      ${PRODUCTS.map(p=>`<input type="hidden" id="stRate_${p.k}" value="${st.rates[p.k]}">`).join('')}<button class="btn o" data-act="go" data-r="prices">Price list kholo</button></div>
     <div class="card"><h3>Other products (paneer, dahi, ghee…)</h3><div class="small muted" style="margin:4px 0 8px">Ab ye <b>Product master</b> me manage hote hain (${products().length} products).</div><button class="btn o" data-act="go" data-r="products">Product master kholo</button></div>
     <div class="card"><h3>Meter / KM incentive</h3><div class="grid g2" style="margin-top:8px">
       <div class="field"><label class="f">₹ per km</label><input class="input" type="number" inputmode="decimal" id="stKm" value="${esc(settings().kmRate??2)}"></div>
@@ -1638,5 +1638,6 @@ window.addEventListener('DOMContentLoaded',async()=>{
 <script src="js/office.js"></script>
 <script src="js/followup.js"></script>
 <script src="js/sales.js"></script>
+<script src="js/pricing.js"></script>
 <script src="js/guide.js"></script>
 </body></html>

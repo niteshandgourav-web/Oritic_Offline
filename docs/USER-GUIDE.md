@@ -167,7 +167,24 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 >
 > Dhyan: Chhutti wale din (jis din kisi ko delivery nahi hui) ginti me nahi aate.
 
-## 12. Sales rep ke order (manager approve karta hai)
+## 12. Price list · sabka rate ek saath badlo
+
+**Kahan:** Menu → Price list (sirf owner)
+
+1. Pehli baar: "Shuru karo" dabao. Jinka rate default jaisa hai wo default ke saath chalenge, jinka alag hai wo special rahenge. Koi bill nahi badalta.
+2. Rate badalna: jis product ka rate badla uske saamne naya rate likho. "Kab se" chuno (jaise is mahine ki 1 tareekh). "Kab tak" khaali = aage bhi; chaho to "Us mahine ke end tak".
+3. "Pehle dekho kya badlega": kitni delivered entries badlengi, kitne customer, purana total → naya total, mahine-wise. Sab theek ho to "Haan, ye rate lagao". Bill, khata, baaki apne aap badal jate hain.
+4. Special rate wale customer, haath se sudhari entries aur jin din ka rate alag tha wo nahi badalte. Preview me inki ginti dikhti hai.
+5. Kisi customer ka special rate: naam dabao → account → "Rate badlo / Discount". Default pe wapas lana ho to "Default pe wapas (special hatao)".
+6. Galti ho gayi to Rate history me "Undo". Entries purane rate pe wapas aa jati hain.
+
+> Dhyan: Aage ki date ka rate bhi daal sakte ho: us din se nayi deliveries naye rate pe chadhengi.
+>
+> Dhyan: Settings ka "Default rates" ab sirf dikhata hai, badlav Price list se hota hai.
+>
+> Dhyan: Sales rep aur boys Price list nahi dekh sakte.
+
+## 13. Sales rep ke order (manager approve karta hai)
 
 **Kahan:** Menu → Naya order
 
@@ -184,7 +201,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 >
 > Dhyan: Manager ka apna liya order seedha chalu hota hai, par ginti me uska naam bhi aata hai.
 
-## 13. Kaun kya kar sakta hai (Owner, Office, Delivery boy)
+## 14. Kaun kya kar sakta hai (Owner, Office, Delivery boy)
 
 **Kahan:** Team & cash
 
@@ -208,7 +225,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 >
 > Dhyan: Kisi office member ko owner jaisa poora access dena ho to uski profile me "Poora access" on karo.
 
-## 14. Vasooli (kis se kitna lena hai)
+## 15. Vasooli (kis se kitna lena hai)
 
 **Kahan:** Menu → Vasooli
 
@@ -220,7 +237,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 
 > Dhyan: Udhaar ki limit Settings → Office tools me daalo. Limit paar wale customer Delivery sheet me bhi laal nishaan ke saath dikhenge.
 
-## 15. Bills
+## 16. Bills
 
 **Kahan:** Menu → Bills
 
@@ -233,7 +250,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 
 > Dhyan: PDF me ₹ ki jagah "Rs." aata hai (PDF font ki seema). Baki ho to bill me UPI QR aata hai, customer scan karke wahi amount bhar sakta hai.
 
-## 16. Payments (paisa lena)
+## 17. Payments (paisa lena)
 
 **Kahan:** Menu → Payments · ya kahin se bhi P dabao
 
@@ -243,7 +260,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 
 > Dhyan: Amount khaali aata hai. Pura baki lena ho to "Pura baki bharo" dabao.
 
-## 17. Team & cash (boys aur office ka hisab)
+## 18. Team & cash (boys aur office ka hisab)
 
 **Kahan:** Menu → Team & cash
 
@@ -265,7 +282,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 >
 > Dhyan: Office ke logon ke naam Settings → Office tools → Office staff me daalo.
 
-## 18. Kharcha (maal khareedna, kharcha, supplier)
+## 19. Kharcha (maal khareedna, kharcha, supplier)
 
 **Kahan:** Menu → Kharcha
 
@@ -280,7 +297,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 >
 > Dhyan: Maal me "Cow milk / Buffalo milk / Gir cow milk / Chaach" litre me likhoge to neeche "Doodh ka hisab" dikhega: kitna khareeda, kitna order tha, kitna bacha.
 
-## 19. Demand (kal kya chahiye, supplier ko bhejna)
+## 20. Demand (kal kya chahiye, supplier ko bhejna)
 
 **Kahan:** Menu → Demand
 
@@ -291,7 +308,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 
 > Dhyan: Panel khud kisi ko message nahi bhejta. WhatsApp khulta hai, Send aap dabate ho.
 
-## 20. Products (shahad, dahi, gur, ghee ki list)
+## 21. Products (shahad, dahi, gur, ghee ki list)
 
 **Kahan:** Menu → Products
 
@@ -299,7 +316,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 2. "Sheet column" tick karo to Delivery sheet me us product ka apna column ban jata hai.
 3. Rate badla to line me likh ke Save. Customer ko pichli baar jis rate pe diya tha wahi rate uske liye apne aap aata hai.
 
-## 21. Bottles
+## 22. Bottles
 
 **Kahan:** Menu → Bottles
 
@@ -310,7 +327,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 
 > Dhyan: Doodh ke type ka hisab aise banta hai: jo bottle pehle di thi wahi pehle wapas maani jaati hai.
 
-## 22. Meter (gaadi ka KM)
+## 23. Meter (gaadi ka KM)
 
 **Kahan:** Menu → Meter
 
@@ -323,7 +340,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 
 > Dhyan: ₹ per km har boy ka apna (Team & cash → naam → Profile). Na ho to Settings wala rate lagta hai.
 
-## 23. Settings aur backup
+## 24. Settings aur backup
 
 **Kahan:** Menu → Settings
 
@@ -339,7 +356,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 >
 > Dhyan: Ye login sirf "koi bhi aake na chala le" ke liye hai. Database ki asli suraksha alag kaam hai (V4-H1).
 
-## 24. Keyboard shortcuts
+## 25. Keyboard shortcuts
 
 **Kahan:** Kahin bhi ? dabao
 

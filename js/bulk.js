@@ -761,7 +761,7 @@ document.addEventListener('change',async e=>{const el=e.target;if(!el.dataset||!
   try{const W=[];if(j.settings)W.push(['settings/main',j.settings]);cols.forEach(k=>Object.entries(j[k]).forEach(([id,v])=>{const b={...v};delete b.id;W.push([k+'/'+id,b])}));
     for(let i=0;i<W.length;i+=400){const b=S.db.batch();W.slice(i,i+400).forEach(([p,v])=>b.set(S.db.doc(p),v));await b.commit()}toast(W.length+' entries wapas aa gayi');if(window.ORITIC_MODE==='local')setTimeout(()=>location.reload(),800)}catch(err){toast('Restore fail: '+(err&&err.message||err))}});
 Object.assign(A,{
-  st2Save(){if(!isOwner())return;const cut=+$('#st2Cut').value;const pn=$('#st2Pn').value,gh=$('#st2Gh').value;
+  st2Save(){if(!isOwner())return;const cut=+$('#st2Cut').value;const pn=($('#st2Pn')||{value:(settings().rates||{}).paneer??''}).value,gh=($('#st2Gh')||{value:(settings().rates||{}).ghee??''}).value;
     const staffL=($('#st2Staff')||{value:''}).value.split(',').map(s=>s.trim()).filter(Boolean);
     const catsL=($('#st2Cats')||{value:''}).value.split(',').map(s=>s.trim()).filter(Boolean);
     saveSettings({...settings(),staff:staffL,dueLimit:+(($('#st2Lim')||{}).value)||0,expCats:catsL,dayCutoff:cut,rates:{...(settings().rates||{}),paneer:+pn||0,ghee:+gh||0}}).then(()=>toast('Saved'))},

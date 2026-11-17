@@ -171,7 +171,7 @@ Object.assign(A,{
       body={...base,house:'',wdays:[],rates,openingDue:0,bottles:0,since:N.since,createdAt:today,seq};
       /* trial: kuch din sasta rate, phir chhutti jab tak office "Continue" ya "Band" na dabaye */
       const td=Math.round(num(N.td)),tp=num(N.tp);if(td>0&&tp>0){if(tp>=100)return toast('Trial discount 100% se kam rakho');const tr={};PRODUCTS.forEach(p=>tr[p.k]=Math.round(rates[p.k]*(100-tp))/100);
-        const to=addDays(N.since,td-1);body.trial={from:N.since,to,days:td,pct:tp,normal:rates};body.rates=tr;body.holds=[{from:addDays(to,1),to:'2099-12-31',note:'Trial khatam'}]}}
+        const to=addDays(N.since,td-1);body.trial={from:N.since,to,days:td,pct:tp,normal:window.spClean?spClean(rates):rates};body.rates=tr;body.holds=[{from:addDays(to,1),to:'2099-12-31',note:'Trial khatam'}]}}
     /* start date aage ki hai to tab tak chhutti, taki pehle sheet me na aaye */
     const holds=(body.holds||[]).filter(h=>h.note!=='Shuru hone se pehle');if(old&&old.trial){body.trial=old.trial;body.rates=old.rates}if(N.since>addDays(today,1))holds.push({from:today,to:addDays(N.since,-1),note:'Shuru hone se pehle'});body.holds=holds;
     if(window.needOk&&needOk()){const rid=await sendReq(old,body,N.since);if(!rid)return;N={...blank(),saved:{id:rid,name,since:N.since,boy:N.boy,req:1}};render();window.scrollTo(0,0);return toast(name+': manager ko approval ke liye bhej diya')}
@@ -193,7 +193,7 @@ Object.assign(A,{
     saveCustField(id,{disc:t?{t,v}:null});closeSheet();render();toast(t?'Discount set: '+discText({t,v}):'Discount hata diya')},
   trOpen(){trSheet()},
   async trEnd(d){const c=S.customers[d.id];if(!c||!c.trial)return;if(!isOwner())return toast('Sirf owner / office kar sakta hai');const go=d.go==='1';
-    const body={...c,rates:{...c.rates,...c.trial.normal},holds:(c.holds||[]).filter(h=>h.note!=='Trial khatam'),trial:null,trialWas:{...c.trial,ended:todayISO(),kept:go,by:S.me||''}};if(!go)body.status='paused';
+    const body={...c,rates:window.spClean?spClean(c.trial.normal):{...c.rates,...c.trial.normal},holds:(c.holds||[]).filter(h=>h.note!=='Trial khatam'),trial:null,trialWas:{...c.trial,ended:todayISO(),kept:go,by:S.me||''}};if(!go)body.status='paused';
     await saveCustomer(body);toast(c.name+(go?': normal rate pe chalu':': band (Paused)'));if(trials().length)trSheet();else closeSheet()},
   asToggle(){try{localStorage.setItem('oritic.autosave',asOn()?'0':'1')}catch(_){}render();toast(asOn()?'Auto save ON: dusri line pe jaate hi save hoga':'Auto save OFF: Save button / Ctrl+S se save karo')},
 });

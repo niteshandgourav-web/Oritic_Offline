@@ -94,6 +94,14 @@ const GUIDE=[
    'Har customer ke saare call notes: card me "History", ya customer account me "Call notes".',
    '"👥 Kisne kitne call kiye" se dikhta hai kis office member ne aaj aur 7 din me kitne call kiye aur kitne customer wapas chalu hue.'],
   tips:['Kitne din me silent maanna hai: Follow-up → "⚙ Kitne din me silent" (sirf owner). Wahin chun sakte ho ki apne aap Pause ho ya sirf laal dikhe.','Customers list me rang: laal = silent, peela = Paused, safed = chalu.','Chhutti wale din (jis din kisi ko delivery nahi hui) ginti me nahi aate.']},
+ {id:'prices',t:'Price list · sabka rate ek saath badlo',where:'Menu → Price list (sirf owner)',steps:[
+   'Pehli baar: "Shuru karo" dabao. Jinka rate default jaisa hai wo default ke saath chalenge, jinka alag hai wo special rahenge. Koi bill nahi badalta.',
+   'Rate badalna: jis product ka rate badla uske saamne naya rate likho. "Kab se" chuno (jaise is mahine ki 1 tareekh). "Kab tak" khaali = aage bhi; chaho to "Us mahine ke end tak".',
+   '"Pehle dekho kya badlega": kitni delivered entries badlengi, kitne customer, purana total → naya total, mahine-wise. Sab theek ho to "Haan, ye rate lagao". Bill, khata, baaki apne aap badal jate hain.',
+   'Special rate wale customer, haath se sudhari entries aur jin din ka rate alag tha wo nahi badalte. Preview me inki ginti dikhti hai.',
+   'Kisi customer ka special rate: naam dabao → account → "Rate badlo / Discount". Default pe wapas lana ho to "Default pe wapas (special hatao)".',
+   'Galti ho gayi to Rate history me "Undo". Entries purane rate pe wapas aa jati hain.'],
+  tips:['Aage ki date ka rate bhi daal sakte ho: us din se nayi deliveries naye rate pe chadhengi.','Settings ka "Default rates" ab sirf dikhata hai, badlav Price list se hota hai.','Sales rep aur boys Price list nahi dekh sakte.']},
  {id:'sales',t:'Sales rep ke order (manager approve karta hai)',where:'Menu → Naya order',steps:[
    'Sales rep banana: Team & cash → "🔑 Office access" → us member ka "Delivery sheet (manager)" tick hata do. Ab wo Delivery sheet, Aaj list aur Kal ki delivery khol hi nahi sakta.',
    'Sales rep "Naya order" se order leta hai, bilkul pehle jaisa. Save dabane pe order seedha sheet me nahi jata, manager ke paas "approval" me jata hai.',
