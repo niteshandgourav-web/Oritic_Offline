@@ -109,7 +109,7 @@ function galti(){const today=todayISO();const G={price0:[],rate:[],qty:[],pend:[
 window.galtiCount=()=>{const G=galti();return Object.values(G).reduce((s,l)=>s+l.length,0)};
 function vGalti(){const G=galti();const tot=Object.values(G).reduce((s,l)=>s+l.length,0);
   if(!tot)return {html:'<div class="of-ok">Sab theek hai 👍 Koi galat entry nahi mili.</div>'};
-  const cur=G[S.gp]&&G[S.gp].length?S.gp:GP.find(g=>G[g[0]].length)[0];const g=GP.find(x=>x[0]===cur);const list=G[cur];const nm=id=>esc((S.customers[id]||{}).name||'');
+  const cur=G[S.gp]&&G[S.gp].length?S.gp:GP.find(g=>G[g[0]].length)[0];const g=GP.find(x=>x[0]===cur);const list=G[cur];const nm=id=>esc((S.customers[id]||{}).name||'')+phc(S.customers[id]);
   return {html:`<div class="chips">${GP.map(x=>`<button type="button" class="chip ${cur===x[0]?'on':''}" data-act="gpTab" data-v="${x[0]}" ${G[x[0]].length?'':'disabled style="opacity:.45"'}>${x[1]} · ${G[x[0]].length}</button>`).join('')}</div>
    <div class="of-tip">${g[2]}</div>
    <div class="of-card">${cur==='price0'?'<button type="button" class="btn sm p" data-act="eeZero" style="margin-bottom:6px">Product ke hisab se ek saath theek karo</button>':''}
@@ -129,7 +129,7 @@ function mdRows(m){const to=periodRange(m,'full')[1];const date=to>todayISO()?to
 function mdSheet(m){const R=mdRows(m);const ch=R.filter(r=>r.amt!==r.cur);
   openSheet('Mahine ka discount',`<div class="field"><label class="f" for="mdM">Kis mahine ka</label><input class="input" type="month" id="mdM" value="${m}" max="${todayISO().slice(0,7)}"></div>
    <div class="small muted" style="margin:6px 0 10px">Discount us mahine ke bill pe lagta hai aur khate me "Discount" ki ek line banti hai. Mahina khatam hone ke baad lagana sabse sahi hai. Dobara dabane se double nahi hota, sirf naya hisab update hota hai.</div>
-   ${R.map(r=>`<div class="of-row"><span class="t"><b>${esc(r.c.name)}</b> · ${r.d?discText(r.d):'discount hata diya'}<br><span class="small muted">Bill ${inr(r.bill)} → discount <b>${inr(r.amt)}</b></span></span><span class="badge ${r.amt===r.cur?'g':r.cur?'y':'b'}">${r.amt===r.cur?'laga hua':r.cur?'pehle '+inr(r.cur):'naya'}</span></div>`).join('')||'<div class="muted">Is mahine kisi ko discount nahi banta. Customer ke account me "Mahine ka discount" set karo.</div>'}
+   ${R.map(r=>`<div class="of-row"><span class="t"><b>${esc(r.c.name)}</b>${phc(r.c)} · ${r.d?discText(r.d):'discount hata diya'}<br><span class="small muted">Bill ${inr(r.bill)} → discount <b>${inr(r.amt)}</b></span></span><span class="badge ${r.amt===r.cur?'g':r.cur?'y':'b'}">${r.amt===r.cur?'laga hua':r.cur?'pehle '+inr(r.cur):'naya'}</span></div>`).join('')||'<div class="muted">Is mahine kisi ko discount nahi banta. Customer ke account me "Mahine ka discount" set karo.</div>'}
    ${R.length?`<div class="ee-tot"><span>${monthL(m)} · kul discount</span><b>${inr(R.reduce((s,r)=>s+r.amt,0))}</b></div>`:''}
    ${ch.length?`<button type="button" class="btn p block" data-act="mdGo">${ch.length} customers pe lagao</button>`:R.length?'<div class="of-ok" style="margin-top:8px">Sab pe laga hua hai ✓</div>':''}`);
   const i=$('#mdM');if(i)i.onchange=()=>{if(i.value)mdSheet(i.value)}}
@@ -192,7 +192,7 @@ Object.assign(A,{
 /* ================= Trial offer ================= */
 function trials(){const t=todayISO();return Object.values(S.customers).filter(c=>c.trial&&c.trial.to).map(c=>({c,over:c.trial.to<t,last:c.trial.to===t})).sort((a,b)=>a.c.trial.to<b.c.trial.to?-1:1)}
 function trSheet(){const T=trials();openSheet('Trial customers',`<div class="small muted" style="margin-bottom:8px">Trial khatam hote hi customer Delivery sheet se hat jata hai. Phone karke poochho, phir Continue ya Band dabao.</div>
-  ${T.map(({c,over,last})=>`<div class="of-row"><span class="t"><b>${esc(c.name)}</b> ${c.phone?`· <a href="tel:${esc(c.phone)}">${esc(c.phone)}</a>`:''}<br><span class="small muted">${fmtShort(c.trial.from)} – ${fmtShort(c.trial.to)} · ${L(c.trial.pct)}% sasta</span> <span class="badge ${over?'r':last?'y':'g'}">${over?'khatam — poochho':last?'aaj aakhri din':'chal raha hai'}</span></span>
+  ${T.map(({c,over,last})=>`<div class="of-row"><span class="t"><b>${esc(c.name)}</b>${phc(c)} ${c.phone?`· <a href="tel:${esc(c.phone)}">Call</a>`:''}<br><span class="small muted">${fmtShort(c.trial.from)} – ${fmtShort(c.trial.to)} · ${L(c.trial.pct)}% sasta</span> <span class="badge ${over?'r':last?'y':'g'}">${over?'khatam — poochho':last?'aaj aakhri din':'chal raha hai'}</span></span>
    <span class="row" style="gap:6px"><button type="button" class="btn xs p" data-act="trEnd" data-id="${c.id}" data-go="1">Continue</button><button type="button" class="btn xs d" data-act="trEnd" data-id="${c.id}" data-go="0">Band</button></span></div>`).join('')||'<div class="muted">Koi trial customer nahi.</div>'}`)}
 const trBan=()=>{if(!isOwner())return '';const T=trials();if(!T.length)return '';const n=T.filter(x=>x.over||x.last).length;
   return `<button type="button" class="of-ban" ${n?'style="background:var(--warn-soft);color:var(--warn);border-color:var(--warn)"':''} data-act="trOpen">🎁 ${n?`<b>${n} trial customers</b> ka trial khatam / aaj aakhri din. Poochho: continue karna hai?`:`${T.length} trial customers chal rahe hain.`} <u>Dekho</u></button>`};
@@ -251,5 +251,41 @@ Object.assign(A,{
     L2.sort((a,b)=>(a.seq??9999)-(b.seq??9999));
     for(let i=0;i<L2.length;i+=300){const b=S.db.batch();L2.slice(i,i+300).forEach((c,k)=>{const patch={boy:to,seq:base+(i+k+1)*10,boyWas:from,boyAt:todayISO()};S.customers[c.id]={...S.customers[c.id],...patch};b.set(S.db.doc('customers/'+c.id),patch,{merge:true})});await b.commit()}
     render();toast(L2.length+' customers '+to+' ko mil gaye'+(left?' · '+from+' ka login band':''))},
+});
+})();
+
+/* ================= Boy ki chhutti / badli =================
+   settings.leave=[{id,boy,from,to,sub,note}]. Un dino me: badle wale boy ki Aaj list me chhutti wale ke customers bhi aate hain,
+   aur delivery badle wale ke naam likhi jati hai (index.html: todaysList + writeRows). Customers ka boy nahi badalta,
+   chhutti khatam hote hi sab apne aap pehle jaisa. */
+(function(){
+const leaves=()=>Array.isArray(settings().leave)?settings().leave:[];
+window.coverFor=(boy,date)=>{if(!boy)return '';const l=leaves().find(x=>x.boy===boy&&x.from<=date&&date<=x.to&&x.sub);return l?l.sub:''};
+window.leaveNow=()=>{const t=todayISO();return leaves().filter(x=>x.to>=t).sort((a,b)=>a.from<b.from?-1:1)};
+const ppl=()=>{const s=settings();return [...new Set(['Owner',...boys(),...(Array.isArray(s.staff)?s.staff:[])])]};
+function lvSheet(){const L2=leaves().slice().sort((a,b)=>a.from<b.from?1:-1);const t=todayISO();
+  openSheet('Chhutti / badli',`<div class="small muted" style="margin-bottom:10px">Boy kuch din nahi aayega to yahan likho kaun uska kaam karega. Un dino uske customers badle wale ki Aaj list me dikhenge aur delivery usi ke naam likhi jayegi. Chhutti khatam hote hi sab apne aap pehle jaisa ho jata hai.</div>
+   <div class="field"><label class="f" for="lvB">Kaun chhutti pe hai</label><select class="input" id="lvB">${boys().map(b=>`<option>${esc(b)}</option>`).join('')}</select></div>
+   <div class="of-g"><div class="field"><label class="f" for="lvF">Kab se</label><input class="input" type="date" id="lvF" value="${t}"></div><div class="field"><label class="f" for="lvT">Kab tak (ye din bhi)</label><input class="input" type="date" id="lvT" value="${addDays(t,6)}"></div></div>
+   <div class="field"><label class="f" for="lvS">Uska kaam kaun karega</label><select class="input" id="lvS">${ppl().map(p=>`<option>${esc(p)}</option>`).join('')}<option value="__">Koi aur (naam likho)</option></select></div>
+   <div class="field" id="lvOw" hidden><label class="f" for="lvO">Naam</label><input class="input" id="lvO" placeholder="e.g. Nitesh" autocomplete="off"></div>
+   <div class="field"><label class="f" for="lvN">Note (zaroori nahi)</label><input class="input" id="lvN" placeholder="e.g. gaon gaya hai"></div>
+   <button type="button" class="btn p block" data-act="lvSave">Chhutti save karo</button>
+   <div class="ee-h">Chhuttiyan</div>
+   ${L2.map(x=>`<div class="of-row"><span class="t"><b>${esc(x.boy)}</b> · ${fmtShort(x.from)} – ${fmtShort(x.to)} · kaam: <b>${esc(x.sub)}</b>${x.note?' · '+esc(x.note):''} <span class="badge ${x.to<t?'n':x.from<=t?'y':'b'}">${x.to<t?'khatam':x.from<=t?'chal rahi hai':'aane wali'}</span></span>${x.to>=t?`<button type="button" class="btn xs d" data-act="lvDel" data-id="${esc(x.id)}">${x.from<=t?'Aaj khatam karo':'Hatao'}</button>`:''}</div>`).join('')||'<div class="muted">Abhi koi chhutti nahi likhi.</div>'}`);
+  const s=$('#lvS');s.onchange=()=>{$('#lvOw').hidden=s.value!=='__'}}
+const lvBan=()=>{if(!isOwner()||!window.leaveNow)return '';const t=todayISO();const L2=leaveNow().filter(x=>x.from<=addDays(t,1));if(!L2.length)return '';
+  return `<button type="button" class="of-ban" data-act="lvOpen">🏖 ${L2.map(x=>`<b>${esc(x.boy)}</b> chhutti pe (${fmtShort(x.from)} – ${fmtShort(x.to)}), kaam <b>${esc(x.sub)}</b> kar raha hai`).join(' · ')}</button>`};
+const _h=vHome;vHome=function(){const o=_h();return o&&typeof o.html==='string'?{...o,html:lvBan()+o.html}:o};
+const _t=window.EXTRA_VIEWS.team;window.EXTRA_VIEWS.team=()=>{const o=_t();return o&&typeof o.html==='string'?{...o,html:lvBan()+o.html}:o};
+Object.assign(A,{
+  lvOpen(){if(!isOwner())return toast('Sirf owner / office kar sakta hai');if(!boys().length)return toast('Pehle koi boy jodo');lvSheet()},
+  async lvSave(){if(!isOwner()||!canWrite())return;const boy=$('#lvB').value,from=$('#lvF').value,to=$('#lvT').value;let sub=$('#lvS').value;if(sub==='__')sub=($('#lvO').value||'').trim().replace(/\s+/g,' ');const note=$('#lvN').value.trim();
+    if(!from||!to)return toast('Kab se aur kab tak, dono date chuno');if(to<from)return toast('"Kab tak" ki date "Kab se" ke baad honi chahiye');if(!sub)return toast('Kaam kaun karega, likho');if(sub===boy)return toast('Chhutti wala aur kaam karne wala alag hone chahiye');
+    if(leaves().some(x=>x.boy===boy&&x.from<=to&&from<=x.to))return toast(boy+' ki in dino me pehle se chhutti likhi hai');
+    if(leaves().some(x=>x.boy===sub&&x.from<=to&&from<=x.to))return toast(sub+' khud un dino chhutti pe hai');
+    await saveSettings({...settings(),leave:[...leaves(),{id:uid(),boy,from,to,sub,note,by:S.me||'',t:Date.now()}]});toast(boy+' ki chhutti save · kaam '+sub+' karega');lvSheet()},
+  async lvDel(d){if(!isOwner()||!canWrite())return;const t=todayISO();const L2=leaves().map(x=>x.id!==d.id?x:(x.from<=t&&addDays(t,-1)>=x.from?{...x,to:addDays(t,-1),cut:t}:null)).filter(Boolean);
+    await saveSettings({...settings(),leave:L2});toast('Chhutti update ho gayi');lvSheet()},
 });
 })();

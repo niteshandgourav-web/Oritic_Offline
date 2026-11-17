@@ -159,7 +159,12 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 3. Delivery boy: sirf apne customers, apni Aaj list, apna payment aur bottle. Kisi aur boy ka data nahi dikhta.
 4. Naya member: Team & cash → "+ Naya member" → naam, role (boy / office), PIN.
 5. Boy badal gaya (Anil ki jagah Harish): naam edit mat karo. Team & cash → "⇄ Boy badlo (route handover)" → Anil chuno → naye boy ka naam aur PIN likho → "Route de do". Saare customers Harish ko mil jate hain, Anil ka login band hota hai, aur Anil ka purana hisab usi ke naam pe rehta hai.
+6. Boy kuch din chhutti pe hai: Team & cash → "🏖 Chhutti / badli" → kaun chhutti pe, kab se kab tak, uska kaam kaun karega → Save. Un dino uske customers badle wale ki Aaj list me aate hain aur delivery usi ke naam likhi jati hai. Chhutti khatam hote hi sab apne aap pehle jaisa. Jaldi laut aaya to "Aaj khatam karo".
 
+> Dhyan: Chhutti (kuch din) aur Boy badlo (hamesha ke liye) alag hain. Chhutti me customers usi boy ke naam rehte hain.
+>
+> Dhyan: Jahan bhi customer ka naam dikhta hai, saath me uska mobile number hota hai. Number pe ek click = copy.
+>
 > Dhyan: Settings me ab boys ka naam type nahi hota, isliye galti se naam bigad nahi sakta.
 >
 > Dhyan: Har boy aur office member ka PIN uski profile me hai: Team & cash → naam pe click → Profile.

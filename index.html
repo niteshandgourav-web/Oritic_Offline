@@ -465,7 +465,7 @@ function dueOn(c,date){
 function todaysList(date,boy){
   const out=[];
   for(const c of Object.values(S.customers)){
-    if(boy!=='all'&&c.boy!==boy)continue;
+    if(boy!=='all'&&c.boy!==boy&&!(window.coverFor&&coverFor(c.boy,date)===boy))continue;
     const r=rowOf(date,c.id);
     if(r||dueOn(c,date))out.push({c,r});
   }
@@ -519,7 +519,9 @@ function queue(k,fn){Q[k]=(Q[k]||Promise.resolve()).then(fn).catch(e=>{console.e
 async function writeRows(date,rows){ // rows: {cid: row}
   if(!canWrite()){toast('Aapko write permission nahi hai');return}
   const d=S.days[date]||(S.days[date]={date,rows:{}});
-  for(const cid in rows){const prev=d.rows[cid];if(prev&&prev.br!=null&&rows[cid].br==null){rows[cid].br=prev.br;if(prev.brS!=null)rows[cid].brS=prev.brS;if(prev.brB!=null)rows[cid].brB=prev.brB}
+  for(const cid in rows){const prev=d.rows[cid];
+    /* boy chhutti pe ho to delivery uske badle wale ke naam likho */
+    if(window.coverFor){const cc=S.customers[cid],sb=cc&&coverFor(cc.boy,date);if(sb&&rows[cid].s==='d'&&(!rows[cid].by||rows[cid].by===cc.boy)&&!(prev&&prev.s==='d'))rows[cid].by=sb}if(prev&&prev.br!=null&&rows[cid].br==null){rows[cid].br=prev.br;if(prev.brS!=null)rows[cid].brS=prev.brS;if(prev.brB!=null)rows[cid].brB=prev.brB}
     /* rate history ho to us din ka rate lagao (js/account.js) */
     if(window.priceRow)priceRow(S.customers[cid],date,rows[cid])}
   Object.assign(d.rows,rows);render();
@@ -647,7 +649,7 @@ function vHome(){
       </div>
       <div class="card">
         <div class="row sp"><h3>Sabse zyada baki</h3><button class="btn xs" data-act="go" data-r="bills">Sab bills</button></div>
-        <div style="margin-top:6px">${dues.slice(0,6).map(({c,bal})=>`<button class="item click" data-act="openBill" data-id="${c.id}" style="padding:8px 0"><div class="grow"><div class="t">${esc(c.name)}</div><div class="s">${esc(c.area||'')} · ${esc(c.boy||'')}</div></div><div class="r" style="color:var(--danger);font-weight:800">${inr(bal)}</div></button>`).join('')||'<div class="muted small" style="padding:8px 0">Koi baki nahi</div>'}</div>
+        <div style="margin-top:6px">${dues.slice(0,6).map(({c,bal})=>`<button class="item click" data-act="openBill" data-id="${c.id}" style="padding:8px 0"><div class="grow"><div class="t">${esc(c.name)}${window.phc?phc(c):''}</div><div class="s">${esc(c.area||'')} · ${esc(c.boy||'')}</div></div><div class="r" style="color:var(--danger);font-weight:800">${inr(bal)}</div></button>`).join('')||'<div class="muted small" style="padding:8px 0">Koi baki nahi</div>'}</div>
       </div>
     </div>
     <div class="row wrap">
@@ -673,7 +675,7 @@ function vToday(){
     return hd+`<div class="drow ${st==='d'?'done':st==='k'?'skip':''}">
       <button class="ck ${st==='d'?'on':st==='k'?'skip':''}" data-act="toggleDone" data-id="${c.id}" aria-label="Done">${st==='k'?ICONS.skip:ICONS.check}</button>
       <button class="body" data-act="editRow" data-id="${c.id}">
-        <div class="nm">${esc(c.name)} ${c.schedule==='alternate'?'<span class="badge b">Alt</span>':''}${c.status!=='active'?'<span class="badge y">Paused</span>':''}</div>
+        <div class="nm">${esc(c.name)}${window.phc?phc(c):''} ${c.schedule==='alternate'?'<span class="badge b">Alt</span>':''}${c.status!=='active'?'<span class="badge y">Paused</span>':''}</div>
         <div class="qt"><b>${qtyText(q)}</b> ${st!=='k'?btHtml(bottlesOf(q)):''}${st!=='k'&&it.x.length?' + '+esc(extrasText(it.x)):''}${st==='k'?' · <span style="color:var(--warn)">skip</span>':''}${r&&r.n?' · '+esc(r.n):''}${r&&r.br?' · <span style="color:var(--accent)">'+brText(r)+' wapas</span>':''}${S.boy==='all'?' · '+esc(c.area||''):''}</div>
         ${c.notes?`<div class="qt" style="color:var(--warn);font-weight:700">📌 ${esc(c.notes)}</div>`:''}
         ${varsOf(c).map(v=>`<div class="qt" style="color:var(--info);font-weight:600">💬 ${esc(v.t)}</div>`).join('')}
@@ -727,7 +729,7 @@ function vCustomers(){
      <div class="row"><div class="seg">${[['route','Route order'],['az','Area / A–Z']].map(([v,l])=>`<button class="${(S.csort||'route')===v?'on':''}" data-act="setCSort" data-v="${v}">${l}</button>`).join('')}</div>
      <button class="btn sm o" data-act="routeOrder" data-b="${esc(S.cboy)}">⇅ Order badlo</button></div></div>
     <div class="list">${list.map(c=>{const rt=ratesOf(c);let hd='';if(byRoute&&S.cboy==='all'&&c.boy!==lastG){lastG=c.boy;hd=`<div class="areahd">${esc(c.boy||'—')}</div>`}const o=orderOf(c);const rateStr=PRODUCTS.filter(p=>o[p.k]>0).map(p=>'₹'+rt[p.k]).join('/');
-      return hd+`<div class="item">${byRoute?`<span class="cpos">${pos[c.id]}</span>`:''}<button class="grow click" data-act="openCustomer" data-id="${c.id}" style="text-align:left"><div class="t">${esc(c.name)} ${c.schedule==='alternate'?'<span class="badge b">Alt</span>':''}</div><div class="s">${esc(c.area||'—')} · ${esc(c.boy||'—')} · ${qtyText(o)}${rateStr?' @ '+rateStr:''}</div></button><div class="r">${c.status==='active'?'<span class="badge g">Active</span>':'<span class="badge y">Paused</span>'}</div>${mapBtn(c)}</div>`}).join('')||emptyBox('Koi customer nahi mila')}</div>
+      return hd+`<div class="item">${byRoute?`<span class="cpos">${pos[c.id]}</span>`:''}<button class="grow click" data-act="openCustomer" data-id="${c.id}" style="text-align:left"><div class="t">${esc(c.name)}${window.phc?phc(c):''} ${c.schedule==='alternate'?'<span class="badge b">Alt</span>':''}</div><div class="s">${esc(c.area||'—')} · ${esc(c.boy||'—')} · ${qtyText(o)}${rateStr?' @ '+rateStr:''}</div></button><div class="r">${c.status==='active'?'<span class="badge g">Active</span>':'<span class="badge y">Paused</span>'}</div>${mapBtn(c)}</div>`}).join('')||emptyBox('Koi customer nahi mila')}</div>
   </div>`;
   return {html,action:isOwner()?`<button class="btn sm p" data-act="editCustomer">+ Naya</button>`:''}}
 
@@ -749,9 +751,9 @@ function vBills(){
       <div class="card stat"><div class="l">Jama</div><div class="v">${inr(T.paid)}</div></div>
       <div class="card stat"><div class="l">Baki</div><div class="v" style="color:${T.closing>0?'var(--danger)':'inherit'}">${inr(T.closing)}</div></div>
     </div>
-    <div class="list only-m">${bills.map(b=>`<div class="item"><button class="grow click" data-act="openBill" data-id="${b.c.id}" style="text-align:left"><div class="t">${esc(b.c.name)}</div><div class="s">${b.rows.length} din · ${b.lines.map(x=>L(x.l)+'L '+x.sh).join(' + ')||'—'}${b.extras?' + extras':''}</div><div class="s">Bill ${inr(b.amount)} · Jama ${inr(b.paid)}${Math.abs(b.prev)>0.5?' · Pichla '+inr(b.prev):''}</div></button><div class="r"><div style="font-weight:800;color:${b.closing>0.5?'var(--danger)':'var(--accent)'}">${inr(b.closing)}</div>${b.closing<-0.5?'<div class="small muted">advance</div>':''}</div>${b.c.phone?`<a class="wa" href="https://wa.me/91${cleanPhone(b.c.phone)}?text=${encodeURIComponent(billText(b))}" target="_blank" rel="noopener" title="WhatsApp pe bill bhejo">${ICONS.wa}</a>`:''}</div>`).join('')||emptyBox('Is period me koi delivery record nahi')}</div>
+    <div class="list only-m">${bills.map(b=>`<div class="item"><button class="grow click" data-act="openBill" data-id="${b.c.id}" style="text-align:left"><div class="t">${esc(b.c.name)}${window.phc?phc(b.c):''}</div><div class="s">${b.rows.length} din · ${b.lines.map(x=>L(x.l)+'L '+x.sh).join(' + ')||'—'}${b.extras?' + extras':''}</div><div class="s">Bill ${inr(b.amount)} · Jama ${inr(b.paid)}${Math.abs(b.prev)>0.5?' · Pichla '+inr(b.prev):''}</div></button><div class="r"><div style="font-weight:800;color:${b.closing>0.5?'var(--danger)':'var(--accent)'}">${inr(b.closing)}</div>${b.closing<-0.5?'<div class="small muted">advance</div>':''}</div>${b.c.phone?`<a class="wa" href="https://wa.me/91${cleanPhone(b.c.phone)}?text=${encodeURIComponent(billText(b))}" target="_blank" rel="noopener" title="WhatsApp pe bill bhejo">${ICONS.wa}</a>`:''}</div>`).join('')||emptyBox('Is period me koi delivery record nahi')}</div>
     <div class="card only-d" style="padding:0"><div class="scroll"><table class="tbl"><thead><tr><th>Customer</th><th class="n">Days</th><th>Qty</th><th class="n">Bill</th><th class="n">Jama</th><th class="n">Baki</th><th></th></tr></thead><tbody>
-    ${bills.map(b=>`<tr class="click" data-act="openBill" data-id="${b.c.id}"><td><b>${esc(b.c.name)}</b><div class="small muted">${esc(b.c.area||'')} · ${esc(b.c.boy||'')}</div></td><td class="n">${b.rows.length}</td><td class="small">${b.lines.map(x=>L(x.l)+'L '+x.sh).join(', ')||'—'}${b.extras?' +extras':''}</td><td class="n">${inr(b.amount)}</td><td class="n">${inr(b.paid)}</td><td class="n" style="font-weight:800;color:${b.closing>0.5?'var(--danger)':'var(--accent)'}">${inr(b.closing)}${b.closing<-0.5?'<div class="small muted" style="font-weight:500">advance</div>':''}</td><td>${b.c.phone?`<a class="wa" href="https://wa.me/91${cleanPhone(b.c.phone)}?text=${encodeURIComponent(billText(b))}" target="_blank" rel="noopener" title="WhatsApp pe bill bhejo">${ICONS.wa}</a>`:''}</td></tr>`).join('')||`<tr><td colspan="7"><div class="empty">Is period me koi delivery record nahi</div></td></tr>`}
+    ${bills.map(b=>`<tr class="click" data-act="openBill" data-id="${b.c.id}"><td><b>${esc(b.c.name)}${window.phc?phc(b.c):''}</b><div class="small muted">${esc(b.c.area||'')} · ${esc(b.c.boy||'')}</div></td><td class="n">${b.rows.length}</td><td class="small">${b.lines.map(x=>L(x.l)+'L '+x.sh).join(', ')||'—'}${b.extras?' +extras':''}</td><td class="n">${inr(b.amount)}</td><td class="n">${inr(b.paid)}</td><td class="n" style="font-weight:800;color:${b.closing>0.5?'var(--danger)':'var(--accent)'}">${inr(b.closing)}${b.closing<-0.5?'<div class="small muted" style="font-weight:500">advance</div>':''}</td><td>${b.c.phone?`<a class="wa" href="https://wa.me/91${cleanPhone(b.c.phone)}?text=${encodeURIComponent(billText(b))}" target="_blank" rel="noopener" title="WhatsApp pe bill bhejo">${ICONS.wa}</a>`:''}</td></tr>`).join('')||`<tr><td colspan="7"><div class="empty">Is period me koi delivery record nahi</div></td></tr>`}
     </tbody></table></div></div>
     ${S.downloads?`<button class="btn o" data-act="exportCsv">Excel/CSV download</button>`:''}
   </div>`;
@@ -787,7 +789,7 @@ function vBottles(){
   <div class="stack">
     <div class="card stat"><div class="l">Total bottles customers ke paas</div><div class="v">${total}</div><div class="s">Delivery hote hi bottles apne aap judti hain (1L = bada, ½L = chhota). Wapas li bottles delivery screen pe likho. +/− sirf manual sudhaar ke liye.</div></div>
     <div class="search">${ICONS.search}<input class="input" placeholder="Customer dhoondo (bottle add karne ke liye)" value="${esc(S.bottleQ)}" data-act="bottleQ"></div>
-    <div class="list">${list.map(c=>`<div class="item"><div class="grow"><div class="t">${esc(c.name)}</div><div class="s">${esc(c.area||'')} · ${esc(c.boy||'')}</div></div><div class="row"><button class="btn sm o" data-act="bottle" data-id="${c.id}" data-n="-1">−</button><b style="min-width:28px;text-align:center">${bal[c.id]}</b><button class="btn sm o" data-act="bottle" data-id="${c.id}" data-n="1">+</button></div></div>`).join('')||emptyBox('Kisi ke paas bottle pending nahi','<span class="small">Upar search karke customer ke bottles + karo.</span>')}</div>
+    <div class="list">${list.map(c=>`<div class="item"><div class="grow"><div class="t">${esc(c.name)}${window.phc?phc(c):''}</div><div class="s">${esc(c.area||'')} · ${esc(c.boy||'')}</div></div><div class="row"><button class="btn sm o" data-act="bottle" data-id="${c.id}" data-n="-1">−</button><b style="min-width:28px;text-align:center">${bal[c.id]}</b><button class="btn sm o" data-act="bottle" data-id="${c.id}" data-n="1">+</button></div></div>`).join('')||emptyBox('Kisi ke paas bottle pending nahi','<span class="small">Upar search karke customer ke bottles + karo.</span>')}</div>
   </div>`;
   return {html}}
 
@@ -968,7 +970,7 @@ function sheetPayment(cid){
 function bindPicker(qSel,resSel,outSel,onPick){
   const inp=$(qSel),res=$(resSel);
   const draw=()=>{const q=inp.value.trim().toLowerCase();const list=Object.values(S.customers).filter(c=>!q||(c.name+' '+c.phone+' '+(c.area||'')).toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name)).slice(0,30);
-    res.innerHTML=list.map(c=>`<button class="item click" data-pick="${c.id}" style="padding:8px 12px"><div class="grow"><div class="t">${esc(c.name)}</div><div class="s">${esc(c.area||'')} · ${esc(c.phone||'')}</div></div>${c.status!=='active'?'<span class="badge y">Paused</span>':''}</button>`).join('')||'<div class="empty small">Nahi mila</div>'};
+    res.innerHTML=list.map(c=>`<button class="item click" data-pick="${c.id}" style="padding:8px 12px"><div class="grow"><div class="t">${esc(c.name)}${window.phc?phc(c):''}</div><div class="s">${esc(c.area||'')} · ${esc(c.phone||'')}</div></div>${c.status!=='active'?'<span class="badge y">Paused</span>':''}</button>`).join('')||'<div class="empty small">Nahi mila</div>'};
   inp.addEventListener('input',draw);draw();
   res.addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if(!b)return;const c=S.customers[b.dataset.pick];if(onPick){onPick(c);return}
     const out=$(outSel);out.dataset.id=c.id;out.innerHTML=esc(c.name)+` <span class="muted small">· baki ${inr(balanceUpto(c,null))}</span>`;res.innerHTML='';inp.value=c.name;/* fix CR-04: amount apne aap nahi bharta, sirf "Pura baki bharo" button */
@@ -1405,7 +1407,7 @@ function drawRoute(flashId){const body=$('#shBody');const sc=body&&!body.closest
    :`<div class="small muted" style="margin-bottom:8px">Jo ghar pehle aata hai use upar rakho. Naam pe tap karo: <b>Sabse upar</b>, <b>Sabse neeche</b>, <b>Kisi ke baad rakho</b>. Ya <b>⠿</b> pakad ke khiskao, ↑ ↓ dabao, number pe tap karke nayi position likho. Ye order sabko dikhega: Aaj list, Delivery sheet, Customers aur Excel me. Apne aap kuch nahi badalta.</div>`}
   <div class="search" style="margin-bottom:8px">${ICONS.search}<input class="input" id="rtq" placeholder="Customer dhoondo…" value="${esc(S.rtq||'')}" data-act="rtq"></div>
   <div class="list" id="rtList">${S.rt.map((id,i)=>{const c=S.customers[id];if(!c)return '';const hide=q&&!(c.name+' '+(c.phone||'')+' '+(c.area||'')+' '+(c.address||'')).toLowerCase().includes(q);
-    const addr=esc([c.house,c.address,c.area,c.landmark].filter(Boolean).join(', ')||'—'),nm=`<div class="t">${esc(c.name)} ${c.status!=='active'?'<span class="badge y">Paused</span>':''}</div><div class="s">${addr}</div>`;
+    const addr=esc([c.house,c.address,c.area,c.landmark].filter(Boolean).join(', ')||'—'),nm=`<div class="t">${esc(c.name)}${window.phc?phc(c):''} ${c.status!=='active'?'<span class="badge y">Paused</span>':''}</div><div class="s">${addr}</div>`;
     if(pick)return `<div class="item rtitem rtpickrow ${id===pick?'rtme':''}" data-rt="${i}" data-cid="${id}" ${hide?'hidden':''} ${id===pick?'':`data-act="rtPickTo" data-i="${i}" role="button" tabindex="0"`}><span class="rtn">${i+1}</span><div class="grow" style="min-width:0">${nm}</div>${id===pick?'<span class="badge b">Ye</span>':`<span class="small muted" style="white-space:nowrap">${S.rtPickMode==='before'?'iske pehle':'iske baad'} ›</span>`}</div>`;
     return `<div class="item rtitem ${S.rt0[i]!==id?'moved':''} ${flashId===id?'flash':''}" data-rt="${i}" data-cid="${id}" ${hide?'hidden':''}>
       <span class="rth" aria-label="Pakad ke khiskao">⠿</span>

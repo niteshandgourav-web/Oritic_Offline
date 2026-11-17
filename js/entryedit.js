@@ -35,11 +35,14 @@ css.textContent=`
 .ee-zi{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:7px 0;border-top:1px solid var(--line2);font-size:13.5px}
 .ee-kbar{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;margin:0 0 8px}
 .ee-kbar input{padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);font:inherit}
+.phc{display:inline-block;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--muted);background:var(--surface2);border:1px solid var(--line2);border-radius:6px;padding:1px 6px;margin-left:4px;cursor:pointer;white-space:nowrap;user-select:none}.phc:hover{color:var(--accent-ink);border-color:var(--accent)}
 tr.eerow{cursor:pointer}tr.eerow:hover td{background:var(--surface2)}
 tr.eerow.sub td{border-top-color:transparent}
 `;
 document.head.appendChild(css);
 
+/* naam ke saath number + ek click me copy (poore panel me use hota hai) */
+window.phc=c=>c&&c.phone?` <span class="phc" role="button" tabindex="0" data-act="copy" data-t="${esc(c.phone)}" title="Number copy karo">${esc(c.phone)} ⧉</span>`:'';
 const r2=n=>Math.round((+n||0)*100)/100;
 const num=v=>{const n=parseFloat(String(v).replace(',','.'));return n>0?n:0};
 const pname=p=>p.k==='desi'?'Gir / Desi cow milk':p.l;
@@ -184,7 +187,7 @@ function zeroSheet(){const Z=zeroList();if(!Z.length){closeSheet();return toast(
      <span class="ee-u">₹</span><input class="ee-in" type="number" inputmode="decimal" min="0" step="any" data-zr="${esc(g.b)}" value="${p&&+p.a>0?L(p.a):''}" placeholder="rate" aria-label="${esc(g.b)} rate"><span class="ee-u">/${esc(g.u)}</span>
      <button type="button" class="btn sm p" data-act="eeZeroGo" data-b="${esc(g.b)}">Sab pe lagao</button></div>`}).join('')}
    <div class="ee-h">Ek ek entry (${Z.length})</div>
-   ${Z.slice(0,150).map(o=>`<div class="ee-zi"><span><b>${fmtShort(o.d)}</b> · ${esc(S.customers[o.cid].name)} · ${esc(xlabel(o.z.base,o.z.qty,o.z.u))}</span><button type="button" class="btn xs o" data-act="eeOpen" data-id="${o.cid}" data-date="${o.d}" aria-label="Entry kholo">✎</button></div>`).join('')}`)}
+   ${Z.slice(0,150).map(o=>`<div class="ee-zi"><span><b>${fmtShort(o.d)}</b> · ${esc(S.customers[o.cid].name)}${phc(S.customers[o.cid])} · ${esc(xlabel(o.z.base,o.z.qty,o.z.u))}</span><button type="button" class="btn xs o" data-act="eeOpen" data-id="${o.cid}" data-date="${o.d}" aria-label="Entry kholo">✎</button></div>`).join('')}`)}
 const banner=()=>{if(!isOwner())return '';const n=zeroList().length;return n?`<button type="button" class="ee-ban" data-act="eeZero">⚠ <b>${n} entries</b> me product ka price nahi hai (₹0) — bill kam ban raha hai. <u>Theek karo</u></button>`:''};
 const _vB=vBills;vBills=function(){const o=_vB();return o&&typeof o.html==='string'?{...o,html:banner()+o.html}:o};
 const _vH=vHome;vHome=function(){const o=_vH();return o&&typeof o.html==='string'?{...o,html:banner()+o.html}:o};
