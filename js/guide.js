@@ -86,13 +86,22 @@ const GUIDE=[
    'Mahina khatam hone pe Bills page pe neeli patti "Discount lagao / dekho" dabao. Mahina chuno, har customer ka bill aur discount dikh jayega.',
    '"Customers pe lagao" dabao. Har customer ke khate me us mahine ki ek "Discount" line ban jati hai aur baki kam ho jata hai.'],
   tips:['Dobara dabane se discount double nahi hota. Bill badla ho to sirf naya hisab update hota hai.','Hamesha ke liye sasta rate dena ho to discount nahi, "Rate badlo / Discount" use karo.','Ek baar ka discount: "Adjustment".']},
+ {id:'follow',t:'Follow-up (jo customer chup-chaap doodh band kar de)',where:'Menu → Follow-up',steps:[
+   'Koi customer 7 kaam ke din doodh na le to panel use "silent" maan leta hai, apne aap Pause kar deta hai aur Follow-up ki "Naye · call karo" list me daal deta hai. Dashboard pe laal patti bhi aati hai.',
+   'Us customer ke card me naam, number, area, boy, aakhri doodh kab gaya, kya lete the aur baki dikhta hai. "Call" dabao, baat karo.',
+   'Baat ke baad "✍ Call note likho": call me kya hua, doodh kyon band kiya, customer ka review (1 se 5 star), customer ne kya kaha, agla call kab, aur account ka kya karna hai (Chalu karo / Pause rakho / Chhod gaye).',
+   '"Agla call" ki date aane pe wo customer "Aaj dobara call" list me aa jata hai.',
+   'Har customer ke saare call notes: card me "History", ya customer account me "Call notes".',
+   '"👥 Kisne kitne call kiye" se dikhta hai kis office member ne aaj aur 7 din me kitne call kiye aur kitne customer wapas chalu hue.'],
+  tips:['Kitne din me silent maanna hai: Follow-up → "⚙ Kitne din me silent" (sirf owner). Wahin chun sakte ho ki apne aap Pause ho ya sirf laal dikhe.','Customers list me rang: laal = silent, peela = Paused, safed = chalu.','Chhutti wale din (jis din kisi ko delivery nahi hui) ginti me nahi aate.']},
  {id:'access',t:'Kaun kya kar sakta hai (Owner, Office, Delivery boy)',where:'Team & cash',steps:[
    'Owner: sab kuch. Naya boy / office member jodna, PIN dena, hatana, settings, backup, customer delete sirf owner karta hai.',
    'Office (manager): saare orders, customers, payments, bills, kharcha, Naya order, entry sudharna. Naya member nahi jod sakta, kisi ko hata nahi sakta, PIN aur settings nahi dekh sakta, customer delete nahi kar sakta (Pause kar sakta hai).',
    'Delivery boy: sirf apne customers, apni Aaj list, apna payment aur bottle. Kisi aur boy ka data nahi dikhta.',
    'Naya member: Team & cash → "+ Naya member" → naam, role (boy / office), PIN.',
    'Boy badal gaya (Anil ki jagah Harish): naam edit mat karo. Team & cash → "⇄ Boy badlo (route handover)" → Anil chuno → naye boy ka naam aur PIN likho → "Route de do". Saare customers Harish ko mil jate hain, Anil ka login band hota hai, aur Anil ka purana hisab usi ke naam pe rehta hai.',
-   'Boy kuch din chhutti pe hai: Team & cash → "🏖 Chhutti / badli" → kaun chhutti pe, kab se kab tak, uska kaam kaun karega → Save. Un dino uske customers badle wale ki Aaj list me aate hain aur delivery usi ke naam likhi jati hai. Chhutti khatam hote hi sab apne aap pehle jaisa. Jaldi laut aaya to "Aaj khatam karo".'],
+   'Boy kuch din chhutti pe hai: Team & cash → "🏖 Chhutti / badli" → kaun chhutti pe, kab se kab tak, uska kaam kaun karega → Save. Un dino uske customers badle wale ki Aaj list me aate hain aur delivery usi ke naam likhi jati hai. Chhutti khatam hote hi sab apne aap pehle jaisa. Jaldi laut aaya to "Aaj khatam karo".',
+   'Har office member ko alag kaam: Team & cash → "🔑 Office access" → us member ke saamne tick lagao ya hatao: Delivery sheet, Paisa (payments, bills, vasooli, cash, kharcha), Entry sudharna. Tick hataya to wo page us member ko dikhega hi nahi.'],
   tips:['Chhutti (kuch din) aur Boy badlo (hamesha ke liye) alag hain. Chhutti me customers usi boy ke naam rehte hain.','Jahan bhi customer ka naam dikhta hai, saath me uska mobile number hota hai. Number pe ek click = copy.', 'Kisi bhi page pe customer ke naam pe double click = uska poora account (khata, payments, order, kaun sa boy).','Settings me ab boys ka naam type nahi hota, isliye galti se naam bigad nahi sakta.','Har boy aur office member ka PIN uski profile me hai: Team & cash → naam pe click → Profile.','Kisi office member ko owner jaisa poora access dena ho to uski profile me "Poora access" on karo.']},
  {id:'dues',t:'Vasooli (kis se kitna lena hai)',where:'Menu → Vasooli',steps:[
    'Upar ke dabbe: kul lena hai, 0–15 din, 16–30 din, 30+ din (pichle payment ko kitne din hue).',

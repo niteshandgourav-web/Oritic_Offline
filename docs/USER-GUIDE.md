@@ -150,7 +150,24 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 >
 > Dhyan: Ek baar ka discount: "Adjustment".
 
-## 11. Kaun kya kar sakta hai (Owner, Office, Delivery boy)
+## 11. Follow-up (jo customer chup-chaap doodh band kar de)
+
+**Kahan:** Menu → Follow-up
+
+1. Koi customer 7 kaam ke din doodh na le to panel use "silent" maan leta hai, apne aap Pause kar deta hai aur Follow-up ki "Naye · call karo" list me daal deta hai. Dashboard pe laal patti bhi aati hai.
+2. Us customer ke card me naam, number, area, boy, aakhri doodh kab gaya, kya lete the aur baki dikhta hai. "Call" dabao, baat karo.
+3. Baat ke baad "✍ Call note likho": call me kya hua, doodh kyon band kiya, customer ka review (1 se 5 star), customer ne kya kaha, agla call kab, aur account ka kya karna hai (Chalu karo / Pause rakho / Chhod gaye).
+4. "Agla call" ki date aane pe wo customer "Aaj dobara call" list me aa jata hai.
+5. Har customer ke saare call notes: card me "History", ya customer account me "Call notes".
+6. "👥 Kisne kitne call kiye" se dikhta hai kis office member ne aaj aur 7 din me kitne call kiye aur kitne customer wapas chalu hue.
+
+> Dhyan: Kitne din me silent maanna hai: Follow-up → "⚙ Kitne din me silent" (sirf owner). Wahin chun sakte ho ki apne aap Pause ho ya sirf laal dikhe.
+>
+> Dhyan: Customers list me rang: laal = silent, peela = Paused, safed = chalu.
+>
+> Dhyan: Chhutti wale din (jis din kisi ko delivery nahi hui) ginti me nahi aate.
+
+## 12. Kaun kya kar sakta hai (Owner, Office, Delivery boy)
 
 **Kahan:** Team & cash
 
@@ -160,6 +177,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 4. Naya member: Team & cash → "+ Naya member" → naam, role (boy / office), PIN.
 5. Boy badal gaya (Anil ki jagah Harish): naam edit mat karo. Team & cash → "⇄ Boy badlo (route handover)" → Anil chuno → naye boy ka naam aur PIN likho → "Route de do". Saare customers Harish ko mil jate hain, Anil ka login band hota hai, aur Anil ka purana hisab usi ke naam pe rehta hai.
 6. Boy kuch din chhutti pe hai: Team & cash → "🏖 Chhutti / badli" → kaun chhutti pe, kab se kab tak, uska kaam kaun karega → Save. Un dino uske customers badle wale ki Aaj list me aate hain aur delivery usi ke naam likhi jati hai. Chhutti khatam hote hi sab apne aap pehle jaisa. Jaldi laut aaya to "Aaj khatam karo".
+7. Har office member ko alag kaam: Team & cash → "🔑 Office access" → us member ke saamne tick lagao ya hatao: Delivery sheet, Paisa (payments, bills, vasooli, cash, kharcha), Entry sudharna. Tick hataya to wo page us member ko dikhega hi nahi.
 
 > Dhyan: Chhutti (kuch din) aur Boy badlo (hamesha ke liye) alag hain. Chhutti me customers usi boy ke naam rehte hain.
 >
@@ -173,7 +191,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 >
 > Dhyan: Kisi office member ko owner jaisa poora access dena ho to uski profile me "Poora access" on karo.
 
-## 12. Vasooli (kis se kitna lena hai)
+## 13. Vasooli (kis se kitna lena hai)
 
 **Kahan:** Menu → Vasooli
 
@@ -185,7 +203,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 
 > Dhyan: Udhaar ki limit Settings → Office tools me daalo. Limit paar wale customer Delivery sheet me bhi laal nishaan ke saath dikhenge.
 
-## 13. Bills
+## 14. Bills
 
 **Kahan:** Menu → Bills
 
@@ -198,7 +216,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 
 > Dhyan: PDF me ₹ ki jagah "Rs." aata hai (PDF font ki seema). Baki ho to bill me UPI QR aata hai, customer scan karke wahi amount bhar sakta hai.
 
-## 14. Payments (paisa lena)
+## 15. Payments (paisa lena)
 
 **Kahan:** Menu → Payments · ya kahin se bhi P dabao
 
@@ -208,7 +226,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 
 > Dhyan: Amount khaali aata hai. Pura baki lena ho to "Pura baki bharo" dabao.
 
-## 15. Team & cash (boys aur office ka hisab)
+## 16. Team & cash (boys aur office ka hisab)
 
 **Kahan:** Menu → Team & cash
 
@@ -230,7 +248,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 >
 > Dhyan: Office ke logon ke naam Settings → Office tools → Office staff me daalo.
 
-## 16. Kharcha (maal khareedna, kharcha, supplier)
+## 17. Kharcha (maal khareedna, kharcha, supplier)
 
 **Kahan:** Menu → Kharcha
 
@@ -245,7 +263,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 >
 > Dhyan: Maal me "Cow milk / Buffalo milk / Gir cow milk / Chaach" litre me likhoge to neeche "Doodh ka hisab" dikhega: kitna khareeda, kitna order tha, kitna bacha.
 
-## 17. Demand (kal kya chahiye, supplier ko bhejna)
+## 18. Demand (kal kya chahiye, supplier ko bhejna)
 
 **Kahan:** Menu → Demand
 
@@ -256,7 +274,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 
 > Dhyan: Panel khud kisi ko message nahi bhejta. WhatsApp khulta hai, Send aap dabate ho.
 
-## 18. Products (shahad, dahi, gur, ghee ki list)
+## 19. Products (shahad, dahi, gur, ghee ki list)
 
 **Kahan:** Menu → Products
 
@@ -264,7 +282,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 2. "Sheet column" tick karo to Delivery sheet me us product ka apna column ban jata hai.
 3. Rate badla to line me likh ke Save. Customer ko pichli baar jis rate pe diya tha wahi rate uske liye apne aap aata hai.
 
-## 19. Bottles
+## 20. Bottles
 
 **Kahan:** Menu → Bottles
 
@@ -275,7 +293,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 
 > Dhyan: Doodh ke type ka hisab aise banta hai: jo bottle pehle di thi wahi pehle wapas maani jaati hai.
 
-## 20. Meter (gaadi ka KM)
+## 21. Meter (gaadi ka KM)
 
 **Kahan:** Menu → Meter
 
@@ -288,7 +306,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 
 > Dhyan: ₹ per km har boy ka apna (Team & cash → naam → Profile). Na ho to Settings wala rate lagta hai.
 
-## 21. Settings aur backup
+## 22. Settings aur backup
 
 **Kahan:** Menu → Settings
 
@@ -304,7 +322,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 >
 > Dhyan: Ye login sirf "koi bhi aake na chala le" ke liye hai. Database ki asli suraksha alag kaam hai (V4-H1).
 
-## 22. Keyboard shortcuts
+## 23. Keyboard shortcuts
 
 **Kahan:** Kahin bhi ? dabao
 

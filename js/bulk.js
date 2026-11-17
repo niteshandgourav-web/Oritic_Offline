@@ -478,7 +478,7 @@ function vCustGrid(){const {list,pos,total,act}=cgList();const cols=CGCOLS();
   const ids=[...S.cgNew.map(x=>x.id),...list.map(c=>c.id)];S.cgIds=ids;
   const allOn=ids.length&&ids.every(id=>S.cgSel.has(id));
   const head=[`<input type="checkbox" data-cgall ${allOn?'checked':''} aria-label="Sab chuno">`,'#',...cols.map(c=>c.l),'Baki','Bottles',''];
-  const row=(id,isNew,c)=>`<tr data-row="${id}" class="${isNew?'newr':''} ${S.cgSel.has(id)?'sel':''}"><td class="s1"><input type="checkbox" data-cgsel="${id}" ${S.cgSel.has(id)?'checked':''} aria-label="Chuno"></td>
+  const row=(id,isNew,c)=>`<tr data-row="${id}" class="${isNew?'newr':''} ${S.cgSel.has(id)?'sel':''} ${!isNew&&window.custTone?custTone(S.customers[id]):''}"><td class="s1"><input type="checkbox" data-cgsel="${id}" ${S.cgSel.has(id)?'checked':''} aria-label="Chuno"></td>
      <td class="pos s2">${isNew?'naya':`<button class="acopen" data-act="openCustomer" data-id="${id}" title="Poora account kholo">${pos[id]||''} ↗</button>`}</td>${cols.map((col,ci)=>cgCell(id,col,ci)).join('')}
      ${isNew?'<td class="ro">–</td><td class="ro">–</td><td class="acts"><button class="btn xs o" data-act="cgDrop" data-id="'+id+'">Hatao</button></td>':(()=>{const bal=balanceUpto(c,null);return `<td class="ro" style="color:${bal>0.5?'var(--danger)':'inherit'};font-weight:700">${inr(bal)}</td><td class="ro">${bottleBal(c)}</td>
        <td class="acts"><button class="btn xs o" data-act="openCustomer" data-id="${id}">Profile</button> <button class="btn xs o" data-act="openBill" data-id="${id}">Bill</button> <button class="btn xs o" data-act="addPayment" data-id="${id}">₹</button></td>`})()}</tr>`;
@@ -557,7 +557,7 @@ Object.assign(A,{
       if(isNew){const nid='c'+(phone||uid());if(S.customers[nid]){E('phone','Is number ka customer pehle se hai');continue}
         const seq=Object.values(S.customers).filter(x=>x.boy===boy).reduce((m,x)=>Math.max(m,+x.seq||0),0)+10+writes.filter(w=>w.body.boy===boy).length*10;
         writes.push({id:nid,old:id,isNew:true,body:{name,phone,boy,area:txt('area'),house:txt('house'),address:txt('address'),landmark:txt('landmark'),map:txt('map'),schedule:sch,wdays:[],status,order,rates,notes:txt('notes'),openingDue:0,bottles:0,xorder:[],since:todayISO(),createdAt:todayISO(),seq,src:'grid'}})}
-      else{const patch={};Object.keys(dirty).forEach(f=>{if(f.startsWith('order.'))patch.order=order;else if(f.startsWith('rates.'))patch.rates={...(base.rates||{}),...rates};else if(f==='phone')patch.phone=phone;else if(f==='name')patch.name=name;else if(f==='boy')patch.boy=boy;else if(f==='schedule')patch.schedule=sch;else if(f==='status')patch.status=status;else patch[f]=txt(f)});
+      else{const patch={};Object.keys(dirty).forEach(f=>{if(f.startsWith('order.'))patch.order=order;else if(f.startsWith('rates.'))patch.rates={...(base.rates||{}),...rates};else if(f==='phone')patch.phone=phone;else if(f==='name')patch.name=name;else if(f==='boy')patch.boy=boy;else if(f==='schedule')patch.schedule=sch;else if(f==='status'){patch.status=status;if(status==='active')patch.resumedAt=todayISO()}else patch[f]=txt(f)});
         if(patch.boy&&patch.boy!==base.boy)patch.seq=Object.values(S.customers).filter(x=>x.boy===patch.boy&&x.id!==id).reduce((m,x)=>Math.max(m,+x.seq||0),0)+10;
         writes.push({id,body:patch})}}
     done.forEach(id=>{delete S.cgDirty[id];S.cgNew=S.cgNew.filter(x=>x.id!==id)});

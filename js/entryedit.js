@@ -59,6 +59,7 @@ window.eeXin=xin;
 let E=null;
 function entryEdit(cid,date){
   if(!isOwner())return toast('Sirf owner / office entry theek kar sakta hai');
+  if(window.canDo&&!canDo('fix'))return toast('Aapko entry sudharne ka access nahi hai. Owner se bolo');
   const c=S.customers[cid];if(!c||!date)return;
   if(date>todayISO())return toast('Aage ki date ki entry yahan nahi banti — Delivery sheet use karo');
   const old=rowOf(date,cid)||null;const del=!!(old&&old.s==='d');

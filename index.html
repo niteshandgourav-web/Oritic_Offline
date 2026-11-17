@@ -445,7 +445,7 @@ const MOBILE_NAV=()=>S.role==='owner'?['sheet','customers','payments','bills']:[
 const isOwner=()=>S.role==='owner';
 /* owner khud, ya office staff jise "Poora access" diya ho: Settings, team, PIN, bill format */
 const isAdmin=()=>S.role==='owner'&&(S.me==='Owner'||!!(((settings().team||{})[S.me]||{}).full));
-const visibleRoutes=()=>isOwner()?ROUTES.filter(r=>!r.hide):ROUTES.filter(r=>['today','customers','payments','bottles','odo'].includes(r.id));
+const visibleRoutes=()=>isOwner()?ROUTES.filter(r=>!r.hide&&(!window.canRoute||canRoute(r.id))):ROUTES.filter(r=>['today','customers','payments','bottles','odo'].includes(r.id));
 function toast(m){const t=document.createElement('div');t.textContent=m;$('#toast').appendChild(t);setTimeout(()=>t.remove(),2600)}
 function copyText(txt,el){const done=()=>toast('Copy ho gaya');
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done).catch(()=>fallback())}else fallback();
@@ -557,7 +557,7 @@ function render(){
   if(S.setup){top.innerHTML='';view.innerHTML=setupHtml();$('#login').hidden=true;return}
   renderLogin();
   if(!S.role){top.innerHTML='';view.innerHTML='';return}
-  if(!visibleRoutes().some(x=>x.id===S.route)&&!(isOwner()&&ROUTES.some(x=>x.id===S.route)))S.route=isOwner()?'sheet':'today';
+  if(!visibleRoutes().some(x=>x.id===S.route)&&!(isOwner()&&ROUTES.some(x=>x.id===S.route)&&(!window.canRoute||canRoute(S.route))))S.route=isOwner()?((!window.canRoute||canRoute('sheet'))?'sheet':'home'):'today';
   nav();
   const r=ROUTES.find(x=>x.id===S.route)||ROUTES[0];
   if(!S.ready){top.innerHTML=`<h1>${r.t}</h1>`;view.innerHTML=`<div class="empty">Load ho raha hai…</div>`;return}
@@ -729,7 +729,7 @@ function vCustomers(){
      <div class="row"><div class="seg">${[['route','Route order'],['az','Area / A–Z']].map(([v,l])=>`<button class="${(S.csort||'route')===v?'on':''}" data-act="setCSort" data-v="${v}">${l}</button>`).join('')}</div>
      <button class="btn sm o" data-act="routeOrder" data-b="${esc(S.cboy)}">⇅ Order badlo</button></div></div>
     <div class="list">${list.map(c=>{const rt=ratesOf(c);let hd='';if(byRoute&&S.cboy==='all'&&c.boy!==lastG){lastG=c.boy;hd=`<div class="areahd">${esc(c.boy||'—')}</div>`}const o=orderOf(c);const rateStr=PRODUCTS.filter(p=>o[p.k]>0).map(p=>'₹'+rt[p.k]).join('/');
-      return hd+`<div class="item">${byRoute?`<span class="cpos">${pos[c.id]}</span>`:''}<button class="grow click" data-act="openCustomer" data-id="${c.id}" style="text-align:left"><div class="t">${esc(c.name)}${window.phc?phc(c):''} ${c.schedule==='alternate'?'<span class="badge b">Alt</span>':''}</div><div class="s">${esc(c.area||'—')} · ${esc(c.boy||'—')} · ${qtyText(o)}${rateStr?' @ '+rateStr:''}</div></button><div class="r">${c.status==='active'?'<span class="badge g">Active</span>':'<span class="badge y">Paused</span>'}</div>${mapBtn(c)}</div>`}).join('')||emptyBox('Koi customer nahi mila')}</div>
+      return hd+`<div class="item ${window.custTone?custTone(c):''}">${byRoute?`<span class="cpos">${pos[c.id]}</span>`:''}<button class="grow click" data-act="openCustomer" data-id="${c.id}" style="text-align:left"><div class="t">${esc(c.name)}${window.phc?phc(c):''} ${c.schedule==='alternate'?'<span class="badge b">Alt</span>':''}</div><div class="s">${esc(c.area||'—')} · ${esc(c.boy||'—')} · ${qtyText(o)}${rateStr?' @ '+rateStr:''}</div></button><div class="r">${c.status==='active'?'<span class="badge g">Active</span>':'<span class="badge y">Paused</span>'}</div>${mapBtn(c)}</div>`}).join('')||emptyBox('Koi customer nahi mila')}</div>
   </div>`;
   return {html,action:isOwner()?`<button class="btn sm p" data-act="editCustomer">+ Naya</button>`:''}}
 
@@ -1631,5 +1631,6 @@ window.addEventListener('DOMContentLoaded',async()=>{
 <script src="js/drivebackup.js"></script>
 <script src="js/entryedit.js"></script>
 <script src="js/office.js"></script>
+<script src="js/followup.js"></script>
 <script src="js/guide.js"></script>
 </body></html>
