@@ -107,6 +107,10 @@ function galti(){const today=todayISO();const G={price0:[],rate:[],qty:[],pend:[
   Object.values(ph).forEach(l=>{if(l.length>1)l.forEach(c=>G.dup.push({cid:c.id,t:'Mobile '+c.phone+' · saath me: '+l.filter(x=>x!==c).map(x=>x.name).join(', ')}))});
   ['price0','rate','qty','pend'].forEach(k=>G[k].sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0));return G}
 window.galtiCount=()=>{const G=galti();return Object.values(G).reduce((s,l)=>s+l.length,0)};
+/* line ke neeche: kaun sa area, kaun sa boy sambhalta hai, us din kisne diya */
+function who(cid,d){const c=S.customers[cid];if(!c)return '';const r=d?rowOf(d,cid):null;const by=r&&r.by&&r.by!==c.boy?` · us din <b>${esc(r.by)}</b> ne diya`:'';
+  return `<br><span class="small muted">${esc(c.area||'area nahi')} · Boy: <b>${esc(c.boy||'—')}</b>${by}${c.status!=='active'?' · Paused':''}</span>`}
+window.custWho=who;
 function vGalti(){const G=galti();const tot=Object.values(G).reduce((s,l)=>s+l.length,0);
   if(!tot)return {html:'<div class="of-ok">Sab theek hai 👍 Koi galat entry nahi mili.</div>'};
   const cur=G[S.gp]&&G[S.gp].length?S.gp:GP.find(g=>G[g[0]].length)[0];const g=GP.find(x=>x[0]===cur);const list=G[cur];const nm=id=>`<span data-cu="${id}">${esc((S.customers[id]||{}).name||'')}</span>`+phc(S.customers[id]);
@@ -114,8 +118,8 @@ function vGalti(){const G=galti();const tot=Object.values(G).reduce((s,l)=>s+l.l
    <div class="of-tip">${g[2]}</div>
    <div class="of-card">${cur==='price0'?'<button type="button" class="btn sm p" data-act="eeZero" style="margin-bottom:6px">Product ke hisab se ek saath theek karo</button>':''}
     ${list.slice(0,200).map(o=>cur==='pend'?`<div class="of-row"><span class="t"><b>${fmtDate(o.d)}</b> · ${o.n} ghar pending</span><button type="button" class="btn xs o" data-act="gpSheet" data-d="${o.d}">Us din ki sheet kholo</button></div>`
-      :o.d?`<div class="of-row"><span class="t"><b>${fmtShort(o.d)}</b> · ${nm(o.cid)} · ${esc(o.t)}</span><button type="button" class="btn xs o" data-act="eeOpen" data-id="${o.cid}" data-date="${o.d}" aria-label="Entry kholo">✎</button></div>`
-      :`<div class="of-row"><span class="t"><b>${nm(o.cid)}</b> · ${esc(o.t)}</span><button type="button" class="btn xs o" data-act="noAc" data-id="${o.cid}">Account</button></div>`).join('')}
+      :o.d?`<div class="of-row"><span class="t"><b>${fmtShort(o.d)}</b> · ${nm(o.cid)} · ${esc(o.t)}${who(o.cid,o.d)}</span><span class="row" style="gap:6px;flex:0 0 auto"><button type="button" class="btn xs o" data-act="noAc" data-id="${o.cid}">Account</button><button type="button" class="btn xs p" data-act="eeOpen" data-id="${o.cid}" data-date="${o.d}" aria-label="Entry theek karo">✎ Theek karo</button></span></div>`
+      :`<div class="of-row"><span class="t"><b>${nm(o.cid)}</b> · ${esc(o.t)}${who(o.cid)}</span><button type="button" class="btn xs o" data-act="noAc" data-id="${o.cid}">Account</button></div>`).join('')}
     ${list.length>200?`<div class="small muted" style="padding-top:8px">Pehli 200 dikh rahi hain (kul ${list.length}). Inhe theek karo to baaki aa jayengi.</div>`:''}</div>`}}
 
 /* ================= 3. Mahine ka discount ================= */

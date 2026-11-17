@@ -9,6 +9,7 @@ const css=document.createElement('style');
 css.textContent=`
 .ee-top{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline;margin-bottom:6px}
 .ee-top b{font-size:17px}.ee-top span{color:var(--muted);font-size:13px}
+.ee-who{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:13px;color:var(--muted);background:var(--surface2);border-radius:var(--rs);padding:8px 10px;margin-bottom:8px}.ee-who b{color:var(--fg)}
 .ee-h{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:14px 0 4px}
 .ee-ln{border:1px solid var(--line2);border-radius:var(--rs);padding:8px 10px;margin-bottom:6px;background:var(--surface)}
 .ee-ln.on{border-color:var(--accent);background:var(--accent-soft)}
@@ -83,7 +84,10 @@ function hist(){const h=(E.old&&E.old.ed)||[];if(!h.length)return '';
   return `<div class="ee-log"><b>Is entry me pehle ke badlav</b>${h.slice().reverse().map(x=>`<div>${when(x.t)} · ${esc(x.by||'—')}: ${esc(x.d||'badla')}${x.a0!=null?` (${inr(x.a0)} → ${inr(x.a1)})`:''}${x.w?' · '+esc(x.w):''}</div>`).join('')}</div>`}
 function draw(){const c=S.customers[E.cid];const opts=products().filter(p=>p.on!==false);
   openSheet(E.del?'Entry sudharo':'Entry jodo',`
-   <div class="ee-top"><b>${esc(c.name)}</b><span>${fmtDate(E.date)} · ${esc((E.old&&E.old.by)||c.boy||'')}</span>${E.del?'':`<span class="badge y">${E.old&&E.old.s==='k'?'Is din Skip hai — Save se delivery ban jayegi':'Is din ki entry nahi hai — Save se nayi banegi'}</span>`}</div>
+   <div class="ee-top"><b>${esc(c.name)}</b>${phc(c)}<span>${fmtDate(E.date)}</span></div>
+   <div class="ee-who"><span>${esc(c.area||'area nahi')}${c.address?' · '+esc(String(c.address).slice(0,60)):''}</span><span>Boy: <b>${esc(c.boy||'—')}</b>${E.old&&E.old.by&&E.old.by!==c.boy?` · us din <b>${esc(E.old.by)}</b> ne diya`:''}</span>
+    <span class="row" style="gap:6px">${c.phone?`<a class="btn xs o" href="tel:${esc(c.phone)}">Call</a><a class="btn xs o" href="https://wa.me/91${esc(c.phone)}" target="_blank" rel="noopener">WhatsApp</a>`:''}<button type="button" class="btn xs o" data-act="eeAc" data-id="${c.id}">Poora account kholo</button></span></div>
+   <div class="ee-top" style="margin:0">${E.del?'':`<span class="badge y">${E.old&&E.old.s==='k'?'Is din Skip hai — Save se delivery ban jayegi':'Is din ki entry nahi hai — Save se nayi banegi'}</span>`}</div>
    <div class="ee-h">Doodh — quantity aur us din ka rate</div>${PRODUCTS.map(p=>E.all||E.shown[p.k]?milkLine(p):'').join('')}
    ${E.all?'':`<button type="button" class="btn sm o" data-act="eeAll">+ Doosra doodh (${PRODUCTS.filter(p=>!E.shown[p.k]).map(p=>p.k==='desi'?'Gir':p.sh).join(', ')})</button>`}
    <div class="ee-h">Other products — paneer, ghee, dahi…</div><div id="eeXs">${xLines()}</div>
@@ -137,6 +141,7 @@ Object.assign(A,{
   eeOpenDate(d){const v=($('#eeKD')||{}).value;if(!v)return toast('Pehle date chuno');entryEdit(d.id,v)},
   eeStep(d){if(!E)return;const m=E.milk[d.k];m.q=Math.max(0,r2(m.q+(+d.n)));const i=$('#eeQ_'+d.k);if(i)i.value=L(m.q);upd()},
   eeAll(){if(!E)return;E.all=1;draw()},
+  eeAc(d){closeSheet();E=null;if(window.acOpen)acOpen(d.id)},
   eeDel(d){if(!E)return;E.x.splice(+d.i,1);$('#eeXs').innerHTML=xLines();upd()},
   eeAdd(){if(!E)return;const sel=$('#eeP');const p=sel&&sel.value?products().find(x=>x.id===sel.value):null;const name=p?p.n:($('#eeN').value||'').trim();
     if(!name){$('#eeN').hidden=false;$('#eeN').focus();return toast('Product ka naam likho')}
@@ -187,7 +192,7 @@ function zeroSheet(){const Z=zeroList();if(!Z.length){closeSheet();return toast(
      <span class="ee-u">₹</span><input class="ee-in" type="number" inputmode="decimal" min="0" step="any" data-zr="${esc(g.b)}" value="${p&&+p.a>0?L(p.a):''}" placeholder="rate" aria-label="${esc(g.b)} rate"><span class="ee-u">/${esc(g.u)}</span>
      <button type="button" class="btn sm p" data-act="eeZeroGo" data-b="${esc(g.b)}">Sab pe lagao</button></div>`}).join('')}
    <div class="ee-h">Ek ek entry (${Z.length})</div>
-   ${Z.slice(0,150).map(o=>`<div class="ee-zi"><span><b>${fmtShort(o.d)}</b> · <span data-cu="${o.cid}">${esc(S.customers[o.cid].name)}</span>${phc(S.customers[o.cid])} · ${esc(xlabel(o.z.base,o.z.qty,o.z.u))}</span><button type="button" class="btn xs o" data-act="eeOpen" data-id="${o.cid}" data-date="${o.d}" aria-label="Entry kholo">✎</button></div>`).join('')}`)}
+   ${Z.slice(0,150).map(o=>`<div class="ee-zi"><span><b>${fmtShort(o.d)}</b> · <span data-cu="${o.cid}">${esc(S.customers[o.cid].name)}</span>${phc(S.customers[o.cid])} · ${esc(xlabel(o.z.base,o.z.qty,o.z.u))}${window.custWho?custWho(o.cid,o.d):''}</span><button type="button" class="btn xs o" data-act="eeOpen" data-id="${o.cid}" data-date="${o.d}" aria-label="Entry kholo">✎</button></div>`).join('')}`)}
 const banner=()=>{if(!isOwner())return '';const n=zeroList().length;return n?`<button type="button" class="ee-ban" data-act="eeZero">⚠ <b>${n} entries</b> me product ka price nahi hai (₹0) — bill kam ban raha hai. <u>Theek karo</u></button>`:''};
 const _vB=vBills;vBills=function(){const o=_vB();return o&&typeof o.html==='string'?{...o,html:banner()+o.html}:o};
 const _vH=vHome;vHome=function(){const o=_vH();return o&&typeof o.html==='string'?{...o,html:banner()+o.html}:o};
