@@ -165,6 +165,8 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 >
 > Dhyan: Jahan bhi customer ka naam dikhta hai, saath me uska mobile number hota hai. Number pe ek click = copy.
 >
+> Dhyan: Kisi bhi page pe customer ke naam pe double click = uska poora account (khata, payments, order, kaun sa boy).
+>
 > Dhyan: Settings me ab boys ka naam type nahi hota, isliye galti se naam bigad nahi sakta.
 >
 > Dhyan: Har boy aur office member ka PIN uski profile me hai: Team & cash → naam pe click → Profile.

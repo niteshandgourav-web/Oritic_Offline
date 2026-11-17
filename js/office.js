@@ -109,7 +109,7 @@ function galti(){const today=todayISO();const G={price0:[],rate:[],qty:[],pend:[
 window.galtiCount=()=>{const G=galti();return Object.values(G).reduce((s,l)=>s+l.length,0)};
 function vGalti(){const G=galti();const tot=Object.values(G).reduce((s,l)=>s+l.length,0);
   if(!tot)return {html:'<div class="of-ok">Sab theek hai 👍 Koi galat entry nahi mili.</div>'};
-  const cur=G[S.gp]&&G[S.gp].length?S.gp:GP.find(g=>G[g[0]].length)[0];const g=GP.find(x=>x[0]===cur);const list=G[cur];const nm=id=>esc((S.customers[id]||{}).name||'')+phc(S.customers[id]);
+  const cur=G[S.gp]&&G[S.gp].length?S.gp:GP.find(g=>G[g[0]].length)[0];const g=GP.find(x=>x[0]===cur);const list=G[cur];const nm=id=>`<span data-cu="${id}">${esc((S.customers[id]||{}).name||'')}</span>`+phc(S.customers[id]);
   return {html:`<div class="chips">${GP.map(x=>`<button type="button" class="chip ${cur===x[0]?'on':''}" data-act="gpTab" data-v="${x[0]}" ${G[x[0]].length?'':'disabled style="opacity:.45"'}>${x[1]} · ${G[x[0]].length}</button>`).join('')}</div>
    <div class="of-tip">${g[2]}</div>
    <div class="of-card">${cur==='price0'?'<button type="button" class="btn sm p" data-act="eeZero" style="margin-bottom:6px">Product ke hisab se ek saath theek karo</button>':''}
@@ -129,7 +129,7 @@ function mdRows(m){const to=periodRange(m,'full')[1];const date=to>todayISO()?to
 function mdSheet(m){const R=mdRows(m);const ch=R.filter(r=>r.amt!==r.cur);
   openSheet('Mahine ka discount',`<div class="field"><label class="f" for="mdM">Kis mahine ka</label><input class="input" type="month" id="mdM" value="${m}" max="${todayISO().slice(0,7)}"></div>
    <div class="small muted" style="margin:6px 0 10px">Discount us mahine ke bill pe lagta hai aur khate me "Discount" ki ek line banti hai. Mahina khatam hone ke baad lagana sabse sahi hai. Dobara dabane se double nahi hota, sirf naya hisab update hota hai.</div>
-   ${R.map(r=>`<div class="of-row"><span class="t"><b>${esc(r.c.name)}</b>${phc(r.c)} · ${r.d?discText(r.d):'discount hata diya'}<br><span class="small muted">Bill ${inr(r.bill)} → discount <b>${inr(r.amt)}</b></span></span><span class="badge ${r.amt===r.cur?'g':r.cur?'y':'b'}">${r.amt===r.cur?'laga hua':r.cur?'pehle '+inr(r.cur):'naya'}</span></div>`).join('')||'<div class="muted">Is mahine kisi ko discount nahi banta. Customer ke account me "Mahine ka discount" set karo.</div>'}
+   ${R.map(r=>`<div class="of-row"><span class="t"><b data-cu="${r.c.id}">${esc(r.c.name)}</b>${phc(r.c)} · ${r.d?discText(r.d):'discount hata diya'}<br><span class="small muted">Bill ${inr(r.bill)} → discount <b>${inr(r.amt)}</b></span></span><span class="badge ${r.amt===r.cur?'g':r.cur?'y':'b'}">${r.amt===r.cur?'laga hua':r.cur?'pehle '+inr(r.cur):'naya'}</span></div>`).join('')||'<div class="muted">Is mahine kisi ko discount nahi banta. Customer ke account me "Mahine ka discount" set karo.</div>'}
    ${R.length?`<div class="ee-tot"><span>${monthL(m)} · kul discount</span><b>${inr(R.reduce((s,r)=>s+r.amt,0))}</b></div>`:''}
    ${ch.length?`<button type="button" class="btn p block" data-act="mdGo">${ch.length} customers pe lagao</button>`:R.length?'<div class="of-ok" style="margin-top:8px">Sab pe laga hua hai ✓</div>':''}`);
   const i=$('#mdM');if(i)i.onchange=()=>{if(i.value)mdSheet(i.value)}}
@@ -192,7 +192,7 @@ Object.assign(A,{
 /* ================= Trial offer ================= */
 function trials(){const t=todayISO();return Object.values(S.customers).filter(c=>c.trial&&c.trial.to).map(c=>({c,over:c.trial.to<t,last:c.trial.to===t})).sort((a,b)=>a.c.trial.to<b.c.trial.to?-1:1)}
 function trSheet(){const T=trials();openSheet('Trial customers',`<div class="small muted" style="margin-bottom:8px">Trial khatam hote hi customer Delivery sheet se hat jata hai. Phone karke poochho, phir Continue ya Band dabao.</div>
-  ${T.map(({c,over,last})=>`<div class="of-row"><span class="t"><b>${esc(c.name)}</b>${phc(c)} ${c.phone?`· <a href="tel:${esc(c.phone)}">Call</a>`:''}<br><span class="small muted">${fmtShort(c.trial.from)} – ${fmtShort(c.trial.to)} · ${L(c.trial.pct)}% sasta</span> <span class="badge ${over?'r':last?'y':'g'}">${over?'khatam — poochho':last?'aaj aakhri din':'chal raha hai'}</span></span>
+  ${T.map(({c,over,last})=>`<div class="of-row"><span class="t"><b data-cu="${c.id}">${esc(c.name)}</b>${phc(c)} ${c.phone?`· <a href="tel:${esc(c.phone)}">Call</a>`:''}<br><span class="small muted">${fmtShort(c.trial.from)} – ${fmtShort(c.trial.to)} · ${L(c.trial.pct)}% sasta</span> <span class="badge ${over?'r':last?'y':'g'}">${over?'khatam — poochho':last?'aaj aakhri din':'chal raha hai'}</span></span>
    <span class="row" style="gap:6px"><button type="button" class="btn xs p" data-act="trEnd" data-id="${c.id}" data-go="1">Continue</button><button type="button" class="btn xs d" data-act="trEnd" data-id="${c.id}" data-go="0">Band</button></span></div>`).join('')||'<div class="muted">Koi trial customer nahi.</div>'}`)}
 const trBan=()=>{if(!isOwner())return '';const T=trials();if(!T.length)return '';const n=T.filter(x=>x.over||x.last).length;
   return `<button type="button" class="of-ban" ${n?'style="background:var(--warn-soft);color:var(--warn);border-color:var(--warn)"':''} data-act="trOpen">🎁 ${n?`<b>${n} trial customers</b> ka trial khatam / aaj aakhri din. Poochho: continue karna hai?`:`${T.length} trial customers chal rahe hain.`} <u>Dekho</u></button>`};
@@ -288,4 +288,15 @@ Object.assign(A,{
   async lvDel(d){if(!isOwner()||!canWrite())return;const t=todayISO();const L2=leaves().map(x=>x.id!==d.id?x:(x.from<=t&&addDays(t,-1)>=x.from?{...x,to:addDays(t,-1),cut:t}:null)).filter(Boolean);
     await saveSettings({...settings(),leave:L2});toast('Chhutti update ho gayi');lvSheet()},
 });
+})();
+
+/* ================= Naam pe double click = customer ka account =================
+   Jahan bhi customer ka naam dikhe (list, bills, vasooli, galti pakdo...), us naam pe double click se poora account khulta hai.
+   Customer ki id aas-paas ke data-id / data-row / data-cu se milti hai; sirf tab khulta hai jab click naam wale hisse pe ho. */
+(function(){
+document.addEventListener('dblclick',e=>{const t=e.target;if(!t||!t.closest||!isOwner()||!window.acOpen)return;
+  if(t.closest('input,textarea,select,.phc,td.shval,[data-dbl],#acct,.step'))return;
+  const h=t.closest('[data-cu],[data-row],[data-id]');if(!h)return;const id=h.dataset.cu||h.dataset.row||h.dataset.id;const c=S.customers[id];if(!c||!c.name)return;
+  let n=t,ok=false;for(let i=0;i<4&&n&&n!==document.body;i++,n=n.parentElement){const x=(n.textContent||'').trim();if(x.includes(c.name)&&x.length<c.name.length+90){ok=true;break}if(n===h)break}
+  if(!ok)return;e.preventDefault();if(!$('#sheet').hidden)closeSheet();acOpen(id)});
 })();

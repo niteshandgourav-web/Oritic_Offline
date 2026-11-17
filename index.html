@@ -1241,7 +1241,7 @@ function sheetQuick(cid){const c=S.customers[cid];if(!c)return;const bal=balance
     <span class="muted">Status</span><span>${c.status==='active'?'Active':'Paused'} · ${esc(c.boy||'—')} · bottles ${bottleBal(c)}</span>
   </div>
   <div class="row wrap" style="margin-top:14px"><button class="btn p" data-act="openCustomer" data-id="${cid}">Poori profile</button><button class="btn" data-act="openBill" data-id="${cid}">Bill</button>${mapOf(c)?`<a class="btn o" href="${esc(mapOf(c).url)}" target="_blank" rel="noopener">${ICONS.pin} Map</a>`:''}</div>`)}
-document.addEventListener('dblclick',e=>{const b=e.target.closest('[data-dbl]');if(!b)return;e.preventDefault();sheetQuick(b.dataset.dbl)});
+document.addEventListener('dblclick',e=>{const b=e.target.closest('[data-dbl]');if(!b)return;e.preventDefault();if(isOwner()&&window.acOpen)acOpen(b.dataset.dbl);else sheetQuick(b.dataset.dbl)});
 
 /* --- comment history (customer profile) --- */
 function commentHistoryHtml(c){const all=(c.vars||[]).slice().sort((a,b)=>((b.at||b.till||'')+(b.t0||0)).localeCompare((a.at||a.till||'')+(a.t0||0)));

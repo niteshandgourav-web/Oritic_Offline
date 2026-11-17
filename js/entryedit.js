@@ -187,7 +187,7 @@ function zeroSheet(){const Z=zeroList();if(!Z.length){closeSheet();return toast(
      <span class="ee-u">₹</span><input class="ee-in" type="number" inputmode="decimal" min="0" step="any" data-zr="${esc(g.b)}" value="${p&&+p.a>0?L(p.a):''}" placeholder="rate" aria-label="${esc(g.b)} rate"><span class="ee-u">/${esc(g.u)}</span>
      <button type="button" class="btn sm p" data-act="eeZeroGo" data-b="${esc(g.b)}">Sab pe lagao</button></div>`}).join('')}
    <div class="ee-h">Ek ek entry (${Z.length})</div>
-   ${Z.slice(0,150).map(o=>`<div class="ee-zi"><span><b>${fmtShort(o.d)}</b> · ${esc(S.customers[o.cid].name)}${phc(S.customers[o.cid])} · ${esc(xlabel(o.z.base,o.z.qty,o.z.u))}</span><button type="button" class="btn xs o" data-act="eeOpen" data-id="${o.cid}" data-date="${o.d}" aria-label="Entry kholo">✎</button></div>`).join('')}`)}
+   ${Z.slice(0,150).map(o=>`<div class="ee-zi"><span><b>${fmtShort(o.d)}</b> · <span data-cu="${o.cid}">${esc(S.customers[o.cid].name)}</span>${phc(S.customers[o.cid])} · ${esc(xlabel(o.z.base,o.z.qty,o.z.u))}</span><button type="button" class="btn xs o" data-act="eeOpen" data-id="${o.cid}" data-date="${o.d}" aria-label="Entry kholo">✎</button></div>`).join('')}`)}
 const banner=()=>{if(!isOwner())return '';const n=zeroList().length;return n?`<button type="button" class="ee-ban" data-act="eeZero">⚠ <b>${n} entries</b> me product ka price nahi hai (₹0) — bill kam ban raha hai. <u>Theek karo</u></button>`:''};
 const _vB=vBills;vBills=function(){const o=_vB();return o&&typeof o.html==='string'?{...o,html:banner()+o.html}:o};
 const _vH=vHome;vHome=function(){const o=_vH();return o&&typeof o.html==='string'?{...o,html:banner()+o.html}:o};
