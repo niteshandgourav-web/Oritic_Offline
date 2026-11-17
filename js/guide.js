@@ -86,6 +86,13 @@ const GUIDE=[
    'Mahina khatam hone pe Bills page pe neeli patti "Discount lagao / dekho" dabao. Mahina chuno, har customer ka bill aur discount dikh jayega.',
    '"Customers pe lagao" dabao. Har customer ke khate me us mahine ki ek "Discount" line ban jati hai aur baki kam ho jata hai.'],
   tips:['Dobara dabane se discount double nahi hota. Bill badla ho to sirf naya hisab update hota hai.','Hamesha ke liye sasta rate dena ho to discount nahi, "Rate badlo / Discount" use karo.','Ek baar ka discount: "Adjustment".']},
+ {id:'access',t:'Kaun kya kar sakta hai (Owner, Office, Delivery boy)',where:'Team & cash',steps:[
+   'Owner: sab kuch. Naya boy / office member jodna, PIN dena, hatana, settings, backup, customer delete sirf owner karta hai.',
+   'Office (manager): saare orders, customers, payments, bills, kharcha, Naya order, entry sudharna. Naya member nahi jod sakta, kisi ko hata nahi sakta, PIN aur settings nahi dekh sakta, customer delete nahi kar sakta (Pause kar sakta hai).',
+   'Delivery boy: sirf apne customers, apni Aaj list, apna payment aur bottle. Kisi aur boy ka data nahi dikhta.',
+   'Naya member: Team & cash → "+ Naya member" → naam, role (boy / office), PIN.',
+   'Boy badal gaya (Anil ki jagah Harish): naam edit mat karo. Team & cash → "⇄ Boy badlo (route handover)" → Anil chuno → naye boy ka naam aur PIN likho → "Route de do". Saare customers Harish ko mil jate hain, Anil ka login band hota hai, aur Anil ka purana hisab usi ke naam pe rehta hai.'],
+  tips:['Settings me ab boys ka naam type nahi hota, isliye galti se naam bigad nahi sakta.','Har boy aur office member ka PIN uski profile me hai: Team & cash → naam pe click → Profile.','Kisi office member ko owner jaisa poora access dena ho to uski profile me "Poora access" on karo.']},
  {id:'dues',t:'Vasooli (kis se kitna lena hai)',where:'Menu → Vasooli',steps:[
    'Upar ke dabbe: kul lena hai, 0–15 din, 16–30 din, 30+ din (pichle payment ko kitne din hue).',
    'Filter: 15+ din, 30+ din, ₹1,000+, Limit paar, Paused / chhod gaye, Advance.',

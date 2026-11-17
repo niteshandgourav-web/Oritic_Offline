@@ -217,3 +217,39 @@ async function shAuto(){if(asBusy||!asOn()||S.route!=='sheet'||!isOwner()||!$('#
   try{for(const id of ids){const k=pre+id;const q=JSON.stringify(S.pldr[k].qty);await A.shOk({id});if(S.pldr[k]&&S.pldr[k].dirty)shFail[k]=q;else delete shFail[k]}}finally{asBusy=false;refocus(sel)}}
 document.addEventListener('focusout',e=>{const t=e.target;if(!t||!t.closest)return;if(t.classList&&t.classList.contains('cgi'))setTimeout(cgAuto,250);else if(t.closest('tr[data-row]'))setTimeout(shAuto,250)});
 })();
+
+/* ================= Boy badlo (route handover) =================
+   Anil ki jagah Harish: naam edit nahi karte. Naya boy banta hai (ya purana chuna jata hai), saare customers usko jaate hain,
+   purana boy list se hatta hai par uska purana hisab (delivery, cash) usi ke naam pe rehta hai. Sirf owner. */
+(function(){
+const custOf=b=>Object.values(S.customers).filter(c=>c.boy===b);
+function handSheet(){const B=boys();
+  openSheet('Boy badlo · route handover',`<div class="small muted" style="margin-bottom:10px">Jab ek boy ki jagah doosra aaye, naam edit mat karo. Yahan se uske saare customers naye boy ko de do. Purane boy ki purani delivery aur cash ka hisab usi ke naam pe rahega.</div>
+   <div class="field"><label class="f" for="hdF">Kiska route dena hai</label><select class="input" id="hdF">${B.map(b=>`<option value="${esc(b)}">${esc(b)} · ${custOf(b).length} customers</option>`).join('')}</select></div>
+   <div class="field"><label class="f" for="hdT">Kisko dena hai</label><select class="input" id="hdT"><option value="">+ Naya boy (neeche naam likho)</option>${B.map(b=>`<option value="${esc(b)}">${esc(b)} (pehle se hai)</option>`).join('')}</select></div>
+   <div id="hdNew"><div class="field"><label class="f" for="hdN">Naye boy ka naam</label><input class="input" id="hdN" placeholder="e.g. Harish" autocomplete="off"></div>
+    <div class="field"><label class="f" for="hdP">Naye boy ka login PIN (4-6 digit)</label><input class="input" id="hdP" inputmode="numeric" maxlength="6" autocomplete="off"></div>
+    <div class="field"><label class="f" for="hdPh">Mobile (zaroori nahi)</label><input class="input" id="hdPh" inputmode="numeric" maxlength="10" autocomplete="off"></div></div>
+   <label style="display:flex;gap:8px;align-items:center;margin:10px 0"><input type="checkbox" id="hdL" checked> Purane boy ne kaam chhod diya (uska login band karo)</label>
+   <button type="button" class="btn p block" data-act="tmHandGo">Route de do</button>`);
+  const t=$('#hdT');t.onchange=()=>{$('#hdNew').hidden=t.value!==''}}
+Object.assign(A,{
+  tmHand(){if(!isAdmin())return toast('Sirf owner kar sakta hai');if(!boys().length)return toast('Pehle koi boy jodo');handSheet()},
+  async tmHandGo(){if(!isAdmin())return toast('Sirf owner kar sakta hai');if(!canWrite())return;const from=$('#hdF').value;let to=$('#hdT').value;const left=$('#hdL').checked;const isNew=!to;let pin='',phone='';
+    if(isNew){to=($('#hdN').value||'').trim().replace(/\s+/g,' ');pin=($('#hdP').value||'').trim();phone=($('#hdPh').value||'').replace(/\D/g,'');if(!to)return toast('Naye boy ka naam likho');if(!/^\d{4,6}$/.test(pin))return toast('PIN 4-6 digit ka likho');
+      const lo=to.toLowerCase();const st0=settings();if(lo==='owner'||[...boys(),...(st0.staff||[]),...Object.keys(st0.team||{})].some(x=>String(x).toLowerCase()===lo))return toast('Ye naam pehle se hai (ya pehle tha). Doosra naam likho, jaise "'+to+' 2"')}
+    if(to===from)return toast('Dono alag hone chahiye');
+    const L2=custOf(from);const keep={from,to,left,isNew};closeSheet();
+    const cash=typeof cashInHand==='function'?cashInHand(from):0;
+    const ok=await confirmBox({title:`${esc(from)} ka route ${esc(to)} ko dein?`,html:`<b>${L2.length} customers</b> (active aur paused dono) ${esc(to)} ke naam ho jayenge, order wahi rahega.${isNew?`<div style="margin-top:6px">${esc(to)} naya boy banega aur apne PIN se login karega.</div>`:''}${left?`<div style="margin-top:6px">${esc(from)} ka login band ho jayega. Purana hisab usi ke naam pe rahega.</div>`:''}${left&&Math.abs(cash)>0.5?`<div style="margin-top:8px;color:var(--danger)"><b>${esc(from)} ke haath me abhi cash: ${inr(cash)}</b>. Pehle handover le lo.</div>`:''}`,yes:'Haan, de do'});
+    if(!ok)return;
+    const st=settings();const T={...(st.team||{})};const pins={...(st.pins||{}),boys:{...((st.pins||{}).boys||{})},staff:{...((st.pins||{}).staff||{})}};let B=[...boys()];
+    if(isNew){B.push(to);pins.boys[to]=pin;T[to]={...(T[to]||{}),role:'boy',phone,join:todayISO(),note:from+' ki jagah'}}
+    if(left){B=B.filter(x=>x!==from);delete pins.boys[from];T[from]={...(T[from]||{}),role:'boy',left:todayISO(),note:((T[from]||{}).note?(T[from].note+' · '):'')+'route '+to+' ko diya'}}
+    await saveSettings({...st,boys:B,pins,team:T});
+    const base=Object.values(S.customers).filter(c=>c.boy===to).reduce((m,c)=>Math.max(m,+c.seq||0),0);
+    L2.sort((a,b)=>(a.seq??9999)-(b.seq??9999));
+    for(let i=0;i<L2.length;i+=300){const b=S.db.batch();L2.slice(i,i+300).forEach((c,k)=>{const patch={boy:to,seq:base+(i+k+1)*10,boyWas:from,boyAt:todayISO()};S.customers[c.id]={...S.customers[c.id],...patch};b.set(S.db.doc('customers/'+c.id),patch,{merge:true})});await b.commit()}
+    render();toast(L2.length+' customers '+to+' ko mil gaye'+(left?' · '+from+' ka login band':''))},
+});
+})();

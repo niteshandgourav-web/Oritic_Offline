@@ -803,12 +803,10 @@ function vSettings(){
       </div>
       <div class="field" style="margin-top:10px"><label class="f">Bill ke neeche line</label><input class="input" id="stNote" value="${esc(st.billNote)}" placeholder="Dhanyavaad 🙏 — payment 5 tareekh tak kar dein"></div>
     </div>
-    <div class="card"><h3>Delivery boys</h3><div class="small muted" style="margin:4px 0 8px">Comma se alag karo. Phone, gaadi, joining aur incentive ke saath jodna ho to <b>Team & cash → + Naya member</b>.</div><input class="input" id="stBoys" value="${esc(st.boys.join(', '))}"></div>
-    <div class="card"><h3>Login PIN</h3><div class="small muted" style="margin:4px 0 8px">4 digit. Owner ka PIN sirf owner ke paas rahe. Boys ka PIN unhe bata do.</div>
+    <div class="card"><h3>Delivery boys</h3><div class="small muted" style="margin:4px 0 8px">Naya boy jodna, PIN badalna, boy badalna (route handover) ya hatana <b>Team & cash</b> me hota hai. Ye sirf owner kar sakta hai.</div><input type="hidden" id="stBoys" value="${esc(st.boys.join(', '))}"><div class="chips">${st.boys.map(b=>`<span class="chip">${esc(b)}</span>`).join('')}</div><button class="btn o" style="margin-top:8px" data-act="go" data-r="team">Team & cash kholo</button></div>
+    <div class="card" ${isAdmin()?'':'hidden'}><h3>Owner PIN</h3><div class="small muted" style="margin:4px 0 8px">4-6 digit. Sirf owner ke paas rahe. Boys aur office ka PIN unki profile me hai (Team & cash → naam pe click → Profile).</div>
       <div class="grid g2">
-        <div class="field"><label class="f">Owner PIN</label><input class="input" id="stPinOwner" inputmode="numeric" maxlength="6" value="${esc((settings().pins||{}).owner||'1234')}"></div>
-        ${st.boys.map(b=>`<div class="field"><label class="f">${esc(b)} ka PIN</label><input class="input" inputmode="numeric" maxlength="6" data-pin="${esc(b)}" value="${esc(((settings().pins||{}).boys||{})[b]||'0000')}"></div>`).join('')}
-        ${(settings().staff||[]).map(n=>`<div class="field"><label class="f">${esc(n)} (office) ka PIN</label><input class="input" inputmode="numeric" maxlength="6" data-spin="${esc(n)}" value="${esc(((settings().pins||{}).staff||{})[n]||'')}" placeholder="khaali = login nahi"></div>`).join('')}
+        <div class="field"><label class="f">Owner PIN</label><input class="input" id="stPinOwner" type="password" autocomplete="new-password" inputmode="numeric" maxlength="6" value="${isAdmin()?esc((settings().pins||{}).owner||'1234'):''}"><button type="button" class="btn xs o" style="margin-top:6px" onclick="const i=document.getElementById('stPinOwner');i.type=i.type==='password'?'text':'password'">PIN dikhao / chhupao</button></div>
       </div></div>
     <div class="card"><h3>Default rates (₹ / litre)</h3><div class="small muted" style="margin:4px 0 8px">Naye customer ke liye. Har customer ka apna rate uske profile me set hota hai.</div>
       <div class="grid g4">${PRODUCTS.map(p=>`<div class="field"><label class="f">${p.sh}</label><input class="input" type="number" inputmode="decimal" id="stRate_${p.k}" value="${st.rates[p.k]}"></div>`).join('')}</div></div>
@@ -816,12 +814,12 @@ function vSettings(){
     <div class="card"><h3>Meter / KM incentive</h3><div class="grid g2" style="margin-top:8px">
       <div class="field"><label class="f">₹ per km</label><input class="input" type="number" inputmode="decimal" id="stKm" value="${esc(settings().kmRate??2)}"></div>
       <div class="field"><label class="f">Raat 11 baje Excel backup apne aap download</label><select class="input" id="stAuto"><option value="1" ${settings().autoExport!==false?'selected':''}>Haan (panel khula ho to)</option><option value="0" ${settings().autoExport===false?'selected':''}>Nahi</option></select></div></div></div>
-    <button class="btn p" data-act="saveSettings">Save settings</button>
+    ${isAdmin()?'<button class="btn p" data-act="saveSettings">Save settings</button>':'<div class="banner">Ye settings sirf owner badal sakta hai. Aap dekh sakte ho.</div>'}
     <button class="btn o" data-act="help">Kaise use karein? (guide)</button>
     <div class="card"><h3>Data</h3><div class="small muted" style="margin:4px 0 10px">${Object.keys(S.customers).length} customers · ${Object.keys(S.days).length} delivery days · ${Object.keys(S.payments).length} payments</div>
       <div class="row wrap">
-        <label class="btn o" style="cursor:pointer">Customers import (JSON)<input type="file" accept=".json,application/json" id="impFile" hidden></label>
-        <button class="btn o" data-act="backup">Backup download</button>
+        <label class="btn o" style="cursor:pointer" ${isAdmin()?'':'hidden'}>Customers import (JSON)<input type="file" accept=".json,application/json" id="impFile" hidden></label>
+        <button class="btn o" data-act="backup" ${isAdmin()?'':'hidden'}>Backup download</button>
         <button class="btn o" data-act="xlsx" data-d="${addDays(todayISO(),1)}">Excel backup (kal ki delivery)</button>
         <button class="btn o" data-act="logout">Logout</button>
       </div>
@@ -1049,7 +1047,7 @@ const A={
   mapFind(){const q=[$('#fAddress').value,$('#fArea').value].map(x=>x.trim()).filter(Boolean).join(', ');if(!q)return toast('Pehle address ya area likho');
     const a=document.createElement('a');a.href='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q+', Jaipur');a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();a.remove();toast('Maps me sahi jagah pe Share → Copy link karke yahan paste karo')},
   custDelAsk(d,el){$('#delWrap').innerHTML=`<span class="small muted">History bhi hat jayegi.</span><button class="btn d" data-act="custDel" data-id="${$('[data-act=custSave]').dataset.id}">Haan, delete</button><button class="btn o" data-act="editCustomer" data-id="${$('[data-act=custSave]').dataset.id}">Nahi</button>`},
-  custDel(d){if(!isOwner())return toast('Sirf owner kar sakta hai');if(!canWrite())return;delete S.customers[d.id];closeSheet();render();queue('cust:'+d.id,()=>S.db.doc('customers/'+d.id).delete()).then(()=>toast('Customer delete ho gaya'))},
+  custDel(d){if(!isAdmin())return toast('Customer delete sirf owner kar sakta hai. Aap Pause kar sakte ho');if(!canWrite())return;delete S.customers[d.id];closeSheet();render();queue('cust:'+d.id,()=>S.db.doc('customers/'+d.id).delete()).then(()=>toast('Customer delete ho gaya'))},
   togglePause(d){if(!isOwner())return toast('Sirf owner kar sakta hai');const c=S.customers[d.id];saveCustomer({...c,status:c.status==='active'?'paused':'active'}).then(()=>sheetCustomer(d.id))},
   openBill(d){S.route==='bills'||true;sheetBill(d.id)},
   copy(d){copyText(d.t)},
@@ -1069,7 +1067,7 @@ const A={
   bottle(d){const c=S.customers[d.id];if(!c)return;if(bottleBal(c)+(+d.n)<0)return toast('Balance 0 se kam nahi ho sakta');saveCustField(d.id,{bottles:(+c.bottles||0)+(+d.n)});render();const n=bottleBal(S.customers[d.id]);const b=$('[data-act=bottle][data-id="'+d.id+'"]');if($('#sheet').hidden===false&&b&&b.textContent.includes('Bottle wapas'))b.textContent='Bottle wapas (−1) · '+n},
   saveSettings(){if(!isAdmin())return toast('Sirf owner (ya poore access wala) kar sakta hai');const boysL=$('#stBoys').value.split(',').map(s=>s.trim()).filter(Boolean);const rates={...(settings().rates||{})};PRODUCTS.forEach(p=>rates[p.k]=+$('#stRate_'+p.k).value||DEF_RATES[p.k]);
     const extras=extrasPresets();
-    const pins={...(settings().pins||{}),owner:($('#stPinOwner').value.trim()||'1234'),boys:{},staff:{...((settings().pins||{}).staff||{})}};document.querySelectorAll('[data-pin]').forEach(i=>pins.boys[i.dataset.pin]=i.value.trim()||'0000');
+    const pins={...(settings().pins||{}),owner:($('#stPinOwner').value.trim()||'1234'),boys:{...((settings().pins||{}).boys||{})},staff:{...((settings().pins||{}).staff||{})}};document.querySelectorAll('[data-pin]').forEach(i=>pins.boys[i.dataset.pin]=i.value.trim()||'0000');
     let badPin='';document.querySelectorAll('[data-spin]').forEach(i=>{const v=i.value.trim();if(v&&!/^\d{4,6}$/.test(v))badPin=i.dataset.spin;if(v)pins.staff[i.dataset.spin]=v;else delete pins.staff[i.dataset.spin]});
     if(badPin)return toast(badPin+' ka PIN 4-6 digit ka ho');
     if(!/^\d{4,6}$/.test(pins.owner))return toast('Owner PIN 4-6 digit ka ho');
@@ -1112,7 +1110,7 @@ document.addEventListener('change',e=>{const el=e.target;const act=el.dataset.ac
   if(act==='setMonth'&&el.value){S.month=el.value;render();if(el.dataset.bill)sheetBill(el.dataset.bill)}
   if(act==='setPMonth'&&el.value){S.pmonth=el.value;render()}});
 function saveFile(name,blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);toast('Download shuru')}
-document.addEventListener('change',async e=>{if(e.target.id!=='impFile')return;const f=e.target.files[0];if(!f)return;
+document.addEventListener('change',async e=>{if(e.target.id!=='impFile')return;if(!isAdmin()){e.target.value='';return toast('Import sirf owner kar sakta hai')}const f=e.target.files[0];if(!f)return;
   try{const j=JSON.parse(await f.text());const writes=[];
     const custs=Array.isArray(j)?j:(j.customers?(Array.isArray(j.customers)?j.customers:Object.entries(j.customers).map(([id,c])=>({id,...c}))):[]);
     custs.forEach((c,i)=>{const id=String(c.id||('c'+(cleanPhone(c.phone)||uid()))).replace(/[^A-Za-z0-9_-]/g,'')||('c'+uid());const body={...c};delete body.id;if(body.seq==null)body.seq=i+1;writes.push(['customers/'+id,body])});

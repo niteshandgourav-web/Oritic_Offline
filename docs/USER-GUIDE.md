@@ -150,7 +150,23 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 >
 > Dhyan: Ek baar ka discount: "Adjustment".
 
-## 11. Vasooli (kis se kitna lena hai)
+## 11. Kaun kya kar sakta hai (Owner, Office, Delivery boy)
+
+**Kahan:** Team & cash
+
+1. Owner: sab kuch. Naya boy / office member jodna, PIN dena, hatana, settings, backup, customer delete sirf owner karta hai.
+2. Office (manager): saare orders, customers, payments, bills, kharcha, Naya order, entry sudharna. Naya member nahi jod sakta, kisi ko hata nahi sakta, PIN aur settings nahi dekh sakta, customer delete nahi kar sakta (Pause kar sakta hai).
+3. Delivery boy: sirf apne customers, apni Aaj list, apna payment aur bottle. Kisi aur boy ka data nahi dikhta.
+4. Naya member: Team & cash → "+ Naya member" → naam, role (boy / office), PIN.
+5. Boy badal gaya (Anil ki jagah Harish): naam edit mat karo. Team & cash → "⇄ Boy badlo (route handover)" → Anil chuno → naye boy ka naam aur PIN likho → "Route de do". Saare customers Harish ko mil jate hain, Anil ka login band hota hai, aur Anil ka purana hisab usi ke naam pe rehta hai.
+
+> Dhyan: Settings me ab boys ka naam type nahi hota, isliye galti se naam bigad nahi sakta.
+>
+> Dhyan: Har boy aur office member ka PIN uski profile me hai: Team & cash → naam pe click → Profile.
+>
+> Dhyan: Kisi office member ko owner jaisa poora access dena ho to uski profile me "Poora access" on karo.
+
+## 12. Vasooli (kis se kitna lena hai)
 
 **Kahan:** Menu → Vasooli
 
@@ -162,7 +178,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 
 > Dhyan: Udhaar ki limit Settings → Office tools me daalo. Limit paar wale customer Delivery sheet me bhi laal nishaan ke saath dikhenge.
 
-## 12. Bills
+## 13. Bills
 
 **Kahan:** Menu → Bills
 
@@ -175,7 +191,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 
 > Dhyan: PDF me ₹ ki jagah "Rs." aata hai (PDF font ki seema). Baki ho to bill me UPI QR aata hai, customer scan karke wahi amount bhar sakta hai.
 
-## 13. Payments (paisa lena)
+## 14. Payments (paisa lena)
 
 **Kahan:** Menu → Payments · ya kahin se bhi P dabao
 
@@ -185,7 +201,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 
 > Dhyan: Amount khaali aata hai. Pura baki lena ho to "Pura baki bharo" dabao.
 
-## 14. Team & cash (boys aur office ka hisab)
+## 15. Team & cash (boys aur office ka hisab)
 
 **Kahan:** Menu → Team & cash
 
@@ -207,7 +223,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 >
 > Dhyan: Office ke logon ke naam Settings → Office tools → Office staff me daalo.
 
-## 15. Kharcha (maal khareedna, kharcha, supplier)
+## 16. Kharcha (maal khareedna, kharcha, supplier)
 
 **Kahan:** Menu → Kharcha
 
@@ -222,7 +238,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 >
 > Dhyan: Maal me "Cow milk / Buffalo milk / Gir cow milk / Chaach" litre me likhoge to neeche "Doodh ka hisab" dikhega: kitna khareeda, kitna order tha, kitna bacha.
 
-## 16. Demand (kal kya chahiye, supplier ko bhejna)
+## 17. Demand (kal kya chahiye, supplier ko bhejna)
 
 **Kahan:** Menu → Demand
 
@@ -233,7 +249,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 
 > Dhyan: Panel khud kisi ko message nahi bhejta. WhatsApp khulta hai, Send aap dabate ho.
 
-## 17. Products (shahad, dahi, gur, ghee ki list)
+## 18. Products (shahad, dahi, gur, ghee ki list)
 
 **Kahan:** Menu → Products
 
@@ -241,7 +257,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 2. "Sheet column" tick karo to Delivery sheet me us product ka apna column ban jata hai.
 3. Rate badla to line me likh ke Save. Customer ko pichli baar jis rate pe diya tha wahi rate uske liye apne aap aata hai.
 
-## 18. Bottles
+## 19. Bottles
 
 **Kahan:** Menu → Bottles
 
@@ -252,7 +268,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 
 > Dhyan: Doodh ke type ka hisab aise banta hai: jo bottle pehle di thi wahi pehle wapas maani jaati hai.
 
-## 19. Meter (gaadi ka KM)
+## 20. Meter (gaadi ka KM)
 
 **Kahan:** Menu → Meter
 
@@ -265,7 +281,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 
 > Dhyan: ₹ per km har boy ka apna (Team & cash → naam → Profile). Na ho to Settings wala rate lagta hai.
 
-## 20. Settings aur backup
+## 21. Settings aur backup
 
 **Kahan:** Menu → Settings
 
@@ -281,7 +297,7 @@ Ye wahi guide hai jo panel ke andar **Menu → Guide** me hai.
 >
 > Dhyan: Ye login sirf "koi bhi aake na chala le" ke liye hai. Database ki asli suraksha alag kaam hai (V4-H1).
 
-## 21. Keyboard shortcuts
+## 22. Keyboard shortcuts
 
 **Kahan:** Kahin bhi ? dabao
 
