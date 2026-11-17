@@ -106,7 +106,7 @@ function acContextList(id){
   if(S.route==='sheet'&&S.shList&&S.shList.includes(id))return S.shList.slice();
   if(S.route==='customers'&&S.cgIds&&S.cgIds.includes(id))return S.cgIds.filter(x=>!x.startsWith('new_'));
   return Object.values(S.customers).sort((a,b)=>(a.boy||'').localeCompare(b.boy||'')||((a.seq??9999)-(b.seq??9999))||a.name.localeCompare(b.name)).map(c=>c.id)}
-function acOpen(id){if(!S.customers[id])return;const same=S.ac.id===id;S.ac.id=id;if(!same)S.ac.tab=S.ac.tab||'khata';if(!S.ac.list.includes(id))S.ac.list=acContextList(id);acDraw(!same);try{history.replaceState(null,'','#'+S.route+'/'+id)}catch(_){}}
+function acOpen(id){if(!S.customers[id])return;if(!isOwner())return toast('Poora account sirf office / owner dekh sakta hai');const same=S.ac.id===id;S.ac.id=id;if(!same)S.ac.tab=S.ac.tab||'khata';if(!S.ac.list.includes(id))S.ac.list=acContextList(id);acDraw(!same);try{history.replaceState(null,'','#'+S.route+'/'+id)}catch(_){}}
 function acClose(){const el=$('#acct');if(el){el.hidden=true;el.innerHTML=''}S.ac.id=null;S.ac.list=[];if($('#sheet').hidden)document.body.style.overflow='';try{history.replaceState(null,'','#'+S.route)}catch(_){}}
 window.acOpen=acOpen;window.acClose=acClose;
 function acDraw(fresh){const c=S.customers[S.ac.id];const el=acEl();if(!c){acClose();return}

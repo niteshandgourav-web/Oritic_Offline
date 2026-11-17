@@ -37,6 +37,7 @@ css.textContent=`
 .ee-kbar{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;margin:0 0 8px}
 .ee-kbar input{padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);font:inherit}
 .phc{display:inline-block;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--muted);background:var(--surface2);border:1px solid var(--line2);border-radius:6px;padding:1px 6px;margin-left:4px;cursor:pointer;white-space:nowrap;user-select:none}.phc:hover{color:var(--accent-ink);border-color:var(--accent)}
+@media(pointer:coarse){.phc{padding:5px 9px;font-size:13px;margin:2px 0 2px 4px}}
 tr.eerow{cursor:pointer}tr.eerow:hover td{background:var(--surface2)}
 tr.eerow.sub td{border-top-color:transparent}
 `;
@@ -196,5 +197,8 @@ function zeroSheet(){const Z=zeroList();if(!Z.length){closeSheet();return toast(
    ${Z.slice(0,150).map(o=>`<div class="ee-zi"><span><b>${fmtShort(o.d)}</b> · <span data-cu="${o.cid}">${esc(S.customers[o.cid].name)}</span>${phc(S.customers[o.cid])} · ${esc(xlabel(o.z.base,o.z.qty,o.z.u))}${window.custWho?custWho(o.cid,o.d):''}</span><button type="button" class="btn xs o" data-act="eeOpen" data-id="${o.cid}" data-date="${o.d}" aria-label="Entry kholo">✎</button></div>`).join('')}`)}
 const banner=()=>{if(!isOwner())return '';const n=zeroList().length;return n?`<button type="button" class="ee-ban" data-act="eeZero">⚠ <b>${n} entries</b> me product ka price nahi hai (₹0) — bill kam ban raha hai. <u>Theek karo</u></button>`:''};
 const _vB=vBills;vBills=function(){const o=_vB();return o&&typeof o.html==='string'?{...o,html:banner()+o.html}:o};
-const _vH=vHome;vHome=function(){const o=_vH();return o&&typeof o.html==='string'?{...o,html:banner()+o.html}:o};
+/* Dashboard: sab chetavni ek hi "Dhyan dein" card me, alag alag patti nahi */
+window.alRow=(cls,txt,act,r)=>`<button class="al ${cls}" data-act="${act}"${r?` data-r="${r}"`:''}><span>${txt}</span><span class="go">Kholo ›</span></button>`;
+window.homeAlert=(o,row)=>{if(!row||!o||typeof o.html!=='string')return o;const k='<div class="alist">';return {...o,html:o.html.includes(k)?o.html.replace(k,k+row):`<div class="card" style="margin-bottom:12px"><h3>Dhyan dein</h3><div class="alist">${row}</div></div>`+o.html}};
+const _vH=vHome;vHome=function(){const o=_vH();if(!isOwner())return o;const n=zeroList().length;return homeAlert(o,n?alRow('r',`<b>${n} entries</b> me product ka price nahi hai (₹0), bill kam ban raha hai`,'eeZero'):'')};
 })();

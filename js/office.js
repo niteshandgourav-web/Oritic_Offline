@@ -20,7 +20,8 @@ css.textContent=`
 .of-warn{background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn);margin-top:8px}
 .of-ban{background:var(--info-soft);color:var(--info);border:1px solid var(--info);cursor:pointer}
 .of-row{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line2);font-size:14px}
-.of-row .t{min-width:0}.of-tip{font-size:13px;color:var(--muted);margin:8px 0 2px}
+.of-row .t{min-width:0}
+#view>.of-ban,#view>.ee-ban{margin-bottom:6px;padding:8px 12px;font-size:13.5px}.of-tip{font-size:13px;color:var(--muted);margin:8px 0 2px}
 `;
 document.head.appendChild(css);
 const r2=n=>Math.round((+n||0)*100)/100;
@@ -92,8 +93,9 @@ const GP=[['price0','Product price ₹0','Product diya gaya par price nahi likha
  ['qty','Quantity ajeeb','Us customer ki aam quantity se 3 guna ya zyada. Sahi ho to chhod do.'],
  ['pend','Purane din pending','Pichle dino me in gharon pe na "Diya" laga na "Skip". Jab tak nahi lagega, bill me nahi judega.'],
  ['norate','Bina rate ke customer','Order hai par rate 0 hai. Bill ₹0 banega.'],
- ['dup','Double customer','Ek hi mobile number do customers me hai. Ho sakta hai ek hi ghar do baar chadh gaya ho.']];
-function galti(){const today=todayISO();const G={price0:[],rate:[],qty:[],pend:[],norate:[],dup:[]};const byC={};
+ ['dup','Double customer','Ek hi mobile number do customers me hai. Ho sakta hai ek hi ghar do baar chadh gaya ho.'],
+ ['bot','Bottle minus','Hisab me in customers ne jitni bottle li usse zyada wapas kar di. Kisi din ki ginti galat likhi gayi hai.']];
+function galti(){const today=todayISO();const G={price0:[],rate:[],qty:[],pend:[],norate:[],dup:[],bot:[]};const byC={};
   for(const d in S.days){const rows=S.days[d].rows||{};for(const cid in rows){const r=rows[cid];if(r&&r.s==='d'&&S.customers[cid])(byC[cid]=byC[cid]||[]).push([d,r])}}
   for(const cid in byC){PRODUCTS.forEach(p=>{const rs=byC[cid].filter(x=>+(x[1].q&&x[1].q[p.k])>0);if(!rs.length)return;const nm=p.k==='desi'?'Gir':p.sh;
     const cnt={};rs.forEach(x=>{const v=+(x[1].r&&x[1].r[p.k])||0;cnt[v]=(cnt[v]||0)+1});const usual=+Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0];
@@ -105,6 +107,7 @@ function galti(){const today=todayISO();const G={price0:[],rate:[],qty:[],pend:[
   Object.keys(S.days).filter(d=>d<today&&Object.keys(S.days[d].rows||{}).length).forEach(d=>{const n=todaysList(d,'all').filter(({c,r})=>(!r||r.s==='p')&&c.status==='active'&&(typeof existedOn==='function'?existedOn(c,d):(c.since||'')<=d)&&(PRODUCTS.some(p=>+(c.order&&c.order[p.k])>0)||(c.xorder||[]).length)).length;if(n)G.pend.push({d,n})});
   const ph={};Object.values(S.customers).forEach(c=>{if(c.status==='active'&&PRODUCTS.some(p=>+(c.order&&c.order[p.k])>0&&!(+ratesOf(c)[p.k]>0)))G.norate.push({cid:c.id,t:'order hai, rate 0'});if(c.phone)(ph[c.phone]=ph[c.phone]||[]).push(c)});
   Object.values(ph).forEach(l=>{if(l.length>1)l.forEach(c=>G.dup.push({cid:c.id,t:'Mobile '+c.phone+' · saath me: '+l.filter(x=>x!==c).map(x=>x.name).join(', ')}))});
+  if(typeof bottleBal==='function')Object.values(S.customers).forEach(c=>{const b=bottleBal(c);if(b<0)G.bot.push({cid:c.id,t:'bottle '+b+' (minus)'})});
   ['price0','rate','qty','pend'].forEach(k=>G[k].sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0));return G}
 window.galtiCount=()=>{const G=galti();return Object.values(G).reduce((s,l)=>s+l.length,0)};
 /* line ke neeche: kaun sa area, kaun sa boy sambhalta hai, us din kisne diya */
@@ -200,7 +203,7 @@ function trSheet(){const T=trials();openSheet('Trial customers',`<div class="sma
    <span class="row" style="gap:6px"><button type="button" class="btn xs p" data-act="trEnd" data-id="${c.id}" data-go="1">Continue</button><button type="button" class="btn xs d" data-act="trEnd" data-id="${c.id}" data-go="0">Band</button></span></div>`).join('')||'<div class="muted">Koi trial customer nahi.</div>'}`)}
 const trBan=()=>{if(!isOwner())return '';const T=trials();if(!T.length)return '';const n=T.filter(x=>x.over||x.last).length;
   return `<button type="button" class="of-ban" ${n?'style="background:var(--warn-soft);color:var(--warn);border-color:var(--warn)"':''} data-act="trOpen">🎁 ${n?`<b>${n} trial customers</b> ka trial khatam / aaj aakhri din. Poochho: continue karna hai?`:`${T.length} trial customers chal rahe hain.`} <u>Dekho</u></button>`};
-const _vH2=vHome;vHome=function(){const o=_vH2();return o&&typeof o.html==='string'?{...o,html:trBan()+o.html}:o};
+const _vH2=vHome;vHome=function(){const o=_vH2();if(!isOwner())return o;const n=trials().filter(x=>x.over||x.last).length;return homeAlert(o,n?alRow('y',`<b>${n} trial customers</b> ka trial khatam / aaj aakhri din. Poochho: continue?`,'trOpen'):'')};
 const _vN2=window.EXTRA_VIEWS.neworder;window.EXTRA_VIEWS.neworder=()=>{const o=_vN2();return {...o,html:trBan()+o.html}};
 
 /* ================= 4. Auto save (Customers grid + Delivery sheet) =================
@@ -249,8 +252,10 @@ Object.assign(A,{
     if(!ok)return;
     const st=settings();const T={...(st.team||{})};const pins={...(st.pins||{}),boys:{...((st.pins||{}).boys||{})},staff:{...((st.pins||{}).staff||{})}};let B=[...boys()];
     if(isNew){B.push(to);pins.boys[to]=pin;T[to]={...(T[to]||{}),role:'boy',phone,join:todayISO(),note:from+' ki jagah'}}
+    /* jo boy ja raha hai uski aage ki chhutti / badli ab bekar hai */
+    const lv=(Array.isArray(st.leave)?st.leave:[]).filter(x=>!(left&&x.to>=todayISO()&&(x.boy===from||x.sub===from)));
     if(left){B=B.filter(x=>x!==from);delete pins.boys[from];T[from]={...(T[from]||{}),role:'boy',left:todayISO(),note:((T[from]||{}).note?(T[from].note+' · '):'')+'route '+to+' ko diya'}}
-    await saveSettings({...st,boys:B,pins,team:T});
+    await saveSettings({...st,boys:B,pins,team:T,leave:lv});
     const base=Object.values(S.customers).filter(c=>c.boy===to).reduce((m,c)=>Math.max(m,+c.seq||0),0);
     L2.sort((a,b)=>(a.seq??9999)-(b.seq??9999));
     for(let i=0;i<L2.length;i+=300){const b=S.db.batch();L2.slice(i,i+300).forEach((c,k)=>{const patch={boy:to,seq:base+(i+k+1)*10,boyWas:from,boyAt:todayISO()};S.customers[c.id]={...S.customers[c.id],...patch};b.set(S.db.doc('customers/'+c.id),patch,{merge:true})});await b.commit()}
@@ -280,7 +285,7 @@ function lvSheet(){const L2=leaves().slice().sort((a,b)=>a.from<b.from?1:-1);con
   const s=$('#lvS');s.onchange=()=>{$('#lvOw').hidden=s.value!=='__'}}
 const lvBan=()=>{if(!isOwner()||!window.leaveNow)return '';const t=todayISO();const L2=leaveNow().filter(x=>x.from<=addDays(t,1));if(!L2.length)return '';
   return `<button type="button" class="of-ban" data-act="lvOpen">🏖 ${L2.map(x=>`<b>${esc(x.boy)}</b> chhutti pe (${fmtShort(x.from)} – ${fmtShort(x.to)}), kaam <b>${esc(x.sub)}</b> kar raha hai`).join(' · ')}</button>`};
-const _h=vHome;vHome=function(){const o=_h();return o&&typeof o.html==='string'?{...o,html:lvBan()+o.html}:o};
+const _h=vHome;vHome=function(){const o=_h();if(!isOwner()||!window.leaveNow)return o;const t=todayISO();const L3=leaveNow().filter(x=>x.from<=addDays(t,1));return homeAlert(o,L3.map(x=>alRow('y',`<b>${esc(x.boy)}</b> chhutti pe (${fmtShort(x.from)} – ${fmtShort(x.to)}), kaam <b>${esc(x.sub)}</b> kar raha hai`,'lvOpen')).join(''))};
 const _t=window.EXTRA_VIEWS.team;window.EXTRA_VIEWS.team=()=>{const o=_t();return o&&typeof o.html==='string'?{...o,html:lvBan()+o.html}:o};
 Object.assign(A,{
   lvOpen(){if(!isOwner())return toast('Sirf owner / office kar sakta hai');if(!boys().length)return toast('Pehle koi boy jodo');lvSheet()},

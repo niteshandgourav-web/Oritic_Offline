@@ -27,6 +27,7 @@ tr.cu-off td,tr.cu-quiet td{background:transparent}
 document.head.appendChild(css);
 const OUT={talk_yes:'Baat hui · chalu karna hai',talk_later:'Baat hui · abhi nahi, baad me',talk_no:'Baat hui · band hi rakhna hai',noans:'Phone nahi uthaya',wrong:'Number galat / band',offer:'Offer diya, soch ke batayenge',other:'Kuch aur'};
 const WHY={away:'Bahar gaye / chhutti',price:'Rate zyada laga',quality:'Doodh ki quality',late:'Delivery late / miss',other_vendor:'Doosre se lene lage',noneed:'Zaroorat nahi rahi',pay:'Payment ka jhagda',unknown:'Pata nahi',other:'Kuch aur'};
+const dLocal=t=>{const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const qDays=()=>Math.max(2,Math.round(+settings().quietDays||7));
 const autoOn=()=>settings().quietAuto!==false;
 const callsOf=c=>Array.isArray(c&&c.calls)?c.calls:[];
@@ -61,16 +62,16 @@ function permSheet(){const st=settings();const L2=(Array.isArray(st.staff)?st.st
 /* ---------- follow-up list ---------- */
 function fuData(){const t=todayISO();const cs=Object.values(S.customers).filter(c=>lastDel(c));const out={neu:[],due:[],wait:[],lost:[]};
   cs.forEach(c=>{const q=quietOf(c);const lc=lastCall(c);const paused=c.status!=='active';if(!q&&!paused)return;
-    const since=paused?(c.pausedAuto&&c.pausedAuto.at)||'':'';const after=lc&&(!since||new Date(lc.t).toISOString().slice(0,10)>=since);
+    const since=paused?(c.pausedAuto&&c.pausedAuto.at)||'':'';const after=lc&&(!since||dLocal(lc.t)>=since);
     const o={c,q,lc,ld:lastDel(c),auto:!!c.pausedAuto,bal:Math.round(balanceUpto(c,null))};
     if(c.lost)out.lost.push(o);else if(lc&&lc.next&&lc.next<=t)out.due.push(o);else if(!lc||(q&&!after)||(c.pausedAuto&&!after))out.neu.push(o);else out.wait.push(o)});
   const byLd=(a,b)=>a.ld<b.ld?1:-1;out.neu.sort(byLd);out.due.sort((a,b)=>a.lc.next<b.lc.next?-1:1);out.wait.sort(byLd);out.lost.sort(byLd);return out}
-function callStats(){const t=todayISO(),w=addDays(t,-6);const by={};Object.values(S.customers).forEach(c=>callsOf(c).forEach(x=>{const d=new Date(x.t).toISOString().slice(0,10);const o=by[x.by||'—']||(by[x.by||'—']={today:0,week:0,won:0});if(d===t)o.today++;if(d>=w)o.week++;if(d>=w&&x.out==='talk_yes')o.won++}));return by}
+function callStats(){const t=todayISO(),w=addDays(t,-6);const by={};Object.values(S.customers).forEach(c=>callsOf(c).forEach(x=>{const d=dLocal(x.t);const o=by[x.by||'—']||(by[x.by||'—']={today:0,week:0,won:0});if(d===t)o.today++;if(d>=w)o.week++;if(d>=w&&x.out==='talk_yes')o.won++}));return by}
 const dAgo=d=>{if(!d)return '';const n=Math.round((new Date(todayISO())-new Date(d))/864e5);return n<=0?'aaj':n===1?'kal':n+' din pehle'};
 function card(o,cls){const c=o.c,lc=o.lc;const ord=PRODUCTS.filter(p=>+(c.order&&c.order[p.k])>0).map(p=>L(c.order[p.k])+'L '+(p.k==='desi'?'Gir':p.sh)).join(' + ')||'—';
   return `<div class="fu-card ${cls}"><div class="fu-top"><b data-cu="${c.id}">${esc(c.name)}</b>${window.phc?phc(c):''}<span class="badge ${c.status==='active'?'r':'y'}">${c.status==='active'?'Silent · '+o.q+' din':o.auto?'Apne aap Paused':'Paused'}</span>${c.lost?'<span class="badge n">Chhod gaye</span>':''}</div>
    <div class="fu-meta">${esc(c.area||'area nahi')} · Boy: <b>${esc(c.boy||'—')}</b> · aakhri doodh <b>${fmtShort(o.ld)}</b> (${dAgo(o.ld)}) · lete the ${esc(ord)}${o.bal>0?` · baki <b style="color:var(--danger)">${inr(o.bal)}</b>`:''}</div>
-   ${lc?`<div class="fu-last"><b>${esc(OUT[lc.out]||lc.out)}</b>${lc.why?' · '+esc(WHY[lc.why]||lc.why):''}${lc.rate?' · '+'★'.repeat(lc.rate):''}${lc.note?' · “'+esc(lc.note)+'”':''}<br><small class="muted">${esc(lc.by||'')} · ${dAgo(new Date(lc.t).toISOString().slice(0,10))}${lc.next?' · agla call '+fmtShort(lc.next):''} · kul ${callsOf(c).length} call</small></div>`:'<div class="fu-last muted">Abhi tak kisi ne call nahi kiya.</div>'}
+   ${lc?`<div class="fu-last"><b>${esc(OUT[lc.out]||lc.out)}</b>${lc.why?' · '+esc(WHY[lc.why]||lc.why):''}${lc.rate?' · '+'★'.repeat(lc.rate):''}${lc.note?' · “'+esc(lc.note)+'”':''}<br><small class="muted">${esc(lc.by||'')} · ${dAgo(dLocal(lc.t))}${lc.next?' · agla call '+fmtShort(lc.next):''} · kul ${callsOf(c).length} call</small></div>`:'<div class="fu-last muted">Abhi tak kisi ne call nahi kiya.</div>'}
    <div class="fu-acts">${c.phone?`<a class="btn sm o" href="tel:${esc(c.phone)}">📞 Call</a><a class="btn sm o" href="https://wa.me/91${esc(c.phone)}" target="_blank" rel="noopener">WhatsApp</a>`:''}<button type="button" class="btn sm p" data-act="fuNote" data-id="${c.id}">✍ Call note likho</button><button type="button" class="btn sm o" data-act="fuLog" data-id="${c.id}">History</button>${c.status!=='active'?`<button type="button" class="btn sm o" data-act="fuResume" data-id="${c.id}">Chalu karo</button>`:`<button type="button" class="btn sm o" data-act="fuPause" data-id="${c.id}">Pause karo</button>`}</div></div>`}
 function vFollow(){const D=fuData();const tab=S.fu||'neu';const T=[['neu','Naye · call karo',D.neu],['due','Aaj dobara call',D.due],['wait','Call ho chuka',D.wait],['lost','Chhod gaye',D.lost]];const cur=T.find(x=>x[0]===tab)||T[0];
   const st=callStats();const me=st[S.me]||{today:0,week:0,won:0};const all=Object.values(st).reduce((a,o)=>({today:a.today+o.today,week:a.week+o.week,won:a.won+o.won}),{today:0,week:0,won:0});
@@ -126,9 +127,12 @@ async function autoPause(){if(!S.ready||!isOwner()||!canWrite()||!autoOn())retur
   const L2=Object.values(S.customers).filter(c=>quietOf(c));if(!L2.length)return;
   for(let i=0;i<L2.length;i+=300){const b=S.db.batch();L2.slice(i,i+300).forEach(c=>{const p={status:'paused',pausedAuto:{at:t,last:lastDel(c),days:quietOf(c)}};b.set(S.db.doc('customers/'+c.id),p,{merge:true});S.customers[c.id]={...c,...p}});await b.commit()}
   render();toast(L2.length+' customer '+qDays()+' din se doodh nahi le rahe · Follow-up me dekho')}
+/* bottle wapas: hisab se zyada likhi to chetavni (rokte nahi, kyunki purani bottles ka hisab panel me nahi bhi ho sakta) */
+window.brWarn=(c,old,row)=>{if(typeof bottleBal!=='function')return;const had=bottleBal(c)-((+(old&&old.bo)||0)-(+(old&&old.br)||0));const left=had+(+row.bo||0)-(+row.br||0);
+  if(left<0)setTimeout(()=>toast('Dhyan: hisab me '+c.name+' ke paas '+Math.max(0,had+(+row.bo||0))+' bottle thi, '+row.br+' wapas likhi. Ginti dobara dekh lo'),400)};
 const _ar=window.afterRender;window.afterRender=()=>{if(_ar)_ar();setTimeout(autoPause,1500)};
 
 const ban=()=>{if(!isOwner())return '';const D=fuData();const n=D.neu.length+D.due.length;return n?`<button type="button" class="of-ban" style="background:var(--danger-soft);color:var(--danger);border-color:var(--danger)" data-act="go" data-r="follow">📞 <b>${n} customers</b> ko call karna hai (doodh band hai). <u>Follow-up kholo</u></button>`:''};
-const _h=vHome;vHome=function(){const o=_h();return o&&typeof o.html==='string'?{...o,html:ban()+o.html}:o};
+const _h=vHome;vHome=function(){const o=_h();if(!isOwner())return o;const D=fuData();const n=D.neu.length+D.due.length;return homeAlert(o,n?alRow('r',`<b>${n} customers</b> ko call karna hai (doodh band hai)`,'go','follow'):'')};
 const _c=vCustomers;vCustomers=function(){const o=_c();return o&&typeof o.html==='string'&&isOwner()?{...o,html:`<div class="fu-leg"><span><i class="cu-quiet"></i>Silent: ${qDays()} din se doodh nahi</span><span><i class="cu-off"></i>Paused / band</span><span><i style="background:var(--surface)"></i>Chalu</span></div>`+o.html}:o};
 })();

@@ -443,6 +443,8 @@ const cleanPhone=p=>{const d=String(p||'').replace(/\D/g,'');return d.length>10?
 const canWrite=()=>!!(S.db&&S.role);
 const MOBILE_NAV=()=>S.role==='owner'?['sheet','customers','payments','bills']:['today','customers','payments','bottles'];
 const isOwner=()=>S.role==='owner';
+/* boy ko sirf apne customers: apna route, ya jiska kaam wo chhutti me sambhal raha hai */
+const mineC=c=>isOwner()||(!!c&&!!S.me&&(c.boy===S.me||(!!window.coverFor&&coverFor(c.boy,todayISO())===S.me)));
 /* owner khud, ya office staff jise "Poora access" diya ho: Settings, team, PIN, bill format */
 const isAdmin=()=>S.role==='owner'&&(S.me==='Owner'||!!(((settings().team||{})[S.me]||{}).full));
 const visibleRoutes=()=>isOwner()?ROUTES.filter(r=>!r.hide&&(!window.canRoute||canRoute(r.id))):ROUTES.filter(r=>['today','customers','payments','bottles','odo'].includes(r.id));
@@ -713,9 +715,9 @@ function vToday(){
 /* ---- Customers ---- */
 function vCustomers(){
   const q=S.cq.trim().toLowerCase();
-  let all=Object.values(S.customers);
+  let all=Object.values(S.customers).filter(mineC);
   const nAct=all.filter(c=>c.status==='active').length;
-  let list=all.filter(c=>(S.cboy==='all'||c.boy===S.cboy)&&(S.cstatus==='all'||(S.cstatus==='active'?c.status==='active':c.status!=='active'))&&(!q||(c.name+' '+c.phone+' '+(c.area||'')+' '+(c.address||'')).toLowerCase().includes(q)));
+  let list=all.filter(c=>(!isOwner()||S.cboy==='all'||c.boy===S.cboy)&&(S.cstatus==='all'||(S.cstatus==='active'?c.status==='active':c.status!=='active'))&&(!q||(c.name+' '+c.phone+' '+(c.area||'')+' '+(c.address||'')).toLowerCase().includes(q)));
   const byRoute=S.csort!=='az';const pos={};
   if(byRoute){const g={};all.forEach(c=>(g[c.boy||'']=g[c.boy||'']||[]).push(c));Object.values(g).forEach(arr=>arr.sort((a,b)=>((a.seq??9999)-(b.seq??9999))||a.name.localeCompare(b.name)).forEach((c,i)=>pos[c.id]=i+1));
     list.sort((a,b)=>(a.boy||'').localeCompare(b.boy||'')||(pos[a.id]-pos[b.id]))}
@@ -724,7 +726,7 @@ function vCustomers(){
   const html=`
   <div class="stack">
     <div class="search">${ICONS.search}<input class="input" placeholder="Naam, phone, area…" value="${esc(S.cq)}" data-act="cq"></div>
-    <div class="row sp wrap">${boyChips(S.cboy,'setCBoy')}<div class="seg">${[['active','Active'],['paused','Paused'],['all','Sab']].map(([v,l])=>`<button class="${S.cstatus===v?'on':''}" data-act="setCStatus" data-v="${v}">${l}</button>`).join('')}</div></div>
+    <div class="row sp wrap">${isOwner()?boyChips(S.cboy,'setCBoy'):''}<div class="seg">${[['active','Active'],['paused','Paused'],['all','Sab']].map(([v,l])=>`<button class="${S.cstatus===v?'on':''}" data-act="setCStatus" data-v="${v}">${l}</button>`).join('')}</div></div>
     <div class="row sp wrap"><div class="small muted">${list.length} dikh rahe · ${nAct} active · ${all.length-nAct} paused</div>
      <div class="row"><div class="seg">${[['route','Route order'],['az','Area / A–Z']].map(([v,l])=>`<button class="${(S.csort||'route')===v?'on':''}" data-act="setCSort" data-v="${v}">${l}</button>`).join('')}</div>
      <button class="btn sm o" data-act="routeOrder" data-b="${esc(S.cboy)}">⇅ Order badlo</button></div></div>
@@ -763,7 +765,7 @@ function vBills(){
 function vPayments(){
   const [mf,mt]=periodRange(S.pmonth,'full');
   const pq=(S.pq||'').trim().toLowerCase();
-  const list=Object.values(S.payments).filter(p=>p.date>=mf&&p.date<=mt&&(!pq||((S.customers[p.cid]||{}).name+' '+(p.note||'')).toLowerCase().includes(pq))).sort((a,b)=>b.date.localeCompare(a.date)||(b.t||0)-(a.t||0));
+  const list=Object.values(S.payments).filter(p=>p.date>=mf&&p.date<=mt&&(isOwner()||p.by===S.me||p.via===S.me||mineC(S.customers[p.cid]))&&(!pq||((S.customers[p.cid]||{}).name+' '+(p.note||'')).toLowerCase().includes(pq))).sort((a,b)=>b.date.localeCompare(a.date)||(b.t||0)-(a.t||0));
   const cash=sum(list.filter(p=>p.mode==='cash'),p=>p.amt),online=sum(list.filter(p=>p.mode!=='cash'),p=>p.amt);
   const html=`
   <div class="stack">
@@ -782,7 +784,7 @@ function vPayments(){
 function vBottles(){
   const q=S.bottleQ.trim().toLowerCase();
   const bal={};Object.values(S.customers).forEach(c=>bal[c.id]=bottleBal(c));
-  let list=Object.values(S.customers).filter(c=>q?(c.name+' '+(c.area||'')+' '+c.phone).toLowerCase().includes(q):bal[c.id]!==0);
+  let list=Object.values(S.customers).filter(mineC).filter(c=>q?(c.name+' '+(c.area||'')+' '+c.phone).toLowerCase().includes(q):bal[c.id]!==0);
   list.sort((a,b)=>bal[b.id]-bal[a.id]||a.name.localeCompare(b.name));
   const total=sum(Object.values(S.customers),c=>bal[c.id]);
   const html=`
@@ -863,6 +865,7 @@ function readRowSheet(){const q={};PRODUCTS.forEach(p=>q[p.k]=Math.max(0,+$('#q_
 function renderExtras(){liveTotal();const x=JSON.parse($('#shBody').dataset.extras||'[]');$('#xList').innerHTML=x.map((e,i)=>`<span class="badge n" style="font-size:13px;padding:6px 10px">${esc(e.n)} ${inr(e.a)} <button data-act="xDel" data-i="${i}" style="margin-left:4px;font-weight:800">×</button></span>`).join('')}
 
 function sheetCustomer(cid){
+  if(!mineC(S.customers[cid]))return toast('Ye customer aapke route ka nahi hai');
   const c=S.customers[cid];if(!c)return;
   const month=todayISO().slice(0,7);const b=billFor(c,month,'full');const bal=balanceUpto(c,null);
   const recent=deliveredRows(c.id,null,null).slice(-8).reverse();const rt=ratesOf(c);const o=orderOf(c);
@@ -969,7 +972,7 @@ function sheetPayment(cid){
   if(!c)bindPicker('#payQ','#payRes','#payCust')}
 function bindPicker(qSel,resSel,outSel,onPick){
   const inp=$(qSel),res=$(resSel);
-  const draw=()=>{const q=inp.value.trim().toLowerCase();const list=Object.values(S.customers).filter(c=>!q||(c.name+' '+c.phone+' '+(c.area||'')).toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name)).slice(0,30);
+  const draw=()=>{const q=inp.value.trim().toLowerCase();const list=Object.values(S.customers).filter(mineC).filter(c=>!q||(c.name+' '+c.phone+' '+(c.area||'')).toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name)).slice(0,30);
     res.innerHTML=list.map(c=>`<button class="item click" data-pick="${c.id}" style="padding:8px 12px"><div class="grow"><div class="t">${esc(c.name)}${window.phc?phc(c):''}</div><div class="s">${esc(c.area||'')} · ${esc(c.phone||'')}</div></div>${c.status!=='active'?'<span class="badge y">Paused</span>':''}</button>`).join('')||'<div class="empty small">Nahi mila</div>'};
   inp.addEventListener('input',draw);draw();
   res.addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if(!b)return;const c=S.customers[b.dataset.pick];if(onPick){onPick(c);return}
@@ -1049,7 +1052,8 @@ const A={
   mapFind(){const q=[$('#fAddress').value,$('#fArea').value].map(x=>x.trim()).filter(Boolean).join(', ');if(!q)return toast('Pehle address ya area likho');
     const a=document.createElement('a');a.href='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q+', Jaipur');a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();a.remove();toast('Maps me sahi jagah pe Share → Copy link karke yahan paste karo')},
   custDelAsk(d,el){$('#delWrap').innerHTML=`<span class="small muted">History bhi hat jayegi.</span><button class="btn d" data-act="custDel" data-id="${$('[data-act=custSave]').dataset.id}">Haan, delete</button><button class="btn o" data-act="editCustomer" data-id="${$('[data-act=custSave]').dataset.id}">Nahi</button>`},
-  custDel(d){if(!isAdmin())return toast('Customer delete sirf owner kar sakta hai. Aap Pause kar sakte ho');if(!canWrite())return;delete S.customers[d.id];closeSheet();render();queue('cust:'+d.id,()=>S.db.doc('customers/'+d.id).delete()).then(()=>toast('Customer delete ho gaya'))},
+  custDel(d){if(!isAdmin())return toast('Customer delete sirf owner kar sakta hai. Aap Pause kar sakte ho');
+    if((Object.keys(S.days).some(dd=>((S.days[dd].rows||{})[d.id]||{}).s==='d')||Object.values(S.payments).some(p=>p.cid===d.id)))return toast('Is customer ki purani delivery / payment hai, isliye delete nahi hota. Pause kar do, hisab bana rahega');if(!canWrite())return;delete S.customers[d.id];closeSheet();render();queue('cust:'+d.id,()=>S.db.doc('customers/'+d.id).delete()).then(()=>toast('Customer delete ho gaya'))},
   togglePause(d){if(!isOwner())return toast('Sirf owner kar sakta hai');const c=S.customers[d.id];saveCustomer({...c,status:c.status==='active'?'paused':'active'}).then(()=>sheetCustomer(d.id))},
   openBill(d){S.route==='bills'||true;sheetBill(d.id)},
   copy(d){copyText(d.t)},
@@ -1441,7 +1445,7 @@ document.addEventListener('input',e=>{const el=e.target;if(el.id!=='rtq')return;
   document.querySelectorAll('#rtList [data-rt]').forEach(x=>{const c=S.customers[x.dataset.cid];x.hidden=!!q&&!(c.name+' '+(c.phone||'')+' '+(c.area||'')+' '+(c.address||'')).toLowerCase().includes(q)})});
 
 /* --- Delivery boy: customer detail screen --- */
-function sheetDetail(cid){const c=S.customers[cid];if(!c)return;const r=rowOf(S.date,cid);const st=r?r.s:'p';const {q,x}=rowItems(c,r);
+function sheetDetail(cid){const c=S.customers[cid];if(!c)return;if(!mineC(c))return toast('Ye customer aapke route ka nahi hai');const r=rowOf(S.date,cid);const st=r?r.s:'p';const {q,x}=rowItems(c,r);
   const m=mapOf(c);const due=balanceUpto(c,null);const vs=varsOf(c);
   openSheet(c.name,`
     <div class="row wrap" style="margin-bottom:6px">${st==='d'?'<span class="badge g">Delivered</span>':st==='k'?'<span class="badge y">Skip</span>':'<span class="badge n">Pending</span>'}<span class="badge b">${esc(schedText(c).split(' (')[0].split(':')[0])}</span></div>
@@ -1540,6 +1544,7 @@ Object.assign(A,{
     if(n)b.commit().then(()=>toast('Order save ho gaya, sabko dikhega')).catch(e=>toast('Save nahi hua: '+(e&&e.message||e)));else toast('Order save');S.rt0=S.rt.slice();closeSheet();render()},
   dSave(d){const c=S.customers[d.id];if(!c)return;const r=rowOf(S.date,d.id);const {q,x}=rowItems(c,r);
     const row=keepPl(makeRow(c,d.s,q,d.s==='k'?[]:x,r&&r.n,S.me),r);const br=readBr('dBr');if(br)Object.assign(row,br);
+    if(br&&window.brWarn)brWarn(c,r,row);
     writeRows(S.date,{[d.id]:row});closeSheet();toast(d.s==='d'?c.name+': delivered':d.s==='k'?c.name+': skip':'Wapas pending')},
   dCmSave(d){const t=$('#dCm').value.trim();if(!t)return toast('Comment likho');addVar(d.id,{t,till:addDays(todayISO(),1),src:'field'});const bs=$('#dBrS').value,bb=$('#dBrB').value;toast('Comment office tak pahunch gaya');sheetDetail(d.id);$('#dBrS').value=bs;$('#dBrB').value=bb},
   xlsx(d){toast('Excel ban raha hai…');exportXlsx(d.d||addDays(todayISO(),1))}
