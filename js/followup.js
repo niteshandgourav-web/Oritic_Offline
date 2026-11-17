@@ -48,9 +48,9 @@ window.quietOf=quietOf;
 window.custTone=c=>!c?'':c.status!=='active'?'cu-off':quietOf(c)?'cu-quiet':'';
 
 /* ---------- office access ---------- */
-const PERM=[['sheet','Delivery sheet','Delivery sheet aur Kal ki delivery: order confirm, Diya / Skip. Sirf anubhavi log.'],
+const PERM=[['sheet','Delivery sheet (manager)','Delivery sheet, Kal ki delivery, Aaj list, customer ka order / rate / pause badalna, aur sales rep ke order approve karna. Tick hataoge to ye member sales rep ban jata hai: order le sakta hai, par wo manager ke approve karne pe hi sheet me jata hai.'],
  ['money','Paisa','Payments, Bills, Vasooli, Team & cash, Kharcha.'],['fix','Entry sudharna','Purani delivery entry ka rate / quantity / product badalna.']];
-const ROUTE_PERM={sheet:'sheet',plan:'sheet',payments:'money',bills:'money',dues:'money',team:'money',purchase:'money'};
+const ROUTE_PERM={sheet:'sheet',plan:'sheet',today:'sheet',payments:'money',bills:'money',dues:'money',team:'money',purchase:'money'};
 window.canDo=k=>{if(S.role!=='owner')return false;if(isAdmin())return true;const p=((settings().team||{})[S.me]||{}).perm||{};return p[k]!==false};
 window.canRoute=r=>{if(S.role!=='owner')return true;const k=ROUTE_PERM[r];return !k||canDo(k)};
 function permSheet(){const st=settings();const L2=(Array.isArray(st.staff)?st.staff:[]);

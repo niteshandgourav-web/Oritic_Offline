@@ -94,6 +94,14 @@ const GUIDE=[
    'Har customer ke saare call notes: card me "History", ya customer account me "Call notes".',
    '"👥 Kisne kitne call kiye" se dikhta hai kis office member ne aaj aur 7 din me kitne call kiye aur kitne customer wapas chalu hue.'],
   tips:['Kitne din me silent maanna hai: Follow-up → "⚙ Kitne din me silent" (sirf owner). Wahin chun sakte ho ki apne aap Pause ho ya sirf laal dikhe.','Customers list me rang: laal = silent, peela = Paused, safed = chalu.','Chhutti wale din (jis din kisi ko delivery nahi hui) ginti me nahi aate.']},
+ {id:'sales',t:'Sales rep ke order (manager approve karta hai)',where:'Menu → Naya order',steps:[
+   'Sales rep banana: Team & cash → "🔑 Office access" → us member ka "Delivery sheet (manager)" tick hata do. Ab wo Delivery sheet, Aaj list aur Kal ki delivery khol hi nahi sakta.',
+   'Sales rep "Naya order" se order leta hai, bilkul pehle jaisa. Save dabane pe order seedha sheet me nahi jata, manager ke paas "approval" me jata hai.',
+   'Manager (ya owner) ko Dashboard pe "naye order approve karne hain" dikhta hai. Kholo: har order me kisne liya, kya order hai, alag rate ho to laal me. Sahi ho to "✓ Approve": customer turant Delivery sheet me aa jata hai.',
+   'Galat ho to "Wapas karo" aur wajah likho. Sales rep ko "Mere bheje hue" me wajah dikhti hai.',
+   'Purane customer ka order badalna bhi isi tarah request banta hai. Approve hone tak purana order hi chalta hai.',
+   '"👥 Kisne kitne order liye": har member ke 7 din aur 30 din ke order, kitne approve hue, kitne wapas, kitne baaki.'],
+  tips:['Sales rep customer ka edit, rate, pause / resume, chhutti, grid save nahi kar sakta. Ye sab Delivery sheet ko badalte hain.','Sales rep apna order khud approve nahi kar sakta.','Manager ka apna liya order seedha chalu hota hai, par ginti me uska naam bhi aata hai.']},
  {id:'access',t:'Kaun kya kar sakta hai (Owner, Office, Delivery boy)',where:'Team & cash',steps:[
    'Owner: sab kuch. Naya boy / office member jodna, PIN dena, hatana, settings, backup, customer delete sirf owner karta hai.',
    'Office (manager): saare orders, customers, payments, bills, kharcha, Naya order, entry sudharna. Naya member nahi jod sakta, kisi ko hata nahi sakta, PIN aur settings nahi dekh sakta, customer delete nahi kar sakta (Pause kar sakta hai).',

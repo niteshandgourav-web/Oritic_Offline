@@ -52,7 +52,7 @@ function vNew(){if(!N)N=blank();const dr=defRates();const pm=products().filter(p
   const areas=[...new Set(Object.values(S.customers).map(c=>c.area).filter(Boolean))].sort();
   const F=(l,f,type,ph,x)=>`<div class="field"><label class="f">${l}</label><input class="input" data-no="${f}" type="${type||'text'}" value="${esc(N[f])}" placeholder="${ph||''}" ${x||''}></div>`;
   return {html:`
-   ${N.saved?`<div class="of-ok">✓ <b>${esc(N.saved.name)}</b> save ho gaya. ${fmtShort(N.saved.since)} se Delivery sheet me dikhega (${esc(N.saved.boy||'boy nahi chuna')}). <button type="button" class="btn xs o" data-act="noAc" data-id="${N.saved.id}">Account kholo</button></div>`:''}
+   ${N.saved&&N.saved.req?`<div class="of-ok">✓ <b>${esc(N.saved.name)}</b> ka order manager ko bhej diya. Approve hote hi Delivery sheet me aayega.</div>`:''}${N.saved&&!N.saved.req?`<div class="of-ok">✓ <b>${esc(N.saved.name)}</b> save ho gaya. ${fmtShort(N.saved.since)} se Delivery sheet me dikhega (${esc(N.saved.boy||'boy nahi chuna')}). <button type="button" class="btn xs o" data-act="noAc" data-id="${N.saved.id}">Account kholo</button></div>`:''}
    ${old?`<div class="of-ok">Purana customer khula hai: <b>${esc(old.name)}</b>. Save karne pe isi ka order badlega. <button type="button" class="btn xs o" data-act="noClear">Naya form</button></div>`:''}
    <div class="of-card"><div class="of-h">1 · Customer</div><div class="of-g">
      ${F('Mobile (pehle ye likho)','phone','tel','10 digit','inputmode="numeric" autocomplete="off"')}${F('Naam','name','text','Customer ka naam')}
@@ -174,6 +174,8 @@ Object.assign(A,{
         const to=addDays(N.since,td-1);body.trial={from:N.since,to,days:td,pct:tp,normal:rates};body.rates=tr;body.holds=[{from:addDays(to,1),to:'2099-12-31',note:'Trial khatam'}]}}
     /* start date aage ki hai to tab tak chhutti, taki pehle sheet me na aaye */
     const holds=(body.holds||[]).filter(h=>h.note!=='Shuru hone se pehle');if(old&&old.trial){body.trial=old.trial;body.rates=old.rates}if(N.since>addDays(today,1))holds.push({from:today,to:addDays(N.since,-1),note:'Shuru hone se pehle'});body.holds=holds;
+    if(window.needOk&&needOk()){const rid=await sendReq(old,body,N.since);if(!rid)return;N={...blank(),saved:{id:rid,name,since:N.since,boy:N.boy,req:1}};render();window.scrollTo(0,0);return toast(name+': manager ko approval ke liye bhej diya')}
+    if(!old)body.sale={by:S.me||'',t:Date.now(),type:'new',ok:1,okBy:S.me||'',okAt:Date.now()};else body.saleLog=[...(old.saleLog||[]),{by:S.me||'',t:Date.now(),type:'change',ok:1,okBy:S.me||'',okAt:Date.now()}].slice(-30);
     const id=await saveCustomer(body);if(!id)return;N={...blank(),saved:{id,name,since:N.since,boy:N.boy}};render();window.scrollTo(0,0);toast(name+' save ho gaya')},
   gpTab(d){S.gp=d.v;render()},
   gpSheet(d){S.pld=d.d;S.route='sheet';render();window.scrollTo(0,0)},
