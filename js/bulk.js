@@ -297,7 +297,7 @@ function vSheet(){
      <input type="date" class="input" style="width:auto;padding:6px 6px" value="${date}" data-shdate aria-label="Date chuno">
      <div class="seg">${[[-1,'Pichli'],[0,'Aaj ki'],[1,'Agli']].map(([k,l])=>`<button class="${date===addDays(pd,k)?'on':''}" data-act="shJump" data-n="${k}">${l}</button>`).join('')}</div>
      ${histOn?`<span class="row small muted" title="History column me kaunse 7 din dikhein">History <button class="btn xs o" data-act="plHist" data-n="-1" aria-label="Pichle 7 din">‹</button>${fmtShort(days[6])}–${fmtShort(days[0])}<button class="btn xs o" data-act="plHist" data-n="1" aria-label="Agle 7 din" ${S.plhe>=todayISO()?'disabled':''}>›</button></span>`:''}</div>
-    <div class="row wrap"><button class="btn sm p" data-act="plAll">Sab confirm karo</button><button class="btn sm o" data-act="shAllCK" title="Active customers confirm, inactive (jinka order nahi) skip">Active confirm + Inactive skip</button>${type!=='next'?`<button class="btn sm" data-act="shAllD">Baaki sab ✓ Diya</button>`:''}
+    <div class="row wrap"><button class="btn sm p" data-act="plAll">Sab confirm karo</button><button class="btn sm o" data-act="shAllCK" data-m="c" title="Sirf active customers (aur order wale inactive) confirm">Active confirm</button><button class="btn sm o" data-act="shAllCK" data-m="k" title="Jin inactive customers ka order nahi, unhe Skip">Inactive skip</button>${type!=='next'?`<button class="btn sm" data-act="shAllD">Baaki sab ✓ Diya</button>`:''}
      <button class="btn sm o" data-act="shLoad" title="Boy-wise: kaunsi kitni bottle aur saamaan load karna hai">Loading sheet</button><button class="btn sm o" data-act="shMore" title="Excel, ⚙ Columns, route order, compact rows" aria-label="Aur options: Excel, Columns, route order">⋯ Aur</button></div></div>
    ${pend.length?`<div class="pendbar">Pichli dates pe delivery ✓ nahi hui (bill me nahi judegi): ${pend.map(p=>`<button class="btn xs o" data-act="shGo" data-d="${p.d}">${fmtShort(p.d)} · ${p.n}</button>`).join('')}</div>`:''}
    <div class="shsum dt-${type}"><div id="plstrip">${plStrip(1)}</div></div>
@@ -450,13 +450,14 @@ A.plAll=async function(d,el){if(S.route!=='sheet')return _plAll(d,el);
   if(await commitRows(rows))toast(n+' confirm ho gaye')};
 
 /* ek button: active (aur order wale inactive) confirm, baaki inactive skip */
-A.shAllCK=async function(){const rows={};let nc=0,nk=0;
+A.shAllCK=async function(dd){const m=dd&&dd.m;const rows={};let nc=0,nk=0;
   Object.values(S.customers).filter(c=>(S.plboy==='all'||c.boy===S.plboy)&&existedOn(c,S.pld)).forEach(c=>{const r=rowOf(S.pld,c.id),dr=plDraft(c);if(r&&r.s==='d'&&!dr.dirty)return;
-    if(inPlan(c)){if(plConf(c)&&!dr.dirty)return;rows[c.id]=r&&r.s==='d'?(shBuild(c)||plBuild(c)):plBuild(c);nc++}
-    else{if(r&&r.s==='k')return;const row=makeRow(c,'k',null,[],(r&&r.n)||'Inactive');row.pl=1;rows[c.id]=row;nk++}});
+    if(inPlan(c)){if(m==='k')return;if(plConf(c)&&!dr.dirty)return;rows[c.id]=r&&r.s==='d'?(shBuild(c)||plBuild(c)):plBuild(c);nc++}
+    else{if(m==='c')return;if(r&&r.s==='k')return;const row=makeRow(c,'k',null,[],(r&&r.n)||'Inactive');row.pl=1;rows[c.id]=row;nk++}});
   if(!nc&&!nk)return toast('Sab pehle se ho chuke hain');
-  const ok=await confirmBox({title:`${fmtDate(S.pld)}: ${nc} confirm, ${nk} skip karein?`,html:`<b>${nc}</b> active customers ka order confirm hoga (jo quantity table me hai).<br><b>${nk}</b> inactive customers "Skip" honge.<div class="small muted" style="margin-top:6px">Jis inactive customer ka order likha hai wo skip nahi hoga, confirm hoga.</div>`,yes:'Haan, karo'});if(!ok)return;
-  if(await commitRows(rows))toast(nc+' confirm · '+nk+' skip')};
+  const ok=await confirmBox(m==='c'?{title:`${fmtDate(S.pld)}: ${nc} active customers confirm karein?`,html:'Jo quantity table me hai wahi jayegi. Jis inactive customer ka order likha hai wo bhi confirm hoga.',yes:'Haan, confirm'}
+    :{title:`${fmtDate(S.pld)}: ${nk} inactive customers Skip karein?`,html:'Jis inactive customer ka order likha hai wo skip nahi hoga.',yes:'Haan, skip'});if(!ok)return;
+  if(await commitRows(rows))toast(m==='c'?nc+' confirm':nk+' skip')};
 
 /* ================= Customers grid ================= */
 const CGCOLS=()=>[
