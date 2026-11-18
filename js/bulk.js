@@ -227,7 +227,7 @@ function shRow(c,n,X){const d=plDraft(c),r=rowOf(S.pld,c.id),st=shState(c),sv=S.
   const kgWarn=['paneer','ghee'].some(k=>+d.qty[k]>0&&!kgRate(c,k))?`<div class="small" style="color:var(--danger);margin-top:4px">Paneer/Ghee ka rate ₹0 hai. Settings me rate daalo.</div>`:'';
   const br=r?brSplit(r):{s:0,b:0};
   const cell={
-   qty:()=>X.pln.map(p=>{const v=+d.qty[p.k]||0;return `<td class="plq ${v>0?'has':''}"><input type="number" inputmode="decimal" min="0" step="${p.s}" value="${v>0?v:''}" placeholder="–" data-act="pqty" data-id="${c.id}" data-p="${p.k}" aria-label="${esc(c.name)} ${p.sh}"></td>`}).join(''),
+   qty:()=>X.pln.map(p=>{const v=+d.qty[p.k]||0;return `<td class="plq ${v>0?'has':''}" data-pk="${p.k}"><input type="number" inputmode="decimal" min="0" step="${p.s}" value="${v>0?v:''}" placeholder="–" data-act="pqty" data-id="${c.id}" data-p="${p.k}" aria-label="${esc(c.name)} ${p.sh}"></td>`}).join(''),
    pin:()=>X.pins.map(p=>{const e=d.x.find(x=>x.pid===p.id);const v=e?+e.qty||0:0;return `<td class="plq ${v>0?'has':''} ${e&&!+e.rate?'zero':''}"><input type="number" inputmode="decimal" min="0" step="any" value="${v>0?v:''}" placeholder="–" data-act="pxqty" data-id="${c.id}" data-pid="${esc(p.id)}" aria-label="${esc(c.name)} ${esc(p.n)}" title="${e?(+e.rate?'₹'+L(+e.rate)+' × '+L(v)+' = '+inr(e.a):'Rate ₹0 hai: Product master me rate daalo'):''}"></td>`}).join(''),
    bot:()=>`<td class="plh" id="plb_${c.id}">${btHtml(bottlesOf(d.qty))}</td>`,
    st:()=>`<td><span class="stp ${stc}">${lbl}</span>${btns}${by}${kgWarn}</td>`,
