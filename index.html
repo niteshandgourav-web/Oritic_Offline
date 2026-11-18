@@ -252,7 +252,7 @@ label.f{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-b
 .plq{padding:0!important}.plq input{display:block;width:100%;height:100%;min-height:58px;border:0;background:transparent;text-align:center;font:inherit;font-size:16px;font-weight:700;color:var(--fg);outline:none}.plq.has{background:var(--accent-soft)}.plq:focus-within{box-shadow:inset 0 0 0 2px var(--accent)}
 .plh{font-size:12px;line-height:1.5;color:var(--muted)}.plh b{color:var(--fg)}
 .plstrip{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:1px;background:var(--line2);border:1px solid var(--line2);border-radius:var(--r);overflow:hidden}
-.plt1{background:var(--surface);padding:10px 12px}.plt1 .k{font-size:12px;color:var(--muted);font-weight:600}.plt1 .v{font-size:20px;font-weight:800}.plt1.z .v{color:var(--line)}.plt1.wide{grid-column:span 2}
+.plt1{background:var(--surface);padding:10px 12px}.plt1 .k{font-size:12px;color:var(--muted);font-weight:600}.plt1 .v{font-size:20px;font-weight:800}.plt1.z .v{color:var(--line)}.plt1.wide{grid-column:span 2}.plt1 .v.sm{font-size:14px;line-height:1.35;font-weight:700}.plt1.plzr{text-align:left;border:0;font:inherit;color:inherit;cursor:pointer;box-shadow:inset 0 0 0 2px var(--danger)}.plt1.plzr .v{color:var(--danger)}
 
 /* ---- v3 additions ---- */
 .view.wide,.top-in.wide{max-width:none}
@@ -1013,7 +1013,7 @@ const A={
     if(plConf(c)&&!dr.dirty){writeRows(S.pld,{[c.id]:makeRow(c,'p')});delete S.pldr[S.pld+'|'+c.id];render();return}
     writeRows(S.pld,{[c.id]:plBuild(c)});dr.dirty=false;render()},
   plAll(d,el){if(el.dataset.c!=='1'){el.dataset.c='1';el.textContent='Pakka? Sab active customer confirm honge';setTimeout(()=>{if(el.isConnected){el.dataset.c='';el.textContent='Sab confirm karo'}},4000);return}
-    const rows={};plList().filter(c=>c.status==='active').forEach(c=>{const r=rowOf(S.pld,c.id);if(r&&r.s==='d')return;const dr=plDraft(c);if(plConf(c)&&!dr.dirty)return;rows[c.id]=plBuild(c);dr.dirty=false});
+    const rows={};plList().filter(inPlan).forEach(c=>{const r=rowOf(S.pld,c.id);if(r&&r.s==='d')return;const dr=plDraft(c);if(plConf(c)&&!dr.dirty)return;rows[c.id]=plBuild(c);dr.dirty=false});
     if(Object.keys(rows).length)writeRows(S.pld,rows);render();toast('Sab confirm ho gaye')},
   plVf(d){S.plvf=d.id;S.plxf='';render();setTimeout(()=>{const f=$('#pvt');if(f)f.focus()},30)},
   plVs(d){const t=$('#pvt').value.trim(),till=$('#pvd').value;if(!t){toast('Pehle comment likho');return}if(!till){toast('Kab tak ki tareekh chuno');return}
@@ -1151,6 +1151,25 @@ const dd=(a,b)=>Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/864
 /* variable comments: kabhi delete nahi hote. Date nikalne pe ya × dabane pe sirf panel se hat-te hain, history me rehte hain */
 const varsOf=c=>(c.vars||[]).map((v,i)=>({...v,_i:i})).filter(v=>!v.rm&&v.till>=todayISO());
 const plConf=c=>{const r=rowOf(S.pld,c.id);return !!r&&(r.s!=='p'||!!r.pl)};
+/* inactive customer ka us din ka order (likha / confirm / delivered) bhi ginti me aata hai */
+const inPlan=c=>{if(c.status==='active')return true;const d=plDraft(c);return d.why!=='skip'&&(PLN.some(p=>+d.qty[p.k]>0)||d.x.length>0)};window.inPlan=inPlan;
+/* saath ka saamaan: har order ki ek line (Paneer 100 g, Dahi ×2) */
+const xProd=e=>products().find(p=>p.id===e.pid)||findProd(e.base||String(e.n||'').replace(/\s*×.*$/,''));
+function sizeTxt(q,u){u=String(u||'').trim();const l=u.toLowerCase();
+  if(l==='kg')return q<1?Math.round(q*1000)+' g':L(q)+' kg';
+  if(['l','ltr','litre','liter'].includes(l))return q<1?Math.round(q*1000)+' ml':L(q)+' L';
+  if(['g','gm','gram','ml'].includes(l))return L(q)+' '+(l==='ml'?'ml':'g');
+  return u&&l!=='pc'&&l!=='pcs'?L(q)+' '+u:'×'+L(q)}
+function itemsOf(c){const d=plDraft(c),out=[];
+  ['paneer','ghee'].forEach(k=>{const v=+d.qty[k]||0;if(v>0)out.push({nm:k==='ghee'?'Ghee':'Paneer',q:v,u:'kg',kk:k,src:'q',zero:!kgRate(c,k),c})});
+  d.x.forEach(e=>{const p=xProd(e);const pu=String((p&&p.u)||'').toLowerCase();
+    const kk=p&&pu==='kg'&&window.kgId?(p.id===kgId('paneer')?'paneer':p.id===kgId('ghee')?'ghee':null):null;
+    const u=(p&&p.u)||(typeof e.u==='string'?e.u:'');const q=+e.qty||(typeof e.u!=='string'&&+e.u>0?+e.u:0)||1;
+    out.push({nm:kk?(kk==='ghee'?'Ghee':'Paneer'):(p?p.n:(e.base||e.n)),q,u,kk,src:'x',zero:!(+e.a)&&!e.free,c})});
+  return out}
+function itemSum(list){const G={};list.forEach(it=>{const k=it.nm+'|'+String(it.u).toLowerCase();const g=G[k]||(G[k]={nm:it.nm,u:it.u,n:0,q:0,sz:{}});g.n++;g.q+=it.q;const s=sizeTxt(it.q,it.u);g.sz[s]=(g.sz[s]||0)+1});return Object.values(G)}
+const itemTot=g=>g.nm+' '+sizeTxt(Math.round(g.q*1000)/1000,g.u)+(g.n>1?' ('+g.n+')':'');
+Object.assign(window,{itemsOf,itemSum,itemTot,sizeTxt});
 function saveCustField(id,patch){if(!canWrite()){toast('Aapko write permission nahi hai');return}
   S.customers[id]={...S.customers[id],...patch};queue('cust:'+id,()=>S.db.doc('customers/'+id).set(patch,{merge:true}))}
 function plDraft(c){
@@ -1170,11 +1189,14 @@ function plList(){const qq=S.plq.trim().toLowerCase();
   return Object.values(S.customers).filter(c=>(S.plst==='all'||(S.plst==='active')===(c.status==='active'))&&(S.plboy==='all'||c.boy===S.plboy)&&(!qq||(c.name+' '+c.phone).toLowerCase().includes(qq)))
    .sort((a,b)=>(a.boy||'').localeCompare(b.boy||'')||((a.seq??9999)-(b.seq??9999))||a.name.localeCompare(b.name))}
 function plValue(c){const d=plDraft(c),r=ratesOf(c);let a=0;PLN.forEach(p=>a+=(+d.qty[p.k]||0)*(p.u==='kg'?kgRate(c,p.k):(+r[p.k]||0)));d.x.forEach(e=>a+=+e.a||0);return Math.round(a*100)/100}
-function plStrip(sheet){const v=plList().filter(c=>c.status==='active');const t={},BT=btNew();let xc=0,done=0,bb=0,bs=0,val=0;
-  v.forEach(c=>{const d=plDraft(c);PLN.forEach(p=>t[p.k]=(t[p.k]||0)+(+d.qty[p.k]||0));xc+=d.x.length;if(plConf(c)&&!d.dirty)done++;const o=bottlesOf(d.qty);bb+=o.b;bs+=o.s;btAdd(BT,d.qty);val+=plValue(c)});
+function plStrip(sheet){const v=plList().filter(inPlan);const t={},BT=btNew(),pk={},IT=[];let done=0,bb=0,bs=0,val=0;
+  v.forEach(c=>{const d=plDraft(c);PLN.forEach(p=>t[p.k]=(t[p.k]||0)+(+d.qty[p.k]||0));IT.push(...itemsOf(c));if(plConf(c)&&!d.dirty)done++;const o=bottlesOf(d.qty);bb+=o.b;bs+=o.s;btAdd(BT,d.qty);val+=plValue(c)});
+  IT.forEach(i=>{if(!i.kk)return;pk[i.kk]=(pk[i.kk]||0)+1;if(i.src!=='q')t[i.kk]=Math.round(((t[i.kk]||0)+i.q)*1000)/1000});
+  const oth=itemSum(IT.filter(i=>!i.kk)),zn=IT.filter(i=>i.zero).length;
   const pct=v.length?Math.round(done/v.length*100):0;
-  return `<div class="plstrip">${PLN.map(p=>`<div class="plt1 ${t[p.k]?'':'z'}"><div class="k">${p.sh}</div><div class="v">${t[p.k]?fq(t[p.k],p.u):'–'}</div>${BT[p.k]&&(BT[p.k].b||BT[p.k].s)?`<div class="bsp">${btText(BT[p.k])}</div>`:''}</div>`).join('')}
-   <div class="plt1 ${xc?'':'z'}"><div class="k">Other</div><div class="v">${xc||'–'}</div></div>
+  return `<div class="plstrip">${PLN.map(p=>`<div class="plt1 ${t[p.k]?'':'z'}"><div class="k">${p.sh}</div><div class="v">${t[p.k]?fq(t[p.k],p.u):'–'}</div>${BT[p.k]&&(BT[p.k].b||BT[p.k].s)?`<div class="bsp">${btText(BT[p.k])}</div>`:''}${pk[p.k]?`<div class="bsp">${pk[p.k]} order</div>`:''}</div>`).join('')}
+   <div class="plt1 ${oth.length?'':'z'} ${oth.length>1?'wide':''}"><div class="k">Other</div><div class="v ${oth.length?'sm':''}">${oth.length?oth.map(g=>esc(itemTot(g))).join(' · '):'–'}</div></div>
+   ${sheet&&zn?`<button class="plt1 wide plzr" data-act="shF" data-v="zero" title="Jin items ka rate ₹0 hai, unhe dekho"><div class="k">Rate baaki (₹0)</div><div class="v sm">${zn} item · dekho ›</div></button>`:''}
    <div class="plt1 ${bb?'':'z'}"><div class="k">Bade bottle (1L)</div><div class="v">${bb||'–'}</div></div>
    <div class="plt1 ${bs?'':'z'}"><div class="k">Chhote bottle (½L)</div><div class="v">${bs||'–'}</div></div>
    <div class="plt1 wide ${val?'':'z'}"><div class="k">Order value (sale)</div><div class="v">${val?inr(val):'–'}</div></div>
@@ -1477,7 +1499,7 @@ async function exportXlsx(date){let XL;try{XL=await loadXLSX()}catch(e){toast(e.
   const oldP=S.pld,oldDr=S.pldr;S.pld=date;S.pldr=date===oldP?oldDr:{};
   const byBoy={},tot={},boyTot={};PLN.forEach(p=>tot[p.k]=0);let tb=0,ts=0,tv=0,tn=0;
   try{
-    Object.values(S.customers).filter(c=>c.status==='active').sort((a,b)=>(a.boy||'').localeCompare(b.boy||'')||((a.seq??9999)-(b.seq??9999))||a.name.localeCompare(b.name)).forEach(c=>{
+    Object.values(S.customers).filter(inPlan).sort((a,b)=>(a.boy||'').localeCompare(b.boy||'')||((a.seq??9999)-(b.seq??9999))||a.name.localeCompare(b.name)).forEach(c=>{
       const d=plDraft(c);if(!(PLN.some(p=>+d.qty[p.k]>0)||d.x.length))return;const o=bottlesOf(d.qty),v=plValue(c),b=c.boy||'—';
       const arr=byBoy[b]||(byBoy[b]=[]);const bt=boyTot[b]||(boyTot[b]={n:0,b:0,s:0,v:0});
       arr.push({'Seq':arr.length+1,'Customer':c.name,'Phone':c.phone||'','Makan':c.house||'','Address':[c.address,c.area].filter(Boolean).join(', '),'Landmark':c.landmark||'',

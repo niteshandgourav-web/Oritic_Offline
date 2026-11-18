@@ -32,17 +32,17 @@ function bsData(date){const cols=bsCols().filter(c=>c.on);const need=k=>cols.som
   const B=need('bal')&&window.allBalances?allBalances():null;const M=need('botOut')&&window.botAll?botAll():null;
   const by={};const o=S.pld,od=S.pldr;S.pld=date;S.pldr=date===o?od:{};
   try{
-    Object.values(S.customers).filter(c=>c.status==='active').sort((a,b)=>(a.boy||'').localeCompare(b.boy||'')||((a.seq??9999)-(b.seq??9999))||a.name.localeCompare(b.name)).forEach(c=>{
+    Object.values(S.customers).filter(c=>window.inPlan?inPlan(c):c.status==='active').sort((a,b)=>(a.boy||'').localeCompare(b.boy||'')||((a.seq??9999)-(b.seq??9999))||a.name.localeCompare(b.name)).forEach(c=>{
       const d=plDraft(c);if(!(PLN.some(p=>+d.qty[p.k]>0)||d.x.length))return;
-      const b=c.boy||'—';const g=by[b]||(by[b]={rows:[],tot:{},n:0,b1:0,bh:0,val:0});const bt=bottlesOf(d.qty),v=plValue(c);g.n++;
+      const b=c.boy||'—';const g=by[b]||(by[b]={rows:[],tot:{},n:0,b1:0,bh:0,val:0,it:[]});const its=window.itemsOf?itemsOf(c):[];g.it.push(...its);const bt=bottlesOf(d.qty),v=plValue(c);g.n++;
       const val={seq:g.n,name:c.name,phone:c.phone||'',house:c.house||'',addr:[c.address,c.area].filter(Boolean).join(', '),landmark:c.landmark||'',map:c.map||'',
-        b1:bt.b||'',bh:bt.s||'',other:d.x.map(e=>e.n).join(', '),val:v,bal:B?Math.round(B[c.id]||0):'',botOut:M&&M[c.id]?M[c.id].t||'':'',
+        b1:bt.b||'',bh:bt.s||'',other:window.itemsOf?its.filter(i=>i.src!=='q').map(i=>i.nm+' '+sizeTxt(i.q,i.u)).join(', '):d.x.map(e=>e.n).join(', '),val:v,bal:B?Math.round(B[c.id]||0):'',botOut:M&&M[c.id]?M[c.id].t||'':'',
         fix:c.notes||'',var:varsOf(c).map(x=>x.t).join(' | '),status:plConf(c)&&!d.dirty?'Haan':'Auto-fill',ret:'',pay:'',note:''};
       PLN.forEach(p=>{const q=+d.qty[p.k]||0;val['q_'+p.k]=q||'';g.tot[p.k]=(g.tot[p.k]||0)+q});g.b1+=bt.b;g.bh+=bt.s;g.val+=v;
       g.rows.push(cols.map(cl=>val[cl.k]))});
   }finally{S.pld=o;S.pldr=od}
   return {date,cols,by}}
-const sumLine=g=>[`${g.n} ghar`,...PLN.filter(p=>g.tot[p.k]>0).map(p=>p.sh+' '+fq(g.tot[p.k],p.u)),`1L bottle ${g.b1}`,`½L bottle ${g.bh}`].join(' · ');
+const sumLine=g=>[`${g.n} ghar`,...PLN.filter(p=>p.u==='L'&&g.tot[p.k]>0).map(p=>p.sh+' '+fq(g.tot[p.k],p.u)),`1L bottle ${g.b1}`,`½L bottle ${g.bh}`,...(g.it&&g.it.length?[`Saath me ${g.it.length} packet: `+itemSum(g.it).map(itemTot).join(', ')]:[])].join(' · ');
 const safeSheet=n=>String(n).replace(/[\[\]:*?\/\\]/g,'').slice(0,28)||'Boy';
 const fileName=(date,boy)=>`oritic-${date}-${String(boy).replace(/[^A-Za-z0-9ऀ-ॿ]+/g,'-').replace(/^-|-$/g,'')||'boy'}.xlsx`;
 async function bsBook(D,boy){const XL=await loadXLSX();const g=D.by[boy];if(!g)return null;

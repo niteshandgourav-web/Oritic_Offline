@@ -129,6 +129,11 @@ function confirmBox({title,html,yes='Haan',no='Rehne do',danger=false}){return n
   el.onclick=e=>{const b=e.target.closest('[data-cb]');if(b)done(b.dataset.cb==='1');else if(e.target===el)done(false)};
   setTimeout(()=>{const b=el.querySelector('[data-cb="1"]');if(b)b.focus()},30)})}
 window.confirmBox=confirmBox;
+/* inactive customer ka order confirm / deliver hua: poochho Active karna hai ya sirf is din ka (har customer + date pe ek baar) */
+async function askActive(c,row){if(!c||!row||row.s==='k'||!isOwner())return;const c0=S.customers[c.id];if(!c0||c0.status==='active')return;
+  const k=S.pld+'|'+c.id;S.askAct=S.askAct||{};if(S.askAct[k])return;S.askAct[k]=1;
+  const ok=await confirmBox({title:esc(c0.name)+' inactive hai. Active kar dein?',html:`${fmtDate(S.pld)} ka order save ho gaya hai.<div style="margin-top:8px"><b>Haan</b> = roz ki delivery fir se shuru (customer Active).<br><b>Nahi</b> = sirf is din ka order, customer inactive hi rahega.</div>`,yes:'Haan, Active karo',no:'Nahi, sirf is din ka'});
+  if(!ok)return;const c2=S.customers[c.id];if(!c2||c2.status==='active')return;await saveCustomer({...c2,status:'active'});toast(c2.name+' ab Active hai');render()}
 
 /* ================= Delivery sheet ================= */
 const dayType=d=>{const p=planDayISO();return d<p?'past':d===p?'cur':'next'};
@@ -137,7 +142,7 @@ const hasItems=c=>{const d=plDraft(c);return PLN.some(p=>+d.qty[p.k]>0)||d.x.len
 function shState(c){const r=rowOf(S.pld,c.id),d=plDraft(c);if(d.dirty)return 'dirty';if(r&&r.s==='d')return 'del';if(r&&r.s==='k')return 'skip';if(plConf(c))return 'conf';return 'todo'}
 /* customer us date pe juda tha ya nahi ("Customer kab se"), taaki naye customer purani dates pe pending na dikhen */
 const existedOn=(c,d)=>{const s=c.since||c.createdAt||'';return !s||s<=d};
-function shMatch(c,f){const s=shState(c);if(f==='all')return true;if(f==='todo')return s==='todo'||s==='dirty';if(f==='pend')return s!=='del'&&s!=='skip'&&hasItems(c)&&existedOn(c,S.pld);return s===f}
+function shMatch(c,f){const s=shState(c);if(f==='all')return true;if(f==='zero')return inPlan(c)&&itemsOf(c).some(i=>i.zero);if(f==='todo')return s==='todo'||s==='dirty';if(f==='pend')return s!=='del'&&s!=='skip'&&hasItems(c)&&existedOn(c,S.pld);return s===f}
 const qOf=x=>x&&x.s!=='k'?(x.q||{}):{};
 function diffText(c,a,b){const P=[];const stt=x=>!x?'pending':x.s==='d'?'delivered':x.s==='k'?'skip':(x.pl?'confirmed':'pending');
   if(stt(a)!==stt(b))P.push(stt(a)+' → '+stt(b));
@@ -166,7 +171,7 @@ function shBuild(c){const r=rowOf(S.pld,c.id);const b=plBuild(c);if(b.s==='k')re
   return row}
 function pastPending(){const p=planDayISO(),out=[];for(let i=1;i<=7;i++){const d=addDays(p,-i);if(d>todayISO())continue;const day=S.days[d];
   if(!day||!Object.values(day.rows||{}).some(r=>r.s==='d'))continue;
-  const n=todaysList(d,'all').filter(({c,r})=>c.status==='active'&&(!r||r.s==='p')&&existedOn(c,d)).length;if(n)out.push({d,n})}return out}
+  const n=todaysList(d,'all').filter(({c,r})=>(c.status==='active'?(!r||r.s==='p'):!!(r&&r.s==='p'&&r.pl))&&existedOn(c,d)).length;if(n)out.push({d,n})}return out}
 
 /* ---- v3 look ---- */
 const stS=document.createElement('style');stS.textContent=`
@@ -189,7 +194,7 @@ const stS=document.createElement('style');stS.textContent=`
 .shbox{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}.shtool .stbox{padding:5px 12px;font-size:13px;border-radius:999px}
 .shsum .plstrip{grid-template-columns:repeat(auto-fit,minmax(84px,1fr))}.shsum .plt1{padding:6px 10px}.shsum .plt1 .k{font-size:11.5px}.shsum .plt1 .v{font-size:17px;line-height:1.3}
 .shw{max-height:calc(100vh - 210px)}
-.ldgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px}.ldcard{border:1px solid var(--line2);border-radius:var(--r);padding:12px;background:var(--surface)}.ldcard h3{margin:0 0 6px}.ldx{font-size:13px;margin-top:8px;line-height:1.6}
+.ldgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px}.ldcard{border:1px solid var(--line2);border-radius:var(--r);padding:12px;background:var(--surface)}.ldcard h3{margin:0 0 6px}.ldx{font-size:13px;margin-top:8px;line-height:1.6}.ldx>div{padding-left:2px}
 label.chip{display:inline-flex;gap:6px;align-items:center;cursor:pointer}
 `;document.head.appendChild(stS);
 
@@ -242,7 +247,7 @@ function shRow(c,n,X){const d=plDraft(c),r=rowOf(S.pld,c.id),st=shState(c),sv=S.
   return `<tr data-row="${c.id}" class="${st} ${c.status!=='active'?'inact':''} ${S.sel.has(c.id)?'sel':''} ${sv==='ok'?'flashok':''}">
    <td class="s1"><input type="checkbox" data-shsel="${c.id}" ${S.sel.has(c.id)?'checked':''} aria-label="Chuno"></td>
    <td class="s2 plc">${ck}<div class="small muted">${n}</div></td>
-   <td class="s3"><b class="plname shname" data-dbl="${c.id}" title="Double click: poora account">${esc(c.name)}</b>${c.schedule==='alternate'?' <span class="badge b">Alt</span>':''}${c.status!=='active'?' <span class="badge y">Inactive</span>':''}${over?` <span class="badge r" title="Udhaar limit ${inr(X.lim)} se zyada">baki ${inr(X.bal[c.id])}</span>`:''}
+   <td class="s3"><b class="plname shname" data-dbl="${c.id}" title="Double click: poora account">${esc(c.name)}</b>${c.schedule==='alternate'?' <span class="badge b">Alt</span>':''}${c.status!=='active'?(hasItems(c)?' <span class="badge y" title="Customer inactive hai, par is din ka order hai: ginti me aata hai">Inactive · order hai</span>':' <span class="badge y">Inactive</span>'):''}${over?` <span class="badge r" title="Udhaar limit ${inr(X.lim)} se zyada">baki ${inr(X.bal[c.id])}</span>`:''}
      <div class="shsub">${esc(c.area||'—')} · <b>${esc(c.boy||'—')}</b></div><div><button class="plph" data-act="plCopy" data-id="${c.id}">${esc(c.phone||'—')} ⧉</button></div>${flag?`<div class="plflag">${flag}</div>`:''}</td>
    ${X.cols.map(k=>cell[k]()).join('')}</tr>`}
 function shLayout(X,allOn){const W=[36,46,X.dense?184:214],H=[`<input type="checkbox" data-shall ${allOn?'checked':''} aria-label="Sab chuno">`,'✓','Customer'];
@@ -264,8 +269,9 @@ function vSheet(){
   if(!isOwner())return vToday();
   const date=S.pld,type=dayType(date),pd=planDayISO();
   const all=plList();const cnt={todo:0,conf:0,del:0,skip:0,dirty:0,pend:0};
-  all.forEach(c=>{const s=shState(c);if(c.status==='active'||s==='dirty')cnt[s]++;if(c.status==='active'&&shMatch(c,'pend'))cnt.pend++});
+  all.forEach(c=>{const s=shState(c);const ip=inPlan(c);if(ip||s==='dirty')cnt[s]++;if(ip&&shMatch(c,'pend'))cnt.pend++});
   const fl=type==='next'?[['all','Sab'],['todo','Confirm baaki'],['conf','Confirmed']]:type==='cur'?[['all','Sab'],['todo','Confirm baaki'],['conf','Delivery baaki'],['del','Delivered'],['skip','Skip']]:[['all','Sab'],['pend','Pending'],['del','Delivered'],['skip','Skip']];
+  if(all.some(c=>shMatch(c,'zero')))fl.push(['zero','Rate baaki ₹0']);
   if(!fl.some(x=>x[0]===S.shf))S.shf='all';
   const list=all.filter(c=>shMatch(c,S.shf));S.shList=list.map(c=>c.id);
   for(const id of [...S.sel])if(!S.customers[id])S.sel.delete(id);
@@ -274,9 +280,9 @@ function vSheet(){
   X.pinOn=cols.includes('pin')&&X.pins.length>0;X.pinIds=new Set(X.pins.map(p=>p.id));
   const days=X.days;const allOn=list.length&&list.every(c=>S.sel.has(c.id));
   const {W,H}=shLayout(X,allOn);const NC=W.length;
-  const G={};list.forEach(c=>{const g=G[c.boy||'—']||(G[c.boy||'—']={n:0,ok:0,q:{}});g.n++;const s=shState(c);if(s==='conf'||s==='del'||s==='skip')g.ok++;const d=plDraft(c);PRODUCTS.forEach(p=>g.q[p.k]=(g.q[p.k]||0)+(+d.qty[p.k]||0))});
+  const G={};list.forEach(c=>{const g=G[c.boy||'—']||(G[c.boy||'—']={n:0,ok:0,q:{},it:[]});g.n++;const s=shState(c);if(s==='conf'||s==='del'||s==='skip')g.ok++;const d=plDraft(c);PRODUCTS.forEach(p=>g.q[p.k]=(g.q[p.k]||0)+(+d.qty[p.k]||0));if(inPlan(c))g.it.push(...itemsOf(c))});
   let body='',lastBoy=null,n=0;
-  list.forEach(c=>{if(c.boy!==lastBoy){lastBoy=c.boy;const g=G[c.boy||'—'];body+=`<tr class="grp"><td colspan="${NC}"><span class="grpin"><b>${esc(c.boy||'—')}</b><span class="grpinfo">${g.n} ghar · ${g.ok}/${g.n} confirm${PRODUCTS.filter(p=>g.q[p.k]>0).map(p=>' · '+(p.k==='desi'?'Gir':p.sh)+' '+L(g.q[p.k])+'L').join('')}</span></span></td></tr>`}body+=shRow(c,++n,X)});
+  list.forEach(c=>{if(c.boy!==lastBoy){lastBoy=c.boy;const g=G[c.boy||'—'];body+=`<tr class="grp"><td colspan="${NC}"><span class="grpin"><b>${esc(c.boy||'—')}</b><span class="grpinfo">${g.n} ghar · ${g.ok}/${g.n} confirm${PRODUCTS.filter(p=>g.q[p.k]>0).map(p=>' · '+(p.k==='desi'?'Gir':p.sh)+' '+L(g.q[p.k])+'L').join('')}${itemSum(g.it).map(x=>' · '+esc(itemTot(x))).join('')}</span></span></td></tr>`}body+=shRow(c,++n,X)});
   if(!list.length)body=`<tr><td colspan="${NC}"><div class="empty">Is filter me koi customer nahi.</div></td></tr>`;
   const todoN=cnt.todo+cnt.dirty;const pend=type==='past'?[]:pastPending();const dn=(S.days[date]||{}).dnote||{};
   const selN=[...S.sel].filter(id=>S.customers[id]).length;
@@ -344,21 +350,26 @@ document.addEventListener('keydown',e=>{const t=e.target;if(!t.dataset||t.datase
 
 /* ---- loading sheet: boy-wise kya load karna hai ---- */
 function loadData(){const by={};
-  Object.values(S.customers).forEach(c=>{const d=plDraft(c);if(d.why==='skip')return;if(!(PLN.some(p=>+d.qty[p.k]>0)||d.x.length))return;
-    const g=by[c.boy||'—']||(by[c.boy||'—']={n:0,BT:btNew(),L:{},kg:{},x:{}});g.n++;btAdd(g.BT,d.qty);PRODUCTS.forEach(p=>g.L[p.k]=(g.L[p.k]||0)+(+d.qty[p.k]||0));
-    ['paneer','ghee'].forEach(k=>{if(+d.qty[k]>0)g.kg[k]=(g.kg[k]||0)+(+d.qty[k])});
-    d.x.forEach(e=>{const nm=e.base||e.n;const u=(products().find(p=>p.id===e.pid)||{}).u||'';const o=g.x[nm]||(g.x[nm]={q:0,u});o.q+=+e.qty||1})});
-  const tot={n:0,BT:btNew(),L:{},kg:{},x:{}};
-  Object.values(by).forEach(g=>{tot.n+=g.n;PRODUCTS.forEach(p=>{tot.BT[p.k].b+=g.BT[p.k].b;tot.BT[p.k].s+=g.BT[p.k].s;tot.L[p.k]=(tot.L[p.k]||0)+(g.L[p.k]||0)});Object.keys(g.kg).forEach(k=>tot.kg[k]=(tot.kg[k]||0)+g.kg[k]);Object.keys(g.x).forEach(k=>{const o=tot.x[k]||(tot.x[k]={q:0,u:g.x[k].u});o.q+=g.x[k].q})});
+  Object.values(S.customers).sort((a,b)=>(a.boy||'').localeCompare(b.boy||'')||((a.seq??9999)-(b.seq??9999))||a.name.localeCompare(b.name)).forEach(c=>{const d=plDraft(c);if(d.why==='skip')return;if(!(PLN.some(p=>+d.qty[p.k]>0)||d.x.length))return;
+    const g=by[c.boy||'—']||(by[c.boy||'—']={n:0,BT:btNew(),L:{},it:[]});g.n++;btAdd(g.BT,d.qty);PRODUCTS.forEach(p=>g.L[p.k]=(g.L[p.k]||0)+(+d.qty[p.k]||0));
+    g.it.push(...itemsOf(c))});
+  const tot={n:0,BT:btNew(),L:{},it:[]};
+  Object.values(by).forEach(g=>{tot.n+=g.n;PRODUCTS.forEach(p=>{tot.BT[p.k].b+=g.BT[p.k].b;tot.BT[p.k].s+=g.BT[p.k].s;tot.L[p.k]=(tot.L[p.k]||0)+(g.L[p.k]||0)});tot.it.push(...g.it)});
   return {by,tot}}
-const loadExtra=g=>[...Object.entries(g.kg).map(([k,v])=>(k==='ghee'?'Ghee ':'Paneer ')+fq(v,'kg')),...Object.entries(g.x).map(([k,o])=>k+' × '+L(o.q)+(o.u?' '+o.u:''))];
-function loadHtml(D){const card=(title,g)=>`<div class="ldcard"><h3>${esc(title)} <span class="small muted">· ${g.n} ghar</span></h3><table class="tbl compact"><thead><tr><th>Doodh</th><th class="n">½L bottle</th><th class="n">1L bottle</th><th class="n">Litre</th></tr></thead><tbody>
+/* saath ka saamaan: boy ke card me har packet alag (kiska), "Sab milake" me size-wise ginti */
+const unitless=u=>{const l=String(u||'').trim().toLowerCase();return !l||l==='pc'||l==='pcs'};
+function loadLines(g,all){if(!g.it.length)return [];const G=itemSum(g.it),r2=v=>Math.round(v*1000)/1000;
+  if(all)return G.map(s=>({t:s.nm+': '+(unitless(s.u)?L(r2(s.q))+' ('+s.n+' order)':Object.entries(s.sz).map(([z,n])=>z+' × '+n).join(', ')+' = '+sizeTxt(r2(s.q),s.u)+' ('+s.n+' packet)')}));
+  return [...g.it.map(it=>({t:'• '+it.nm+' '+sizeTxt(it.q,it.u)+' · '+it.c.name})),...G.filter(s=>s.n>1).map(s=>({t:s.nm+' total '+sizeTxt(r2(s.q),s.u)+' ('+s.n+' packet)',b:1}))]}
+const loadExtra=(g,all)=>loadLines(g,all).map(x=>x.t);
+const loadXHtml=(g,all)=>{const ls=loadLines(g,all);return ls.length?`<div class="ldx"><b>Saath me (${g.it.length} packet):</b>${ls.map(x=>`<div${x.b?' style="font-weight:800"':''}>${esc(x.t)}</div>`).join('')}</div>`:''};
+function loadHtml(D){const card=(title,g,all)=>`<div class="ldcard"><h3>${esc(title)} <span class="small muted">· ${g.n} ghar</span></h3><table class="tbl compact"><thead><tr><th>Doodh</th><th class="n">½L bottle</th><th class="n">1L bottle</th><th class="n">Litre</th></tr></thead><tbody>
     ${PRODUCTS.filter(p=>g.L[p.k]>0).map(p=>`<tr><td><b>${BTN[p.k]||p.sh}</b></td><td class="n">${g.BT[p.k].s||'–'}</td><td class="n">${g.BT[p.k].b||'–'}</td><td class="n">${L(g.L[p.k])}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">Doodh nahi</td></tr>'}
     <tr style="font-weight:800"><td>Total</td><td class="n">${sum(PRODUCTS,p=>g.BT[p.k].s)}</td><td class="n">${sum(PRODUCTS,p=>g.BT[p.k].b)}</td><td class="n">${L(sum(PRODUCTS,p=>g.L[p.k]||0))}</td></tr></tbody></table>
-    ${loadExtra(g).length?`<div class="ldx"><b>Saath me:</b> ${loadExtra(g).map(esc).join(' · ')}</div>`:''}</div>`;
-  return `<div class="ldgrid">${card('Sab milake',D.tot)}${Object.keys(D.by).sort().map(b=>card(b,D.by[b])).join('')}</div>`}
-function loadText(D){const one=(title,g)=>{let t=`*${title}* (${g.n} ghar)\n`;PRODUCTS.filter(p=>g.L[p.k]>0).forEach(p=>t+=`${BTN[p.k]||p.sh}: ${L(g.L[p.k])}L = ${btText(g.BT[p.k])}\n`);const x=loadExtra(g);if(x.length)t+='Saath me: '+x.join(', ')+'\n';return t};
-  return `${settings().company||'Oritic'} · Loading · ${fmtDate(S.pld)}\n\n`+one('Sab milake',D.tot)+'\n'+Object.keys(D.by).sort().map(b=>one(b,D.by[b])).join('\n')}
+    ${loadXHtml(g,all)}</div>`;
+  return `<div class="ldgrid">${card('Sab milake',D.tot,1)}${Object.keys(D.by).sort().map(b=>card(b,D.by[b])).join('')}</div>`}
+function loadText(D){const one=(title,g,all)=>{let t=`*${title}* (${g.n} ghar)\n`;PRODUCTS.filter(p=>g.L[p.k]>0).forEach(p=>t+=`${BTN[p.k]||p.sh}: ${L(g.L[p.k])}L = ${btText(g.BT[p.k])}\n`);const x=loadExtra(g,all);if(x.length)t+=`Saath me (${g.it.length} packet):\n`+x.join('\n')+'\n';return t};
+  return `${settings().company||'Oritic'} · Loading · ${fmtDate(S.pld)}\n\n`+one('Sab milake',D.tot,1)+'\n'+Object.keys(D.by).sort().map(b=>one(b,D.by[b])).join('\n')}
 
 let shLast=null;
 document.addEventListener('click',e=>{
@@ -401,17 +412,17 @@ Object.assign(A,{
   shLoadPrint(){const w=window.open('','_blank');if(!w)return toast('Popup band hai. Browser me is site ke popup allow karo');
     w.document.write('<!doctype html><meta charset="utf-8"><title>Loading '+esc(S.pld)+'</title><style>body{font-family:system-ui,sans-serif;padding:16px}h2{margin:0 0 12px}.ldgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ldcard{border:1px solid #bbb;border-radius:8px;padding:10px;break-inside:avoid}h3{margin:0 0 6px}table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px solid #ddd;padding:5px 6px;text-align:left}.n{text-align:right}.muted{color:#666;font-weight:400}.ldx{margin-top:8px;font-size:13px}</style><h2>'+esc(settings().company||'Oritic')+' · Loading sheet · '+esc(fmtDate(S.pld))+'</h2>'+loadHtml(loadData()));w.document.close();setTimeout(()=>w.print(),300)},
   shSelClear(){S.sel.clear();render()},
-  async shOk(d){const c=S.customers[d.id];if(!c)return;const r=rowOf(S.pld,c.id),dr=plDraft(c);let row;
+  async shOk(d,el){const c=S.customers[d.id];if(!c)return;const r=rowOf(S.pld,c.id),dr=plDraft(c);let row;
     if(r&&r.s==='d'){if(!dr.dirty){toast('Delivered hai. Badalna hai to quantity badlo, ya ↺ dabao');return}row=shBuild(c);if(!row){toast('Quantity 0 hai. Skip dabao');return}}
     else if(plConf(c)&&!dr.dirty)row=makeRow(c,'p');
     else row=plBuild(c);
-    return commitRows({[c.id]:row})},
-  shD(d){const c=S.customers[d.id];if(!c)return;const r=rowOf(S.pld,c.id);if(r&&r.s==='d'&&!plDraft(c).dirty)return toast('Pehle se delivered hai');
-    const row=shBuild(c);if(!row)return toast('Quantity 0 hai. Skip dabao ya quantity likho');commitRows({[c.id]:row})},
+    const ok=await commitRows({[c.id]:row});if(ok&&el)askActive(c,row);return ok},
+  async shD(d,el){const c=S.customers[d.id];if(!c)return;const r=rowOf(S.pld,c.id);if(r&&r.s==='d'&&!plDraft(c).dirty)return toast('Pehle se delivered hai');
+    const row=shBuild(c);if(!row)return toast('Quantity 0 hai. Skip dabao ya quantity likho');const ok=await commitRows({[c.id]:row});if(ok&&el)askActive(c,row)},
   shK(d){const c=S.customers[d.id];if(!c)return;const r=rowOf(S.pld,c.id);if(r&&r.s==='k')return;const row=makeRow(c,'k',null,[],(r&&r.n)||'');row.pl=1;commitRows({[c.id]:row})},
   shP(d){const c=S.customers[d.id];if(!c)return;const r=rowOf(S.pld,c.id);if(!r)return;
     const row=r.s==='d'?makeRow(c,'p',r.q,r.x,r.n,r.by):makeRow(c,'p',orderOf(c),standingX(c),r.n,r.by);row.pl=1;commitRows({[c.id]:row})},
-  async shAllD(){const list=plList().filter(c=>c.status==='active'&&!['del','skip'].includes(shState(c))&&hasItems(c));if(!list.length)return toast('Koi pending delivery nahi');
+  async shAllD(){const list=plList().filter(c=>inPlan(c)&&!['del','skip'].includes(shState(c))&&hasItems(c));if(!list.length)return toast('Koi pending delivery nahi');
     if(dayType(S.pld)!=='past'){const ok=await confirmBox({title:`${list.length} customers ko ${fmtDate(S.pld)} ki delivery ✓ Diya karein?`,html:'Jo quantity table me hai, wahi bill me judegi.',yes:'Haan, sab ✓'});if(!ok)return}
     const rows={};list.forEach(c=>{const r=shBuild(c);if(r)rows[c.id]=r});if(await commitRows(rows))toast(Object.keys(rows).length+' deliveries ✓')},
   async shBulk(d){const ids=[...S.sel].filter(id=>S.customers[id]);if(!ids.length)return;const op=d.op;const cs=ids.map(id=>S.customers[id]);
@@ -433,7 +444,7 @@ Object.assign(A,{
 /* "Sab confirm karo" Delivery sheet me: ek popup, save status, pichli date pe badlav ka record */
 const _plAll=A.plAll;
 A.plAll=async function(d,el){if(S.route!=='sheet')return _plAll(d,el);
-  const rows={};plList().filter(c=>c.status==='active').forEach(c=>{const r=rowOf(S.pld,c.id),dr=plDraft(c);if(r&&r.s==='d'&&!dr.dirty)return;if(plConf(c)&&!dr.dirty)return;rows[c.id]=r&&r.s==='d'?(shBuild(c)||plBuild(c)):plBuild(c)});
+  const rows={};plList().filter(inPlan).forEach(c=>{const r=rowOf(S.pld,c.id),dr=plDraft(c);if(r&&r.s==='d'&&!dr.dirty)return;if(plConf(c)&&!dr.dirty)return;rows[c.id]=r&&r.s==='d'?(shBuild(c)||plBuild(c)):plBuild(c)});
   const n=Object.keys(rows).length;if(!n)return toast('Sab pehle se confirm hain');
   if(dayType(S.pld)!=='past'){const ok=await confirmBox({title:`${n} customers ke order confirm karein?`,html:`${fmtDate(S.pld)} · Jo quantity table me hai wahi jayegi. Quantity 0 wale "us din nahi" confirm honge.`,yes:'Haan, sab confirm'});if(!ok)return}
   if(await commitRows(rows))toast(n+' confirm ho gaye')};
